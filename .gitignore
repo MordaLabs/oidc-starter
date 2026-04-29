@@ -1,0 +1,29 @@
+# .NET
+bin/
+obj/
+.vs/
+
+# Node
+node_modules/
+npm-debug.log
+.angular/
+dist/
+coverage/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# User-specific
+*.user
+*.suo
+
+# Environment/local secrets if ever added later
+.env
+.env.*
+
+# Build/test artifacts
+TestResults/

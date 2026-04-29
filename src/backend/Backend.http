@@ -1,0 +1,6 @@
+@Backend_HostAddress = http://localhost:5184
+
+GET {{Backend_HostAddress}}/api/public/ping
+Accept: application/json
+
+###

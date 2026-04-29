@@ -1,0 +1,14 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: oidc-starter-keycloak
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm-import:/opt/keycloak/data/import:ro
+    environment:
+      # Local development credentials only.
+      KEYCLOAK_ADMIN: admin
+      # Local development credentials only.
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev --import-realm

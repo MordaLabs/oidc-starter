@@ -1,0 +1,51 @@
+<section class="card">
+  <div class="card-header">
+    <h2>Login</h2>
+
+    @if (service.authenticated()) {
+      <button type="button" class="button button-secondary" (click)="service.logout()">Logout</button>
+    } @else {
+      <button type="button" class="button" (click)="service.login()">Login</button>
+    }
+  </div>
+
+  <dl class="details">
+    <div>
+      <dt>Mode</dt>
+      <dd>{{ service.mode }}</dd>
+    </div>
+    <div>
+      <dt>Status</dt>
+      <dd>{{ service.isLoading() ? 'Checking backend session...' : service.statusMessage() }}</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>User info</h2>
+
+  @if (service.currentUser(); as user) {
+    <dl class="details">
+      <div>
+        <dt>Subject</dt>
+        <dd>{{ user.sub || 'n/a' }}</dd>
+      </div>
+      <div>
+        <dt>Name</dt>
+        <dd>{{ user.name || 'n/a' }}</dd>
+      </div>
+      <div>
+        <dt>Username</dt>
+        <dd>{{ user.username || 'n/a' }}</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{{ user.email || 'n/a' }}</dd>
+      </div>
+    </dl>
+  } @else if (service.isLoading()) {
+    <p class="status">Loading backend session...</p>
+  } @else {
+    <p class="status">{{ service.loggedOutMessage }}</p>
+  }
+</section>

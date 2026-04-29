@@ -1,0 +1,51 @@
+<main class="shell" [class.shell-spa]="authMode === 'spa'" [class.shell-bff]="authMode === 'bff'">
+  <section class="hero">
+    <p class="eyebrow">Angular starter</p>
+    <h1>{{ appName }}</h1>
+    <p class="lead">
+      @if (authMode === 'spa') {
+        Minimal Angular OIDC wiring against the local Keycloak realm using Authorization Code
+        Flow with PKCE.
+      } @else {
+        Minimal Angular shell using a backend-for-frontend session authentication flow.
+      }
+    </p>
+  </section>
+
+  <div class="auth-layout">
+    @if (authMode === 'spa') {
+      <app-spa-auth-view />
+    } @else {
+      <app-bff-auth-view />
+    }
+  </div>
+
+  <section class="card">
+    <h2>Backend ping</h2>
+
+    @if (pingResult(); as ping) {
+      <dl class="details">
+        <div>
+          <dt>Status</dt>
+          <dd>{{ ping.status }}</dd>
+        </div>
+        <div>
+          <dt>Application</dt>
+          <dd>{{ ping.applicationName }}</dd>
+        </div>
+        <div>
+          <dt>OIDC configured</dt>
+          <dd>{{ ping.oidcConfigured ? 'yes' : 'no' }}</dd>
+        </div>
+        <div>
+          <dt>Timestamp (UTC)</dt>
+          <dd>{{ ping.timestampUtc }}</dd>
+        </div>
+      </dl>
+    } @else if (errorMessage()) {
+      <p class="status error">{{ errorMessage() }}</p>
+    } @else {
+      <p class="status">Loading public ping endpoint...</p>
+    }
+  </section>
+</main>

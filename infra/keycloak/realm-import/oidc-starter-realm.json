@@ -1,0 +1,106 @@
+{
+  "id": "oidc-starter",
+  "realm": "oidc-starter",
+  "displayName": "OIDC Starter (Local Dev Only)",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": false,
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "oidc-starter-spa",
+      "name": "OIDC Starter SPA (Local Dev Only)",
+      "description": "Local development SPA client for oidc-starter.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "http://localhost:4200",
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "clientId": "oidc-starter-bff",
+      "name": "OIDC Starter BFF (Local Dev Only)",
+      "description": "Local development confidential client for oidc-starter.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "rootUrl": "https://localhost:7233",
+      "adminUrl": "https://localhost:7233",
+      "baseUrl": "https://localhost:7233",
+      "redirectUris": [
+        "https://localhost:7233/signin-oidc",
+		"https://localhost:7233/signout-callback-oidc"
+      ],
+      "webOrigins": [
+        "http://localhost:4200",
+        "https://localhost:7233"
+      ],
+      "secret": "ugVtPBJyldMnVuk38kxDZ9EYDwLwfBkg",
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "testuser@example.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test123",
+          "temporary": false
+        }
+      ],
+      "requiredActions": []
+    }
+  ]
+}

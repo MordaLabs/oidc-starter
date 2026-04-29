@@ -1,0 +1,47 @@
+<section class="card">
+  <div class="card-header">
+    <h2>Login</h2>
+
+    @if (service.authState().isAuthenticated) {
+      <button type="button" class="button button-secondary" (click)="service.logout()">Logout</button>
+    } @else {
+      <button type="button" class="button" (click)="service.login()">Login</button>
+    }
+  </div>
+
+  <dl class="details">
+    <div>
+      <dt>Mode</dt>
+      <dd>{{ service.mode }}</dd>
+    </div>
+    <div>
+      <dt>Authority</dt>
+      <dd>{{ service.oidcAuthority }}</dd>
+    </div>
+    <div>
+      <dt>Client ID</dt>
+      <dd>{{ service.oidcClientId }}</dd>
+    </div>
+    <div>
+      <dt>Redirect URI</dt>
+      <dd>{{ service.redirectUrl }}</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>User info</h2>
+
+  @if (service.authState().isAuthenticated && service.userClaims(); as claims) {
+    <dl class="details">
+      @for (claim of claims | keyvalue; track claim.key) {
+        <div>
+          <dt>{{ claim.key }}</dt>
+          <dd>{{ claim.value | json }}</dd>
+        </div>
+      }
+    </dl>
+  } @else {
+    <p class="status">{{ service.loggedOutMessage }}</p>
+  }
+</section>
