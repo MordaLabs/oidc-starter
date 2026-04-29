@@ -132,8 +132,7 @@ Expected result: the backend completes the OIDC flow, sets the local session coo
 
 ## Current Gaps Before Production-Hardening
 
-- Keycloak is automated for local development, but the checked-in realm import and credentials are
-  intentionally local-only.
+- Local Keycloak realm import is automated for development, but production-grade IdP provisioning is not addressed.
 - BFF cookie, CORS, and HTTPS settings are local-development oriented.
 - Client secrets are stored in development config and should move to user secrets or a secret store.
 - No roles, authorization policies, automated tests, packaging, or deployment setup are included yet.
