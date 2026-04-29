@@ -25,12 +25,11 @@ The development frontend currently defaults to `bff` mode in
 - .NET SDK 9
 - Node.js and npm
 - Docker Desktop or another Docker Compose compatible runtime
-- A local Keycloak realm named `oidc-starter`
+- Local Keycloak for development
 
-The local app configuration expects these Keycloak clients:
-
-- `oidc-starter-spa` for SPA mode
-- `oidc-starter-bff` for BFF mode
+Detailed local Keycloak setup is documented in
+[`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md), including
+the imported realm, clients, test user, and local development credentials.
 
 ## Run Keycloak
 
@@ -41,12 +40,11 @@ cd .\infra\keycloak
 docker compose up -d
 ```
 
-Keycloak runs at `http://localhost:8080`.
+Keycloak runs at `http://localhost:8080` and imports the local development realm automatically on
+startup.
 
-The local admin account from `docker-compose.yml` is:
-
-- Username: `admin`
-- Password: `admin`
+For the exact local Keycloak setup, imported realm contents, clients, test user, credentials, and
+reset steps, see [`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md).
 
 Stop Keycloak with:
 
@@ -107,9 +105,9 @@ Angular dev-server proxy.
 ## Test SPA Mode
 
 1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `spa`.
-2. Ensure Keycloak is running and the `oidc-starter-spa` client allows:
-   - Redirect URI: `http://localhost:4200/*`
-   - Web origin: `http://localhost:4200`
+2. Start local Keycloak with the imported realm. See
+   [`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md) for the
+   realm, client, test user, and local development credentials created automatically.
 3. Start the frontend with `npm start`.
 4. Open `http://localhost:4200`.
 5. Use the login button and sign in through Keycloak.
@@ -120,8 +118,10 @@ still be used as a public connectivity check.
 ## Test BFF Mode
 
 1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `bff`.
-2. Ensure Keycloak is running and the `oidc-starter-bff` client matches
-   `src/backend/appsettings.Development.json`.
+2. Start local Keycloak with the imported realm. See
+   [`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md) for the
+   realm, clients, test user, local development credentials, and the imported BFF client secret
+   that matches `src/backend/appsettings.Development.json`.
 3. Start the backend with the HTTPS launch profile.
 4. Start the frontend with `npm start`.
 5. Open `http://localhost:4200`.
@@ -132,7 +132,8 @@ Expected result: the backend completes the OIDC flow, sets the local session coo
 
 ## Current Gaps Before Production-Hardening
 
-- Keycloak realm/client setup is not automated or imported by Docker Compose yet.
+- Keycloak is automated for local development, but the checked-in realm import and credentials are
+  intentionally local-only.
 - BFF cookie, CORS, and HTTPS settings are local-development oriented.
 - Client secrets are stored in development config and should move to user secrets or a secret store.
 - No roles, authorization policies, automated tests, packaging, or deployment setup are included yet.
