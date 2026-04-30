@@ -71,6 +71,11 @@ dd {
   background: var(--button-background-hover);
 }
 
+.button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .button-secondary {
   color: #172033;
   background: #eef2f7;

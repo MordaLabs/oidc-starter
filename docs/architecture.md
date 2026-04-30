@@ -22,6 +22,12 @@ The ASP.NET Core backend handles the OIDC redirect flow with Keycloak, stores to
 and represents the browser session with an HTTP-only cookie. The frontend only asks the backend who
 the current user is.
 
+On startup, the BFF view calls `GET /api/auth/me` once to discover whether the browser still has a
+valid backend session. A `401 Unauthorized` response, any failed refresh, or a response that is not
+authenticated clears the frontend user state and shows the logged-out UI. Logout also clears
+frontend state before posting to the backend logout endpoint, then the backend completes the OIDC
+sign-out redirect.
+
 This is the main local-development flow at the current stable point.
 
 ## Configuration Shape

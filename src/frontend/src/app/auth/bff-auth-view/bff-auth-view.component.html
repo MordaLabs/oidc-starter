@@ -2,10 +2,17 @@
   <div class="card-header">
     <h2>Login</h2>
 
-    @if (service.authenticated()) {
-      <button type="button" class="button button-secondary" (click)="service.logout()">Logout</button>
+    @if (service.authenticated() || service.isLoggingOut()) {
+      <button
+        type="button"
+        class="button button-secondary"
+        [disabled]="service.isLoggingOut()"
+        (click)="service.logout()"
+      >
+        Logout
+      </button>
     } @else {
-      <button type="button" class="button" (click)="service.login()">Login</button>
+      <button type="button" class="button" [disabled]="service.isLoading()" (click)="service.login()">Login</button>
     }
   </div>
 
@@ -45,6 +52,8 @@
     </dl>
   } @else if (service.isLoading()) {
     <p class="status">Loading backend session...</p>
+  } @else if (service.isLoggingOut()) {
+    <p class="status">Logging out...</p>
   } @else {
     <p class="status">{{ service.loggedOutMessage }}</p>
   }

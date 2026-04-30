@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, EMPTY } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { catchError, EMPTY, finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 type BffUser = {
@@ -18,11 +18,16 @@ export class BffAuthViewService {
   private readonly user = signal<BffUser | null>(null);
 
   readonly mode = 'bff';
-  readonly isLoading = signal(true);
+  readonly isLoading = signal(false);
+  readonly isLoggingOut = signal(false);
   readonly authenticated = computed(() => this.user()?.isAuthenticated === true);
   readonly currentUser = this.user.asReadonly();
   readonly statusMessage = computed(() =>
-    this.authenticated() ? 'Logged in with backend session.' : 'Not logged in yet.',
+    this.isLoggingOut()
+      ? 'Logging out...'
+      : this.authenticated()
+        ? 'Logged in with backend session.'
+        : 'Not logged in yet.',
   );
   readonly loggedOutMessage = 'Not logged in yet. Use the login button to start the backend login flow.';
 
@@ -31,10 +36,14 @@ export class BffAuthViewService {
   }
 
   login(): void {
+    this.isLoading.set(true);
     window.location.href = `${this.authBaseUrl}/login`;
   }
 
   logout(): void {
+    this.clearSessionState();
+    this.isLoggingOut.set(true);
+
     const form = document.createElement('form');
     form.method = 'post';
     form.action = `${this.authBaseUrl}/logout`;
@@ -49,15 +58,33 @@ export class BffAuthViewService {
     this.http
       .get<BffUser>(`${this.authBaseUrl}/me`, { withCredentials: true })
       .pipe(
-        catchError(() => {
-          this.user.set(null);
+        catchError((error: unknown) => {
+          this.handleCurrentUserError(error);
           return EMPTY;
         }),
+        finalize(() => this.isLoading.set(false)),
       )
       .subscribe({
-        next: (user) => this.user.set(user),
-        complete: () => this.isLoading.set(false),
+        next: (user) => this.setCurrentUser(user),
       });
+  }
+
+  private setCurrentUser(user: BffUser): void {
+    this.isLoggingOut.set(false);
+    this.user.set(user.isAuthenticated ? user : null);
+  }
+
+  private handleCurrentUserError(error: unknown): void {
+    if (error instanceof HttpErrorResponse && error.status === 401) {
+      this.clearSessionState();
+      return;
+    }
+
+    this.clearSessionState();
+  }
+
+  private clearSessionState(): void {
+    this.user.set(null);
   }
 
   private getAuthBaseUrl(): string {
