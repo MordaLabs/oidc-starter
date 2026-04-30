@@ -2,7 +2,7 @@ export const environment = {
   production: false,
   appName: 'OIDC Starter UI',
   // Switch between 'bff' for backend session auth and 'spa' for direct browser OIDC.
-  authMode: 'spa' as 'spa' | 'bff',
+  authMode: 'bff' as 'bff' | 'spa',
   // Empty uses the Angular dev-server proxy. Use an origin such as 'https://localhost:7233'
   // when calling the backend directly.
   apiOrigin: '',
