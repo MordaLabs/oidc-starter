@@ -28,7 +28,7 @@ The development frontend currently defaults to `bff` mode in
 - Local Keycloak for development
 
 Detailed local Keycloak setup is documented in
-[`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md), including
+[`infra/keycloak/README.md`](infra/keycloak/README.md), including
 the imported realm, clients, test user, and local development credentials.
 
 ## Run Keycloak
@@ -44,7 +44,7 @@ Keycloak runs at `http://localhost:8080` and imports the local development realm
 startup.
 
 For the exact local Keycloak setup, imported realm contents, clients, test user, credentials, and
-reset steps, see [`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md).
+reset steps, see [`infra/keycloak/README.md`](infra/keycloak/README.md).
 
 Stop Keycloak with:
 
@@ -106,7 +106,7 @@ Angular dev-server proxy.
 
 1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `spa`.
 2. Start local Keycloak with the imported realm. See
-   [`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md) for the
+   [`infra/keycloak/README.md`](infra/keycloak/README.md) for the
    realm, client, test user, and local development credentials created automatically.
 3. Start the frontend with `npm start`.
 4. Open `http://localhost:4200`.
@@ -119,7 +119,7 @@ still be used as a public connectivity check.
 
 1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `bff`.
 2. Start local Keycloak with the imported realm. See
-   [`infra/keycloak/README.md`](C:/Repos/Academy/oidc-starter/infra/keycloak/README.md) for the
+   [`infra/keycloak/README.md`](infra/keycloak/README.md) for the
    realm, clients, test user, local development credentials, and the imported BFF client secret
    that matches `src/backend/appsettings.Development.json`.
 3. Start the backend with the HTTPS launch profile.
@@ -134,7 +134,7 @@ Expected result: the backend completes the OIDC flow, sets the local session coo
 
 - Local Keycloak realm import is automated for development, but production-grade IdP provisioning is not addressed.
 - BFF cookie, CORS, forwarded header, and HTTPS settings are still intentionally lightweight. See
-  [`docs/architecture.md`](C:/Repos/Academy/oidc-starter/docs/architecture.md) for deployment
+  [`docs/architecture.md`](docs/architecture.md) for deployment
   assumptions and remaining CSRF work.
 - Client secrets are stored in development config and should move to user secrets or a secret store.
 - No roles, authorization policies, automated tests, packaging, or deployment setup are included yet.
