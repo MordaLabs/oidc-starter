@@ -1,16 +1,12 @@
-import { InjectionToken, makeEnvironmentProviders } from '@angular/core';
+import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
+import { BFF_AUTH_CONFIG } from './internal/bff-auth-token';
 
 export type BffAuthConfig = {
   apiOrigin?: string;
   authPath?: string;
 };
 
-export const BFF_AUTH_CONFIG = new InjectionToken<BffAuthConfig>('BFF_AUTH_CONFIG', {
-  providedIn: 'root',
-  factory: () => ({}),
-});
-
-export function provideBffAuth(config: BffAuthConfig = {}) {
+export function provideBffAuth(config: BffAuthConfig = {}): EnvironmentProviders {
   return makeEnvironmentProviders([
     {
       provide: BFF_AUTH_CONFIG,

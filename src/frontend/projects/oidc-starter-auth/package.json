@@ -2,6 +2,8 @@
   "name": "oidc-starter-auth",
   "version": "0.0.1",
   "description": "Reusable Angular auth building blocks for the OIDC Starter sample.",
+  "author": "OIDC Starter",
+  "license": "UNLICENSED",
   "keywords": [
     "angular",
     "oidc",

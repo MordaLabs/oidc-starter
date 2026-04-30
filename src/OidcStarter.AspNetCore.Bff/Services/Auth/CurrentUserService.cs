@@ -3,7 +3,7 @@ using OidcStarter.AspNetCore.Bff.Models.Auth;
 
 namespace OidcStarter.AspNetCore.Bff.Services.Auth;
 
-public sealed class CurrentUserService : ICurrentUserService
+internal sealed class CurrentUserService : ICurrentUserService
 {
     public CurrentUserResponse? GetCurrentUser(ClaimsPrincipal user)
     {

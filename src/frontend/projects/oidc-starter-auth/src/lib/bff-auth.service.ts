@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, EMPTY, finalize } from 'rxjs';
-import { BFF_AUTH_CONFIG } from './bff-auth-config';
+import { BFF_AUTH_CONFIG } from './internal/bff-auth-token';
 import type { BffCurrentUser } from './bff-current-user';
 
 @Injectable({ providedIn: 'root' })
