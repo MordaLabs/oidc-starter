@@ -11,6 +11,11 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "experimentalDecorators": true,
+    "paths": {
+      "oidc-starter-auth": [
+        "./projects/oidc-starter-auth/src/public-api.ts"
+      ]
+    },
     "importHelpers": true,
     "target": "ES2022",
     "module": "preserve"
@@ -29,6 +34,12 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/oidc-starter-auth/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/oidc-starter-auth/tsconfig.spec.json"
     }
   ]
 }

@@ -5,29 +5,18 @@ import {
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
+import { provideBffAuth, provideSpaOidcAuth } from 'oidc-starter-auth';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 
 const authProviders =
   environment.authMode === 'spa'
-    ? [
-        provideAuth(
-          {
-            config: {
-              authority: environment.oidc.authority,
-              clientId: environment.oidc.clientId,
-              redirectUrl: environment.oidc.redirectUrl,
-              postLogoutRedirectUri: environment.oidc.postLogoutRedirectUri,
-              responseType: 'code',
-              scope: environment.oidc.scope,
-              autoUserInfo: true,
-            },
-          },
-          withAppInitializerAuthCheck(),
-        ),
-      ]
-    : [];
+    ? [provideSpaOidcAuth(environment.oidc)]
+    : [
+        provideBffAuth({
+          apiOrigin: environment.apiOrigin,
+        }),
+      ];
 
 export const appConfig: ApplicationConfig = {
   providers: [

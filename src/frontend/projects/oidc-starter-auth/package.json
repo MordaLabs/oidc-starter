@@ -1,0 +1,21 @@
+{
+  "name": "oidc-starter-auth",
+  "version": "0.0.1",
+  "description": "Reusable Angular auth building blocks for the OIDC Starter sample.",
+  "keywords": [
+    "angular",
+    "oidc",
+    "bff",
+    "authentication"
+  ],
+  "peerDependencies": {
+    "@angular/common": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "angular-auth-oidc-client": "^21.0.1",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

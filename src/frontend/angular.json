@@ -104,6 +104,36 @@
           }
         }
       }
+    },
+    "oidc-starter-auth": {
+      "projectType": "library",
+      "root": "projects/oidc-starter-auth",
+      "sourceRoot": "projects/oidc-starter-auth/src",
+      "prefix": "oidc-starter",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/oidc-starter-auth/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/oidc-starter-auth/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/oidc-starter-auth/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        }
+      }
     }
   }
 }
