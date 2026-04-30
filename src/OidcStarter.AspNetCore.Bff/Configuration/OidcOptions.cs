@@ -1,4 +1,4 @@
-namespace Backend.Configuration;
+namespace OidcStarter.AspNetCore.Bff.Configuration;
 
 public sealed class OidcOptions
 {

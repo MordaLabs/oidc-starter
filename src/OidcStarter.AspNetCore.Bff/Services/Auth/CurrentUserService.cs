@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Backend.Models.Auth;
+using OidcStarter.AspNetCore.Bff.Models.Auth;
 
-namespace Backend.Services.Auth;
+namespace OidcStarter.AspNetCore.Bff.Services.Auth;
 
 public sealed class CurrentUserService : ICurrentUserService
 {

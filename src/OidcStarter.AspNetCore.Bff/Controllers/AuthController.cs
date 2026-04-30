@@ -1,19 +1,19 @@
-using Backend.Configuration;
-using Backend.Models.Auth;
-using Backend.Security;
-using Backend.Services.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using OidcStarter.AspNetCore.Bff.Configuration;
+using OidcStarter.AspNetCore.Bff.Models.Auth;
+using OidcStarter.AspNetCore.Bff.Security;
+using OidcStarter.AspNetCore.Bff.Services.Auth;
 
-namespace Backend.Controllers;
+namespace OidcStarter.AspNetCore.Bff.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController(
-    IOptions<StarterOptions> starterOptions,
+    IOptions<OidcStarterBffOptions> bffOptions,
     ICurrentUserService currentUserService,
     CsrfOriginValidator csrfOriginValidator) : ControllerBase
 {
@@ -57,8 +57,8 @@ public sealed class AuthController(
     private AuthenticationProperties CreateFrontendRedirectProperties()
         => new()
         {
-            RedirectUri = string.IsNullOrWhiteSpace(starterOptions.Value.FrontendOrigin)
+            RedirectUri = string.IsNullOrWhiteSpace(bffOptions.Value.FrontendOrigin)
                 ? "/"
-                : starterOptions.Value.FrontendOrigin
+                : bffOptions.Value.FrontendOrigin
         };
 }

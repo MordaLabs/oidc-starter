@@ -1,10 +1,11 @@
-using Backend.Configuration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using OidcStarter.AspNetCore.Bff.Configuration;
 
-namespace Backend.Security;
+namespace OidcStarter.AspNetCore.Bff.Security;
 
-public sealed class CsrfOriginValidator(IOptions<StarterOptions> starterOptions)
+public sealed class CsrfOriginValidator(IOptions<OidcStarterBffOptions> bffOptions)
 {
     public bool IsTrustedOrigin(HttpRequest request)
     {
@@ -33,7 +34,7 @@ public sealed class CsrfOriginValidator(IOptions<StarterOptions> starterOptions)
             $"{request.Scheme}://{request.Host}"
         };
 
-        if (Uri.TryCreate(starterOptions.Value.FrontendOrigin, UriKind.Absolute, out var frontendOrigin))
+        if (Uri.TryCreate(bffOptions.Value.FrontendOrigin, UriKind.Absolute, out var frontendOrigin))
         {
             allowedOrigins.Add(GetOrigin(frontendOrigin));
         }

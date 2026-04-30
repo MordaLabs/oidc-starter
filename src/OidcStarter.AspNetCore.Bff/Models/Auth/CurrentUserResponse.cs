@@ -1,4 +1,4 @@
-namespace Backend.Models.Auth;
+namespace OidcStarter.AspNetCore.Bff.Models.Auth;
 
 public sealed record CurrentUserResponse(
     bool IsAuthenticated,

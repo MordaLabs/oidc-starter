@@ -2,6 +2,7 @@ using Backend.Configuration;
 using Backend.Models.Public;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using OidcStarter.AspNetCore.Bff.Configuration;
 
 namespace Backend.Controllers;
 
