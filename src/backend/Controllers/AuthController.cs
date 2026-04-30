@@ -1,5 +1,6 @@
 using Backend.Configuration;
 using Backend.Models.Auth;
+using Backend.Security;
 using Backend.Services.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,7 +14,8 @@ namespace Backend.Controllers;
 [Route("api/auth")]
 public sealed class AuthController(
     IOptions<StarterOptions> starterOptions,
-    ICurrentUserService currentUserService) : ControllerBase
+    ICurrentUserService currentUserService,
+    CsrfOriginValidator csrfOriginValidator) : ControllerBase
 {
     [HttpGet("login")]
     public IActionResult Login()
@@ -39,6 +41,11 @@ public sealed class AuthController(
     [HttpPost("logout")]
     public IActionResult Logout()
     {
+        if (!csrfOriginValidator.IsTrustedOrigin(Request))
+        {
+            return Forbid();
+        }
+
         var properties = CreateFrontendRedirectProperties();
 
         return SignOut(

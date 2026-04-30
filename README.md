@@ -133,7 +133,9 @@ Expected result: the backend completes the OIDC flow, sets the local session coo
 ## Current Gaps Before Production-Hardening
 
 - Local Keycloak realm import is automated for development, but production-grade IdP provisioning is not addressed.
-- BFF cookie, CORS, and HTTPS settings are local-development oriented.
+- BFF cookie, CORS, forwarded header, and HTTPS settings are still intentionally lightweight. See
+  [`docs/architecture.md`](C:/Repos/Academy/oidc-starter/docs/architecture.md) for deployment
+  assumptions and remaining CSRF work.
 - Client secrets are stored in development config and should move to user secrets or a secret store.
 - No roles, authorization policies, automated tests, packaging, or deployment setup are included yet.
 - SPA mode is retained for learning/reference, not as the preferred production shape for this starter.
