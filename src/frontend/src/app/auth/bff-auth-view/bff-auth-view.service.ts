@@ -1,5 +1,5 @@
 import { computed, inject, Injectable } from '@angular/core';
-import { BffAuthService } from 'oidc-starter-auth';
+import { BffAuthService } from '@jszyduk/oidc-starter-auth';
 
 @Injectable({ providedIn: 'root' })
 export class BffAuthViewService {

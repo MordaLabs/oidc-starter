@@ -49,4 +49,23 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
 }
 ```
 
-Before publishing, add final license metadata, repository URL, release versioning, package validation, and tests around the public API surface.
+Before publishing, confirm the version, license, repository URL, release notes, and tests around the public API surface.
+
+## Local Packaging
+
+From the repository root:
+
+```powershell
+dotnet build .\src\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj -c Release
+dotnet pack .\src\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj -c Release --no-build
+```
+
+The package is written to `src/OidcStarter.AspNetCore.Bff/bin/Release`.
+
+Later publication command:
+
+```powershell
+dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.0.1.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
+```
+
+Do not publish until the version, license, repository URL, and release notes are final.

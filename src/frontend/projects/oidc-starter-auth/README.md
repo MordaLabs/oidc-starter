@@ -1,8 +1,8 @@
-# oidc-starter-auth
+# @jszyduk/oidc-starter-auth
 
 Reusable Angular auth building blocks for OIDC Starter.
 
-This library is package-ready inside the repository, but it is not published to npm yet. The sample frontend currently consumes it through the workspace path alias `oidc-starter-auth`.
+This library is package-ready inside the repository, but it is not published to npm yet. The sample frontend currently consumes it through the workspace path alias `@jszyduk/oidc-starter-auth`.
 
 ## What It Provides
 
@@ -15,7 +15,7 @@ This library is package-ready inside the repository, but it is not published to 
 ## Sample Frontend Usage
 
 ```ts
-import { provideBffAuth, provideSpaOidcAuth } from 'oidc-starter-auth';
+import { provideBffAuth, provideSpaOidcAuth } from '@jszyduk/oidc-starter-auth';
 
 const authProviders =
   environment.authMode === 'spa'
@@ -30,7 +30,7 @@ The sample app keeps demo layout, copy, mode switching, and backend ping present
 ```ts
 import { provideHttpClient } from '@angular/common/http';
 import { ApplicationConfig } from '@angular/core';
-import { provideBffAuth } from 'oidc-starter-auth';
+import { provideBffAuth } from '@jszyduk/oidc-starter-auth';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -45,7 +45,7 @@ export const appConfig: ApplicationConfig = {
 
 ```ts
 import { Component, inject } from '@angular/core';
-import { BffAuthService } from 'oidc-starter-auth';
+import { BffAuthService } from '@jszyduk/oidc-starter-auth';
 
 @Component({ selector: 'app-auth-button', template: '' })
 export class AuthButtonComponent {
@@ -61,4 +61,23 @@ export class AuthButtonComponent {
 }
 ```
 
-Before publishing, choose the final npm package name, add repository and license metadata, review peer dependency ranges, add focused library tests, and add a release workflow.
+## Local Packaging
+
+From `src/frontend`:
+
+```powershell
+Remove-Item .\dist\oidc-starter-auth -Recurse -Force -ErrorAction SilentlyContinue
+.\node_modules\.bin\ng.cmd build oidc-starter-auth --configuration production
+Set-Location .\dist\oidc-starter-auth
+npm pack
+```
+
+The package tarball is written under `src/frontend/dist/oidc-starter-auth`.
+
+Later publication command from `src/frontend/dist/oidc-starter-auth`:
+
+```powershell
+npm publish --access public
+```
+
+Do not publish until the version, license, repository URL, peer dependency ranges, and release notes are final.

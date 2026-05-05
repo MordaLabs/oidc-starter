@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideBffAuth, provideSpaOidcAuth } from 'oidc-starter-auth';
+import { provideBffAuth, provideSpaOidcAuth } from '@jszyduk/oidc-starter-auth';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 

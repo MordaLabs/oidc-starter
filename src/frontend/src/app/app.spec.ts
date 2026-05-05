@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideBffAuth, provideSpaOidcAuth } from 'oidc-starter-auth';
+import { provideBffAuth, provideSpaOidcAuth } from '@jszyduk/oidc-starter-auth';
 import { App } from './app';
 import { environment } from '../environments/environment';
 

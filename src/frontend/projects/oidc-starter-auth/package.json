@@ -1,9 +1,21 @@
 {
-  "name": "oidc-starter-auth",
-  "version": "0.0.1",
+  "name": "@jszyduk/oidc-starter-auth",
+  "version": "0.1.0",
   "description": "Reusable Angular auth building blocks for the OIDC Starter sample.",
-  "author": "OIDC Starter",
-  "license": "UNLICENSED",
+  "author": "jszyduk",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jszyduk/oidc-starter.git",
+    "directory": "src/frontend/projects/oidc-starter-auth"
+  },
+  "bugs": {
+    "url": "https://github.com/jszyduk/oidc-starter/issues"
+  },
+  "homepage": "https://github.com/jszyduk/oidc-starter#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "angular",
     "oidc",
