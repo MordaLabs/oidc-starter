@@ -1,8 +1,8 @@
-# @jszyduk/oidc-starter-auth
+# @flying-bee/oidc-starter-auth
 
 Reusable Angular auth building blocks for OIDC Starter.
 
-This library is package-ready inside the repository, but it is not published to npm yet. The sample frontend currently consumes it through the workspace path alias `@jszyduk/oidc-starter-auth`.
+This library is package-ready inside the repository, but it is not published to npm yet. The sample frontend currently consumes it through the workspace path alias `@flying-bee/oidc-starter-auth`.
 
 ## What It Provides
 
@@ -15,7 +15,7 @@ This library is package-ready inside the repository, but it is not published to 
 ## Sample Frontend Usage
 
 ```ts
-import { provideBffAuth, provideSpaOidcAuth } from '@jszyduk/oidc-starter-auth';
+import { provideBffAuth, provideSpaOidcAuth } from '@flying-bee/oidc-starter-auth';
 
 const authProviders =
   environment.authMode === 'spa'
@@ -30,7 +30,7 @@ The sample app keeps demo layout, copy, mode switching, and backend ping present
 ```ts
 import { provideHttpClient } from '@angular/common/http';
 import { ApplicationConfig } from '@angular/core';
-import { provideBffAuth } from '@jszyduk/oidc-starter-auth';
+import { provideBffAuth } from '@flying-bee/oidc-starter-auth';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -45,7 +45,7 @@ export const appConfig: ApplicationConfig = {
 
 ```ts
 import { Component, inject } from '@angular/core';
-import { BffAuthService } from '@jszyduk/oidc-starter-auth';
+import { BffAuthService } from '@flying-bee/oidc-starter-auth';
 
 @Component({ selector: 'app-auth-button', template: '' })
 export class AuthButtonComponent {

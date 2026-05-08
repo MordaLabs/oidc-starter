@@ -17,7 +17,7 @@ Later publication command:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.0.1.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
-## npm: @jszyduk/oidc-starter-auth
+## npm: @flying-bee/oidc-starter-auth
 
 From `src/frontend`:
 

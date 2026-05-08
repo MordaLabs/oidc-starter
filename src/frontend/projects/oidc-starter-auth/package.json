@@ -1,5 +1,5 @@
 {
-  "name": "@jszyduk/oidc-starter-auth",
+  "name": "@flying-bee/oidc-starter-auth",
   "version": "0.1.0",
   "description": "Reusable Angular auth building blocks for the OIDC Starter sample.",
   "author": "jszyduk",

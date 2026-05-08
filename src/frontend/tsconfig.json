@@ -12,7 +12,7 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "paths": {
-      "@jszyduk/oidc-starter-auth": [
+      "@flying-bee/oidc-starter-auth": [
         "./projects/oidc-starter-auth/src/public-api.ts"
       ]
     },
