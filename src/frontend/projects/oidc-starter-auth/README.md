@@ -2,7 +2,13 @@
 
 Reusable Angular auth building blocks for OIDC Starter.
 
-This library is package-ready inside the repository, but it is not published to npm yet. The sample frontend currently consumes it through the workspace path alias `@flying-bee/oidc-starter-auth`.
+This package is published to npm as `@flying-bee/oidc-starter-auth`. The sample frontend in this repository consumes the in-repository Angular library through the workspace path alias `@flying-bee/oidc-starter-auth` so changes can be developed and verified locally.
+
+## Install
+
+```powershell
+npm install @flying-bee/oidc-starter-auth
+```
 
 ## What It Provides
 
@@ -74,10 +80,10 @@ npm pack
 
 The package tarball is written under `src/frontend/dist/oidc-starter-auth`.
 
-Later publication command from `src/frontend/dist/oidc-starter-auth`:
+Publication command for maintainers from `src/frontend/dist/oidc-starter-auth`:
 
 ```powershell
 npm publish --access public
 ```
 
-Do not publish until the version, license, repository URL, peer dependency ranges, and release notes are final.
+Only publish after confirming the target version, release notes, peer dependency ranges, and registry credentials.

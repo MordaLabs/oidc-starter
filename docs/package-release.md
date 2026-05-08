@@ -1,6 +1,6 @@
 # Package Release Notes
 
-The reusable backend and frontend packages are prepared for local packing, but they are not published yet.
+The reusable backend and frontend packages are published. This note records the local pack and maintainer publish commands.
 
 ## NuGet: OidcStarter.AspNetCore.Bff
 
@@ -11,7 +11,7 @@ dotnet build .\src\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj 
 dotnet pack .\src\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj -c Release --no-build
 ```
 
-Later publication command:
+Publication command for maintainers:
 
 ```powershell
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.0.1.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
@@ -28,10 +28,10 @@ Set-Location .\dist\oidc-starter-auth
 npm pack
 ```
 
-Later publication command from `src/frontend/dist/oidc-starter-auth`:
+Publication command for maintainers from `src/frontend/dist/oidc-starter-auth`:
 
 ```powershell
 npm publish --access public
 ```
 
-Before either publish, confirm the version, license, repository URL, changelog/release notes, and registry credentials.
+Before either publish, confirm the target version, changelog/release notes, and registry credentials.

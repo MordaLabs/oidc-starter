@@ -7,6 +7,8 @@ The repository contains:
 
 - `src/frontend`: Angular UI with selectable auth mode
 - `src/backend`: ASP.NET Core Web API and BFF auth endpoints
+- `src/OidcStarter.AspNetCore.Bff`: reusable NuGet package source
+- `src/frontend/projects/oidc-starter-auth`: reusable Angular npm package source
 - `infra/keycloak`: local Keycloak Docker Compose setup
 - `docs`: lightweight project notes
 
@@ -102,6 +104,16 @@ Frontend auth settings live in:
 `authMode` selects `spa` or `bff`. `apiOrigin` is normally empty in development so calls use the
 Angular dev-server proxy.
 
+## Published Packages
+
+The reusable package sources live in this repository and are also published for external use:
+
+- NuGet: `OidcStarter.AspNetCore.Bff`
+- npm: `@flying-bee/oidc-starter-auth`
+
+The local sample apps still consume the in-repository projects so the package sources remain easy to
+develop and verify alongside the sample.
+
 ## Test SPA Mode
 
 1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `spa`.
@@ -137,7 +149,7 @@ Expected result: the backend completes the OIDC flow, sets the local session coo
   [`docs/architecture.md`](docs/architecture.md) for deployment
   assumptions and remaining CSRF work.
 - Client secrets are stored in development config and should move to user secrets or a secret store.
-- No roles, authorization policies, automated tests, packaging, or deployment setup are included yet.
+- No roles, authorization policies, automated tests, or deployment setup are included yet.
 - SPA mode is retained for learning/reference, not as the preferred production shape for this starter.
 
 ## More Notes
