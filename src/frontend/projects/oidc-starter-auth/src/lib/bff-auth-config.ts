@@ -4,6 +4,8 @@ import { BFF_AUTH_CONFIG } from './internal/bff-auth-token';
 export type BffAuthConfig = {
   apiOrigin?: string;
   authPath?: string;
+  antiforgeryCookieName?: string;
+  antiforgeryFormFieldName?: string;
 };
 
 export function provideBffAuth(config: BffAuthConfig = {}): EnvironmentProviders {

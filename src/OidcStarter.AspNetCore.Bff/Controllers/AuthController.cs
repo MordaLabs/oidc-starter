@@ -55,7 +55,7 @@ public sealed class AuthController(
                 IsEssential = true,
                 Path = "/",
                 SameSite = bffOptions.Value.CookieSameSite,
-                Secure = true
+                Secure = ShouldSecureAntiforgeryRequestTokenCookie()
             });
 
         return NoContent();
@@ -95,5 +95,13 @@ public sealed class AuthController(
             RedirectUri = string.IsNullOrWhiteSpace(bffOptions.Value.FrontendOrigin)
                 ? "/"
                 : bffOptions.Value.FrontendOrigin
+        };
+
+    private bool ShouldSecureAntiforgeryRequestTokenCookie()
+        => bffOptions.Value.AntiforgeryCookieSecurePolicy switch
+        {
+            CookieSecurePolicy.Always => true,
+            CookieSecurePolicy.None => false,
+            _ => Request.IsHttps
         };
 }

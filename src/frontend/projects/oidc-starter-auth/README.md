@@ -13,7 +13,7 @@ npm install @flying-bee/oidc-starter-auth
 ## What It Provides
 
 - `provideBffAuth(config)` to configure backend-for-frontend auth endpoints.
-- `BffAuthService` for current-user loading, login redirect, and logout form post.
+- `BffAuthService` for current-user loading, login redirect, antiforgery initialization, and logout form post.
 - `BffCurrentUser` for the `/api/auth/me` response contract.
 - `provideSpaOidcAuth(config)` for the sample SPA/reference mode wrapper around `angular-auth-oidc-client`.
 - `SpaAuthConfig` and `BffAuthConfig` configuration contracts.
@@ -44,6 +44,8 @@ export const appConfig: ApplicationConfig = {
     provideBffAuth({
       apiOrigin: 'https://api.example.com',
       authPath: '/api/auth',
+      antiforgeryCookieName: 'XSRF-TOKEN',
+      antiforgeryFormFieldName: '__RequestVerificationToken',
     }),
   ],
 };
@@ -66,6 +68,13 @@ export class AuthButtonComponent {
   }
 }
 ```
+
+## BFF Antiforgery
+
+`BffAuthService.logout()` calls `GET /api/auth/csrf`, reads the `XSRF-TOKEN` cookie, and includes the
+token in the logout form post as `__RequestVerificationToken`. Custom frontend code that calls
+state-changing BFF endpoints with `fetch`, XHR, or Angular `HttpClient` should send the same token in
+the `X-XSRF-TOKEN` header.
 
 ## Local Packaging
 

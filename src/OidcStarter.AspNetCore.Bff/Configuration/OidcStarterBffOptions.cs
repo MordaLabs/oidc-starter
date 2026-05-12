@@ -29,4 +29,6 @@ public sealed class OidcStarterBffOptions
     public string AntiforgeryCookieName { get; set; } = "__Host-oidc-starter-bff-af";
 
     public string AntiforgeryRequestTokenCookieName { get; set; } = "XSRF-TOKEN";
+
+    public CookieSecurePolicy AntiforgeryCookieSecurePolicy { get; set; } = CookieSecurePolicy.SameAsRequest;
 }

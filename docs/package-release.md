@@ -35,3 +35,12 @@ npm publish --access public
 ```
 
 Before either publish, confirm the target version, changelog/release notes, and registry credentials.
+
+## Integration Notes
+
+- Backend antiforgery validation remains opt-in through `Starter:RequireAntiforgeryToken`; this is
+  not a backend package breaking default change yet.
+- The sample backend enables `RequireAntiforgeryToken` because the sample frontend now initializes
+  antiforgery with `GET /api/auth/csrf` before BFF logout.
+- Frontends integrating with the BFF package must call `GET /api/auth/csrf` and send the returned
+  `XSRF-TOKEN` value on state-changing BFF requests before enabling backend antiforgery validation.

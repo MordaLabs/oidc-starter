@@ -54,6 +54,7 @@ should configure the actual trusted proxy addresses and replace `Starter:Allowed
 with the public backend host names.
 
 `POST /api/auth/logout` rejects requests whose `Origin` or `Referer` is not the configured frontend
-origin or the current backend origin. This is lightweight CSRF groundwork for the current cookie BFF
-flow. A fuller production implementation should issue an antiforgery token to the frontend and
-require it on every cookie-authenticated state-changing BFF endpoint.
+origin or the current backend origin. The BFF package also exposes `GET /api/auth/csrf`, which issues
+an antiforgery request token through the `XSRF-TOKEN` cookie. Frontends must send that token on
+cookie-authenticated state-changing BFF requests: use the `X-XSRF-TOKEN` header for fetch/XHR calls,
+or the `__RequestVerificationToken` form field for top-level form posts such as OIDC logout.

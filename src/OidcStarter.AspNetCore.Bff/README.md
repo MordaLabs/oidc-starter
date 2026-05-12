@@ -49,7 +49,8 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
     "SlidingExpiration": true,
     "CookieSameSite": "None",
     "RequireAntiforgeryToken": false,
-    "AntiforgeryHeaderName": "X-XSRF-TOKEN"
+    "AntiforgeryHeaderName": "X-XSRF-TOKEN",
+    "AntiforgeryCookieSecurePolicy": "SameAsRequest"
   },
   "Oidc": {
     "Authority": "https://identity.example.com/realms/example",
@@ -70,11 +71,35 @@ default. Keep `CookieSameSite` as `None` for split-origin local development; pro
 deployments should usually serve the frontend and backend from one public site and change it to
 `Lax` or `Strict` where the OIDC provider flow and hosting topology allow it.
 
+## Antiforgery Contract
+
 `POST /api/auth/logout` always checks `Origin` or `Referer` against `Starter:FrontendOrigin` and the
-current backend origin. For stronger CSRF protection, call `GET /api/auth/csrf` from the frontend,
-read the `XSRF-TOKEN` cookie, send it back in the `X-XSRF-TOKEN` header on state-changing BFF calls,
-and set `Starter:RequireAntiforgeryToken` to `true`. Validation is opt-in for now so existing sample
-logout behavior remains compatible.
+current backend origin.
+
+Set `Starter:RequireAntiforgeryToken` to `true` to require ASP.NET Core antiforgery validation for
+state-changing BFF endpoints. This remains opt-in in the package defaults, so enabling it is not a
+breaking default behavior change yet.
+
+The antiforgery cookie secure policy defaults to `SameAsRequest` so local HTTP samples can obtain a
+token. Production apps should run behind HTTPS and set `Starter:AntiforgeryCookieSecurePolicy` to
+`Always` unless their hosting platform has a specific reason not to.
+
+Frontend integration contract:
+
+- Call `GET /api/auth/csrf` before the first state-changing BFF request, and again whenever the
+  frontend needs to refresh the antiforgery token.
+- Read the request token from the `XSRF-TOKEN` cookie. The cookie name can be changed with
+  `Starter:AntiforgeryRequestTokenCookieName`.
+- For `fetch`, XHR, or Angular `HttpClient` requests, send the token in the `X-XSRF-TOKEN` header.
+  The header name can be changed with `Starter:AntiforgeryHeaderName`.
+- For top-level form posts such as OIDC logout navigation, send the same token in the ASP.NET Core
+  antiforgery form field named `__RequestVerificationToken`.
+- Treat every cookie-authenticated BFF request that changes server-side or identity-provider state
+  as state-changing. In this package today that means `POST /api/auth/logout`; custom endpoints added
+  by consuming apps should follow the same rule for `POST`, `PUT`, `PATCH`, and `DELETE`.
+
+Any custom frontend or third-party frontend integrating with this backend package must implement this
+contract before `Starter:RequireAntiforgeryToken` is enabled.
 
 `UseOidcStarterBff()` applies forwarded headers before HTTPS redirection. `AllowedForwardedHosts`
 limits accepted `X-Forwarded-Host` values. In production, also set `KnownForwardedProxies` to trusted

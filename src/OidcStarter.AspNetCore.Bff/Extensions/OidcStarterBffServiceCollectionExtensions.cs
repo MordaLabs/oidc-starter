@@ -176,7 +176,7 @@ public static class OidcStarterBffServiceCollectionExtensions
             options.Cookie.HttpOnly = true;
             options.Cookie.Path = "/";
             options.Cookie.SameSite = bffSettings.CookieSameSite;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SecurePolicy = bffSettings.AntiforgeryCookieSecurePolicy;
             options.Cookie.IsEssential = true;
         });
     }
