@@ -1,23 +1,45 @@
 # OIDC Starter
 
-OIDC Starter is a small learning project for comparing two OpenID Connect authentication
-patterns with Angular, ASP.NET Core, and a local Keycloak identity provider.
+OIDC Starter is a public reference implementation and reusable starter for OpenID Connect with
+Angular, ASP.NET Core, and Keycloak. It demonstrates both direct browser OIDC and a
+cookie-backed backend-for-frontend (BFF) pattern, with reusable package sources kept alongside a
+working sample app.
+
+The BFF path is the primary production-oriented direction. It already includes practical foundations
+for server-side OIDC sign-in, HTTP-only cookie sessions, antiforgery protection, authorization
+policies, role mapping, local Keycloak provisioning, and package-level tests. Work toward a polished
+`1.0.0` release is still in progress, especially around broader provider validation, deployment
+guidance, and release hardening.
 
 The repository contains:
 
-- `src/frontend`: Angular UI with selectable auth mode
-- `src/backend`: ASP.NET Core Web API and BFF auth endpoints
-- `src/OidcStarter.AspNetCore.Bff`: reusable NuGet package source
-- `src/frontend/projects/oidc-starter-auth`: reusable Angular npm package source
-- `infra/keycloak`: local Keycloak Docker Compose setup
-- `docs`: lightweight project notes
+- `src/OidcStarter.AspNetCore.Bff`: reusable ASP.NET Core BFF NuGet package source
+- `src/frontend/projects/oidc-starter-auth`: reusable Angular auth npm package source
+- `src/backend`: sample ASP.NET Core host that consumes the BFF package
+- `src/frontend`: sample Angular app that consumes the Angular auth package
+- `src/OidcStarter.AspNetCore.Bff.Tests`: automated tests for the reusable backend package
+- `infra/keycloak`: local Keycloak Docker Compose setup with automated realm import
+- `docs`: architecture and package release notes
+
+## Package Vs Sample Responsibilities
+
+The reusable backend package owns generic BFF infrastructure: cookie/OIDC authentication,
+antiforgery endpoints, current-user projection, authorization policy helpers, configurable claim
+handling, and provider-agnostic role mapping extension points.
+
+The sample backend owns local app concerns: public/demo endpoints, development configuration, and the
+Keycloak-specific role mapper that reads roles from Keycloak access tokens. That provider-specific
+mapper is intentionally not built into the reusable package.
+
+The reusable Angular package owns frontend auth helpers for the sample flows. The sample Angular app
+owns presentation, environment selection, and local development wiring.
 
 ## Supported Auth Modes
 
 | Mode | Status | Description |
 | --- | --- | --- |
-| `spa` | Complete learning/reference mode | The Angular app signs in directly with Keycloak using Authorization Code Flow with PKCE. |
-| `bff` | Working end-to-end in local development | The Angular app delegates login/logout/user lookup to the ASP.NET Core backend, which keeps the OIDC tokens server-side behind a cookie session. |
+| `spa` | Reference mode | The Angular app signs in directly with Keycloak using Authorization Code Flow with PKCE. |
+| `bff` | Primary starter path | The Angular app delegates login/logout/user lookup to the ASP.NET Core backend, which keeps OIDC tokens server-side behind a cookie session. |
 
 The development frontend currently defaults to `bff` mode in
 `src/frontend/src/environments/environment.development.ts`.
@@ -31,7 +53,7 @@ The development frontend currently defaults to `bff` mode in
 
 Detailed local Keycloak setup is documented in
 [`infra/keycloak/README.md`](infra/keycloak/README.md), including
-the imported realm, clients, test user, and local development credentials.
+the imported realm, clients, test user, sample role, and local development credentials.
 
 ## Run Keycloak
 
@@ -42,11 +64,11 @@ cd .\infra\keycloak
 docker compose up -d
 ```
 
-Keycloak runs at `http://localhost:8080` and imports the local development realm automatically on
-startup.
+Keycloak runs at `http://localhost:8080` and imports the local development realm automatically on a
+fresh start. The import creates the SPA and BFF clients, `testuser`, and the sample realm role
+`my-test-role`.
 
-For the exact local Keycloak setup, imported realm contents, clients, test user, credentials, and
-reset steps, see [`infra/keycloak/README.md`](infra/keycloak/README.md).
+For reset/reimport steps, see [`infra/keycloak/README.md`](infra/keycloak/README.md).
 
 Stop Keycloak with:
 
@@ -108,11 +130,28 @@ Angular dev-server proxy.
 
 The reusable package sources live in this repository and are also published for external use:
 
-- NuGet: `OidcStarter.AspNetCore.Bff`
-- npm: `@flying-bee/oidc-starter-auth`
+- NuGet: [`OidcStarter.AspNetCore.Bff`](https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/)
+- npm: [`@flying-bee/oidc-starter-auth`] (https://www.npmjs.com/package/@flying-bee/oidc-starter-auth)
 
 The local sample apps still consume the in-repository projects so the package sources remain easy to
 develop and verify alongside the sample.
+
+## Backend Package Coverage
+
+The backend package has focused automated tests for its core reusable behavior:
+
+- default flat role mapping
+- custom role mapper composition and role claims transformation
+- current-user role projection
+- CSRF origin validation
+- logout antiforgery behavior
+- package service and authorization policy registration
+
+Run them from the repository root:
+
+```powershell
+dotnet test .\src\OidcStarter.AspNetCore.Bff.Tests\OidcStarter.AspNetCore.Bff.Tests.csproj
+```
 
 ## Test SPA Mode
 
@@ -140,18 +179,20 @@ still be used as a public connectivity check.
 6. Use the login button and sign in through Keycloak.
 
 Expected result: the backend completes the OIDC flow, sets the local session cookie, and
-`/api/auth/me` returns the current user to the frontend.
+`/api/auth/me` returns the current user and mapped roles to the frontend. With the imported local
+realm, `testuser` has `my-test-role` assigned automatically.
 
-## Current Gaps Before Production-Hardening
+## Current 1.0.0 Hardening Focus
 
-- Local Keycloak realm import is automated for development, but production-grade IdP provisioning is not addressed.
-- BFF cookie, CORS, forwarded header, and HTTPS settings are still intentionally lightweight. See
-  [`docs/architecture.md`](docs/architecture.md) for deployment
-  assumptions and remaining CSRF work.
+- Validate the reusable BFF package against additional OIDC providers beyond the local Keycloak setup.
+- Add broader integration/e2e coverage for real browser login flows.
+- Expand reverse proxy, hosting, and deployment guidance.
 - Client secrets are stored in development config and should move to user secrets or a secret store.
-- No roles, authorization policies, automated tests, or deployment setup are included yet.
-- SPA mode is retained for learning/reference, not as the preferred production shape for this starter.
+- Decide final `1.0.0` defaults and release notes for package consumers.
+- SPA mode is retained as a reference flow; the BFF mode is the recommended starter path for internal
+  applications that want server-side token handling.
 
 ## More Notes
 
-See `docs/architecture.md` for a short overview of how the two auth modes differ.
+See [`docs/architecture.md`](docs/architecture.md) for a short overview of the two auth modes,
+security assumptions, antiforgery contract, and role-mapping approach.
