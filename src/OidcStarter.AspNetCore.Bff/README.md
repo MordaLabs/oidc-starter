@@ -14,11 +14,33 @@ dotnet add package OidcStarter.AspNetCore.Bff
 
 - `AddOidcStarterBff(configuration)` for cookie/OIDC auth, CORS, forwarded headers, authorization, and BFF services.
 - `UseOidcStarterBff()` for the expected middleware order.
-- `/api/auth/login`, `/api/auth/me`, and `/api/auth/logout` endpoints.
+- `/api/auth/login`, `/api/auth/me`, `/api/auth/csrf`, and `/api/auth/logout` endpoints.
 - `OidcOptions` and `OidcStarterBffOptions` configuration models.
 - `ICurrentUserService` and `CurrentUserResponse` for current-user claim mapping.
 - A lightweight origin check for logout form posts.
 - Antiforgery token groundwork for cookie-authenticated BFF endpoints.
+- Authorization policy constants and policy-builder helpers.
+- Provider-agnostic role mapping with `IOidcStarterRoleMapper`.
+
+## Public API Surface
+
+The package keeps its public surface intentionally small:
+
+- `AddOidcStarterBff(configuration)` registers the BFF services, controllers, authentication,
+  antiforgery, forwarded-header options, CORS, and authorization policies.
+- `UseOidcStarterBff()` applies the expected middleware order.
+- `AddOidcStarterRoleMapper<TMapper>()` registers provider-specific role extraction logic while
+  preserving the default flat-claim mapper.
+- `OidcOptions`, `OidcStarterBffOptions`, and `RequiredClaimOptions` describe supported
+  configuration.
+- `OidcStarterBffPolicies` exposes stable policy names for consuming apps.
+- `OidcStarterAuthorizationPolicyBuilderExtensions` adds scope/claim policy helpers.
+- `IOidcStarterRoleMapper` and `OidcStarterRoleMappingContext` are the role-mapping extension point.
+- `ICurrentUserService` and `CurrentUserResponse` expose the current-user contract used by
+  `/api/auth/me`.
+
+Controllers, low-level validators, and default service implementations exist to support the package
+endpoints and are not intended as customization points.
 
 ## Sample Backend Usage
 
@@ -203,6 +225,26 @@ intentionally lives in the sample app, not in the reusable package.
 limits accepted `X-Forwarded-Host` values. In production, also set `KnownForwardedProxies` to trusted
 proxy IP addresses or `KnownForwardedNetworks` to trusted CIDR ranges such as `10.0.0.0/8`; do not
 trust arbitrary forwarded headers from the public internet.
+
+## Release Readiness Notes
+
+The package is being prepared for a stable `1.0.0` API. No default behavior change is introduced by
+the current hardening path: antiforgery validation is still opt-in at the package level, default role
+mapping still reads flat role claims, and provider-specific role extraction remains app-owned.
+
+Integration requirements consumers should know before enabling production settings:
+
+- Configure `Oidc` with a confidential OIDC client suitable for server-side login.
+- Set `Starter:FrontendOrigin` to the trusted frontend origin.
+- Implement the antiforgery contract before enabling `Starter:RequireAntiforgeryToken`.
+- Configure forwarded headers with trusted hosts/proxies when running behind a reverse proxy.
+- Normalize provider-specific roles with `IOidcStarterRoleMapper` when the provider does not emit
+  flat role claims.
+- Move secrets out of checked-in appsettings files for real deployments.
+
+Remaining pre-`1.0.0` work is primarily release validation: broader provider testing, final default
+review, packaging metadata, and deployment guidance. No known breaking changes are currently planned
+for consumers already using the documented extension points.
 
 ## Local Packaging
 

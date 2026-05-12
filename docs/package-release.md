@@ -4,6 +4,10 @@ The reusable backend and frontend packages are published. This note records the 
 
 ## NuGet: OidcStarter.AspNetCore.Bff
 
+Package page:
+
+- https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/
+
 From the repository root:
 
 ```powershell
@@ -44,3 +48,13 @@ Before either publish, confirm the target version, changelog/release notes, and 
   antiforgery with `GET /api/auth/csrf` before BFF logout.
 - Frontends integrating with the BFF package must call `GET /api/auth/csrf` and send the returned
   `XSRF-TOKEN` value on state-changing BFF requests before enabling backend antiforgery validation.
+- Role mapping is provider-agnostic by default. Consumers should register `IOidcStarterRoleMapper`
+  for providers that emit nested or custom role structures.
+
+## v1.0.0 Readiness Checklist
+
+- Confirm final package version and release notes.
+- Run `dotnet test .\src\OidcStarter.AspNetCore.Bff.Tests\OidcStarter.AspNetCore.Bff.Tests.csproj`.
+- Build and pack the backend package in `Release`.
+- Confirm README, package metadata, and NuGet package page links.
+- Verify the sample BFF flow against the local Keycloak realm after a clean import.
