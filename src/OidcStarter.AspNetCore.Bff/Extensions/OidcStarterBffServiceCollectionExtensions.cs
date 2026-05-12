@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
@@ -6,6 +7,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using Microsoft.IdentityModel.Tokens;
+using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Controllers;
 using OidcStarter.AspNetCore.Bff.Security;
@@ -33,10 +36,10 @@ public static class OidcStarterBffServiceCollectionExtensions
 
         ConfigureForwardedHeaders(services, bffSettings);
         ConfigureCors(services, bffSettings);
-        ConfigureAuthentication(services, configuration);
+        ConfigureAuthentication(services, configuration, bffSettings);
         ConfigureAntiforgery(services, bffSettings);
+        ConfigureAuthorization(services, bffSettings);
 
-        services.AddAuthorization();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton<CsrfOriginValidator>();
 
@@ -93,14 +96,14 @@ public static class OidcStarterBffServiceCollectionExtensions
         });
     }
 
-    private static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
+    private static void ConfigureAuthentication(
+        IServiceCollection services,
+        IConfiguration configuration,
+        OidcStarterBffOptions bffSettings)
     {
         var oidcSettings = configuration
             .GetSection(OidcOptions.SectionName)
             .Get<OidcOptions>() ?? new OidcOptions();
-        var bffSettings = configuration
-            .GetSection(OidcStarterBffOptions.SectionName)
-            .Get<OidcStarterBffOptions>() ?? new OidcStarterBffOptions();
 
         services.AddAuthentication(options =>
             {
@@ -154,10 +157,17 @@ public static class OidcStarterBffServiceCollectionExtensions
                 options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = bffSettings.NameClaimType,
+                    RoleClaimType = bffSettings.RoleClaimType
+                };
                 options.CorrelationCookie.SameSite = bffSettings.CookieSameSite;
                 options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.NonceCookie.SameSite = bffSettings.CookieSameSite;
                 options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.ClaimActions.MapJsonKey(bffSettings.NameClaimType, bffSettings.NameClaimType);
+                options.ClaimActions.MapJsonKey(bffSettings.RoleClaimType, bffSettings.RoleClaimType);
 
                 options.Scope.Clear();
                 foreach (var scope in oidcSettings.Scopes.Where(static scope => !string.IsNullOrWhiteSpace(scope)))
@@ -165,6 +175,39 @@ public static class OidcStarterBffServiceCollectionExtensions
                     options.Scope.Add(scope);
                 }
             });
+    }
+
+    private static void ConfigureAuthorization(IServiceCollection services, OidcStarterBffOptions bffSettings)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(
+                OidcStarterBffPolicies.AuthenticatedUser,
+                policy => RequireAuthenticatedBffSession(policy));
+
+            if (bffSettings.RequiredScopes.Any(static scope => !string.IsNullOrWhiteSpace(scope)))
+            {
+                options.AddPolicy(
+                    OidcStarterBffPolicies.ConfiguredRequiredScopes,
+                    policy => RequireAuthenticatedBffSession(policy)
+                        .RequireOidcStarterScopes(bffSettings.RequiredScopes));
+            }
+
+            if (bffSettings.RequiredClaims.Any(static claim => !string.IsNullOrWhiteSpace(claim.Type)))
+            {
+                options.AddPolicy(
+                    OidcStarterBffPolicies.ConfiguredRequiredClaims,
+                    policy => RequireAuthenticatedBffSession(policy)
+                        .RequireOidcStarterClaims(bffSettings.RequiredClaims));
+            }
+        });
+    }
+
+    private static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireAuthenticatedBffSession(
+        Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy)
+    {
+        policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
+        return policy.RequireAuthenticatedUser();
     }
 
     private static void ConfigureAntiforgery(IServiceCollection services, OidcStarterBffOptions bffSettings)

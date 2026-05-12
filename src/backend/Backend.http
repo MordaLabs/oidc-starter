@@ -4,3 +4,8 @@ GET {{Backend_HostAddress}}/api/public/ping
 Accept: application/json
 
 ###
+
+GET {{Backend_HostAddress}}/api/protected/ping
+Accept: application/json
+
+###

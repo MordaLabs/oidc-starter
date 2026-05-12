@@ -5,4 +5,7 @@ public sealed record CurrentUserResponse(
     string? Sub,
     string? Name,
     string? Username,
-    string? Email);
+    string? Email)
+{
+    public IReadOnlyCollection<string> Roles { get; init; } = [];
+}

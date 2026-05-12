@@ -4,4 +4,5 @@ export type BffCurrentUser = {
   name?: string | null;
   username?: string | null;
   email?: string | null;
+  roles?: readonly string[];
 };

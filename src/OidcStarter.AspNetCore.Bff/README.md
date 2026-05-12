@@ -50,7 +50,15 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
     "CookieSameSite": "None",
     "RequireAntiforgeryToken": false,
     "AntiforgeryHeaderName": "X-XSRF-TOKEN",
-    "AntiforgeryCookieSecurePolicy": "SameAsRequest"
+    "AntiforgeryCookieSecurePolicy": "SameAsRequest",
+    "NameClaimType": "name",
+    "RoleClaimType": "role",
+    "AdditionalRoleClaimTypes": [
+      "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+      "roles"
+    ],
+    "RequiredScopes": [],
+    "RequiredClaims": []
   },
   "Oidc": {
     "Authority": "https://identity.example.com/realms/example",
@@ -100,6 +108,58 @@ Frontend integration contract:
 
 Any custom frontend or third-party frontend integrating with this backend package must implement this
 contract before `Starter:RequireAntiforgeryToken` is enabled.
+
+## Authorization Foundation
+
+The package configures ASP.NET Core authorization and exposes a small policy foundation rather than a
+custom RBAC framework.
+
+Defaults:
+
+- `Starter:NameClaimType` defaults to `name` and is used for OIDC token validation and `/api/auth/me`.
+- `Starter:RoleClaimType` defaults to `role` and is used by ASP.NET Core role authorization, including
+  `[Authorize(Roles = "...")]`.
+- `Starter:AdditionalRoleClaimTypes` defaults to the ASP.NET Core role claim URI and `roles`; these
+  extra claim types are included in the `roles` array returned by `/api/auth/me`.
+- The package registers `OidcStarterBffPolicies.AuthenticatedUser`, a named policy that only requires
+  a valid authenticated backend session.
+
+Optional configured policies:
+
+- Set `Starter:RequiredScopes` to add `OidcStarterBffPolicies.ConfiguredRequiredScopes`. The policy
+  requires all configured scopes and checks both `scope` and `scp` claims.
+- Set `Starter:RequiredClaims` to add `OidcStarterBffPolicies.ConfiguredRequiredClaims`. Each entry
+  requires the claim type to exist; when `Values` are supplied, at least one matching value must be
+  present.
+
+Example:
+
+```json
+{
+  "Starter": {
+    "RoleClaimType": "roles",
+    "RequiredScopes": [ "profile" ],
+    "RequiredClaims": [
+      { "Type": "tenant", "Values": [ "academy" ] }
+    ]
+  }
+}
+```
+
+```csharp
+using Microsoft.AspNetCore.Authorization;
+using OidcStarter.AspNetCore.Bff.Authorization;
+
+[Authorize(Policy = OidcStarterBffPolicies.AuthenticatedUser)]
+[HttpGet("/api/protected/ping")]
+public IActionResult Ping() => Ok();
+```
+
+Consuming applications still own their business authorization model: application roles, tenant
+membership, resource ownership, and domain-specific policies should be defined in the consuming app.
+If an identity provider emits nested provider-specific role structures, normalize them into ordinary
+role claims in the consuming app or identity provider configuration, then set `RoleClaimType`
+accordingly.
 
 `UseOidcStarterBff()` applies forwarded headers before HTTPS redirection. `AllowedForwardedHosts`
 limits accepted `X-Forwarded-Host` values. In production, also set `KnownForwardedProxies` to trusted

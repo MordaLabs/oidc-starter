@@ -1,6 +1,7 @@
 namespace OidcStarter.AspNetCore.Bff.Configuration;
 
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 public sealed class OidcStarterBffOptions
 {
@@ -31,4 +32,18 @@ public sealed class OidcStarterBffOptions
     public string AntiforgeryRequestTokenCookieName { get; set; } = "XSRF-TOKEN";
 
     public CookieSecurePolicy AntiforgeryCookieSecurePolicy { get; set; } = CookieSecurePolicy.SameAsRequest;
+
+    public string NameClaimType { get; set; } = "name";
+
+    public string RoleClaimType { get; set; } = "role";
+
+    public string[] AdditionalRoleClaimTypes { get; set; } =
+    [
+        ClaimTypes.Role,
+        "roles"
+    ];
+
+    public string[] RequiredScopes { get; set; } = [];
+
+    public RequiredClaimOptions[] RequiredClaims { get; set; } = [];
 }
