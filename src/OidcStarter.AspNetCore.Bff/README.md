@@ -242,9 +242,9 @@ Integration requirements consumers should know before enabling production settin
   flat role claims.
 - Move secrets out of checked-in appsettings files for real deployments.
 
-Remaining pre-`1.0.0` work is primarily release validation: broader provider testing, final default
-review, packaging metadata, and deployment guidance. No known breaking changes are currently planned
-for consumers already using the documented extension points.
+Version 1.0.0 establishes the initial stable contract for the package: cookie-backed OIDC BFF authentication, 
+antiforgery integration points, authorization helpers, and provider-agnostic role-mapping extensibility. 
+No known breaking changes are planned for consumers already using the documented extension points.
 
 ## Local Packaging
 
@@ -260,7 +260,7 @@ The package is written to `src/OidcStarter.AspNetCore.Bff/bin/Release`.
 Publication command for maintainers:
 
 ```powershell
-dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.0.1.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
+dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.1.0.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
 Only publish after confirming the target version, release notes, and registry credentials.
