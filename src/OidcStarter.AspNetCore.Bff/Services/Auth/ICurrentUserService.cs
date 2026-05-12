@@ -5,5 +5,5 @@ namespace OidcStarter.AspNetCore.Bff.Services.Auth;
 
 public interface ICurrentUserService
 {
-    CurrentUserResponse? GetCurrentUser(ClaimsPrincipal user);
+    CurrentUserResponse? GetCurrentUser(ClaimsPrincipal user, string? accessToken = null);
 }

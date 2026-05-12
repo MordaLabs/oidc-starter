@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Net;
+using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
@@ -18,6 +20,14 @@ namespace OidcStarter.AspNetCore.Bff.Extensions;
 
 public static class OidcStarterBffServiceCollectionExtensions
 {
+    public static IServiceCollection AddOidcStarterRoleMapper<TMapper>(this IServiceCollection services)
+        where TMapper : class, IOidcStarterRoleMapper
+    {
+        services.AddSingleton<IOidcStarterRoleMapper, TMapper>();
+
+        return services;
+    }
+
     public static IServiceCollection AddOidcStarterBff(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -40,6 +50,8 @@ public static class OidcStarterBffServiceCollectionExtensions
         ConfigureAntiforgery(services, bffSettings);
         ConfigureAuthorization(services, bffSettings);
 
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IOidcStarterRoleMapper, DefaultOidcStarterRoleMapper>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IClaimsTransformation, OidcStarterRoleClaimsTransformation>());
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton<CsrfOriginValidator>();
 
@@ -168,6 +180,24 @@ public static class OidcStarterBffServiceCollectionExtensions
                 options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.ClaimActions.MapJsonKey(bffSettings.NameClaimType, bffSettings.NameClaimType);
                 options.ClaimActions.MapJsonKey(bffSettings.RoleClaimType, bffSettings.RoleClaimType);
+                options.Events.OnTicketReceived = context =>
+                {
+                    var principal = context.Principal;
+                    var accessToken = context.Properties?.GetTokenValue("access_token");
+
+                    if (principal is null || string.IsNullOrWhiteSpace(bffSettings.RoleClaimType))
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    AddMappedRoleClaims(
+                        principal,
+                        new OidcStarterRoleMappingContext(principal, accessToken),
+                        bffSettings,
+                        context.HttpContext.RequestServices.GetServices<IOidcStarterRoleMapper>());
+
+                    return Task.CompletedTask;
+                };
 
                 options.Scope.Clear();
                 foreach (var scope in oidcSettings.Scopes.Where(static scope => !string.IsNullOrWhiteSpace(scope)))
@@ -208,6 +238,36 @@ public static class OidcStarterBffServiceCollectionExtensions
     {
         policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
         return policy.RequireAuthenticatedUser();
+    }
+
+    private static void AddMappedRoleClaims(
+        ClaimsPrincipal principal,
+        OidcStarterRoleMappingContext mappingContext,
+        OidcStarterBffOptions bffSettings,
+        IEnumerable<IOidcStarterRoleMapper> roleMappers)
+    {
+        var existingRoles = principal
+            .FindAll(bffSettings.RoleClaimType)
+            .Select(static claim => claim.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var mappedRoles = roleMappers
+            .SelectMany(mapper => mapper.GetRoles(mappingContext))
+            .Where(static role => !string.IsNullOrWhiteSpace(role))
+            .Select(static role => role.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(role => !existingRoles.Contains(role))
+            .ToArray();
+
+        if (mappedRoles.Length == 0)
+        {
+            return;
+        }
+
+        principal.AddIdentity(new ClaimsIdentity(
+            mappedRoles.Select(role => new Claim(bffSettings.RoleClaimType, role)),
+            authenticationType: "OidcStarterRoleMapping",
+            nameType: bffSettings.NameClaimType,
+            roleType: bffSettings.RoleClaimType));
     }
 
     private static void ConfigureAntiforgery(IServiceCollection services, OidcStarterBffOptions bffSettings)

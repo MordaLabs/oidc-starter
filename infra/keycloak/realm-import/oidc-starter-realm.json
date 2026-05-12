@@ -10,6 +10,14 @@
   "editUsernameAllowed": false,
   "bruteForceProtected": false,
   "sslRequired": "none",
+  "roles": {
+    "realm": [
+      {
+        "name": "my-test-role",
+        "description": "Sample local development realm role for BFF role mapping."
+      }
+    ]
+  },
   "clients": [
     {
       "clientId": "oidc-starter-spa",
@@ -99,6 +107,9 @@
           "value": "test123",
           "temporary": false
         }
+      ],
+      "realmRoles": [
+        "my-test-role"
       ],
       "requiredActions": []
     }

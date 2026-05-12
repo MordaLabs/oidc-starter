@@ -29,9 +29,10 @@ public sealed class AuthController(
     }
 
     [HttpGet("me")]
-    public ActionResult<CurrentUserResponse> Me()
+    public async Task<ActionResult<CurrentUserResponse>> Me()
     {
-        var currentUser = currentUserService.GetCurrentUser(User);
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var currentUser = currentUserService.GetCurrentUser(User, accessToken);
 
         if (currentUser is null)
         {

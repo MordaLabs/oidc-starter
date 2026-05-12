@@ -58,3 +58,8 @@ origin or the current backend origin. The BFF package also exposes `GET /api/aut
 an antiforgery request token through the `XSRF-TOKEN` cookie. Frontends must send that token on
 cookie-authenticated state-changing BFF requests: use the `X-XSRF-TOKEN` header for fetch/XHR calls,
 or the `__RequestVerificationToken` form field for top-level form posts such as OIDC logout.
+
+The reusable BFF package reads flat role claims by default and exposes `IOidcStarterRoleMapper` for
+provider-specific role extraction. The sample backend registers a Keycloak mapper that reads the
+backend `access_token` and surfaces roles from `realm_access.roles` and
+`resource_access.{client}.roles` in `/api/auth/me`.

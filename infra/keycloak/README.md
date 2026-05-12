@@ -28,7 +28,8 @@ On a fresh start, the import creates:
 - Realm: `oidc-starter`
 - Client: `oidc-starter-spa`
 - Client: `oidc-starter-bff`
-- Test user: `testuser` 
+- Realm role: `my-test-role`
+- Test user: `testuser`, with `my-test-role` assigned automatically
 
 Local development credentials created by the import [LOCAL DEVELOPMENT ONLY - DO NOT REUSE IN REAL ENVIRONMENTS]:
 
@@ -58,6 +59,9 @@ You may still need manual adjustment if:
 - you changed the BFF client secret in app configuration
 - you already have an existing `oidc-starter` realm from an older manual setup
 
+The imported `my-test-role` role is included so BFF mode can demonstrate role mapping through
+`/api/auth/me` without manual Keycloak setup. It is local sample data only.
+
 ## Retest From Scratch
 
 If you want to retest from a clean local state, from `infra/keycloak` run:
@@ -72,7 +76,8 @@ Then start again:
 docker compose up -d
 ```
 
-If you still see old realm data, remove the existing container explicitly and start again:
+If you already imported an older realm before `my-test-role` existed, remove the existing container
+explicitly and start again:
 
 ```bash
 docker rm -f oidc-starter-keycloak

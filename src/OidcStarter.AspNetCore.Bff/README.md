@@ -121,6 +121,8 @@ Defaults:
   `[Authorize(Roles = "...")]`.
 - `Starter:AdditionalRoleClaimTypes` defaults to the ASP.NET Core role claim URI and `roles`; these
   extra claim types are included in the `roles` array returned by `/api/auth/me`.
+- `IOidcStarterRoleMapper` has a built-in flat-claim implementation that reads those configured role
+  claim types.
 - The package registers `OidcStarterBffPolicies.AuthenticatedUser`, a named policy that only requires
   a valid authenticated backend session.
 
@@ -157,9 +159,45 @@ public IActionResult Ping() => Ok();
 
 Consuming applications still own their business authorization model: application roles, tenant
 membership, resource ownership, and domain-specific policies should be defined in the consuming app.
-If an identity provider emits nested provider-specific role structures, normalize them into ordinary
-role claims in the consuming app or identity provider configuration, then set `RoleClaimType`
-accordingly.
+
+### Custom Role Mapping
+
+Different OIDC providers represent roles differently. The package handles flat role claims by
+default, but it does not hardcode provider-specific nested structures. If a provider emits roles in
+custom or nested claims, add an `IOidcStarterRoleMapper` implementation in the consuming app. The
+mapper receives the current principal and, during OIDC ticket creation, the saved backend
+`access_token` when one is available:
+
+```csharp
+using OidcStarter.AspNetCore.Bff.Authorization;
+
+internal sealed class MyProviderRoleMapper : IOidcStarterRoleMapper
+{
+    public IEnumerable<string> GetRoles(OidcStarterRoleMappingContext context)
+    {
+        // Extract provider-specific roles from context.Principal or context.AccessToken.
+        yield return "example-role";
+    }
+}
+```
+
+Register it before or after `AddOidcStarterBff`:
+
+```csharp
+builder.Services.AddOidcStarterRoleMapper<MyProviderRoleMapper>();
+builder.Services.AddOidcStarterBff(builder.Configuration);
+```
+
+Mapped roles are additive. The default flat-claim mapper remains active, and custom mapper output is
+deduplicated for `/api/auth/me`. The package also copies mapped roles into the configured
+`Starter:RoleClaimType` through claims transformation, so ASP.NET Core role checks can use the same
+normalized role names.
+
+The sample backend demonstrates this extension point with a Keycloak-specific mapper that reads the
+backend `access_token` and extracts roles from `realm_access.roles` and
+`resource_access.{client}.roles`. It filters `offline_access`, `uma_authorization`, and
+`default-roles-*` as sample noise, but otherwise leaves realm and client roles visible. That logic
+intentionally lives in the sample app, not in the reusable package.
 
 `UseOidcStarterBff()` applies forwarded headers before HTTPS redirection. `AllowedForwardedHosts`
 limits accepted `X-Forwarded-Host` values. In production, also set `KnownForwardedProxies` to trusted

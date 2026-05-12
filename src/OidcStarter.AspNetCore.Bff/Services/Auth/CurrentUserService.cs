@@ -1,13 +1,16 @@
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
+using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Models.Auth;
 
 namespace OidcStarter.AspNetCore.Bff.Services.Auth;
 
-internal sealed class CurrentUserService(IOptions<OidcStarterBffOptions> bffOptions) : ICurrentUserService
+internal sealed class CurrentUserService(
+    IOptions<OidcStarterBffOptions> bffOptions,
+    IEnumerable<IOidcStarterRoleMapper> roleMappers) : ICurrentUserService
 {
-    public CurrentUserResponse? GetCurrentUser(ClaimsPrincipal user)
+    public CurrentUserResponse? GetCurrentUser(ClaimsPrincipal user, string? accessToken = null)
     {
         if (user.Identity?.IsAuthenticated != true)
         {
@@ -21,7 +24,7 @@ internal sealed class CurrentUserService(IOptions<OidcStarterBffOptions> bffOpti
             GetClaim(user, "preferred_username"),
             GetClaim(user, ClaimTypes.Email, "email"))
         {
-            Roles = GetRoles(user)
+            Roles = GetRoles(user, accessToken)
         };
     }
 
@@ -31,20 +34,14 @@ internal sealed class CurrentUserService(IOptions<OidcStarterBffOptions> bffOpti
             .Select(principal.FindFirstValue)
             .FirstOrDefault(static value => !string.IsNullOrWhiteSpace(value));
 
-    private IReadOnlyCollection<string> GetRoles(ClaimsPrincipal principal)
+    private IReadOnlyCollection<string> GetRoles(ClaimsPrincipal principal, string? accessToken)
     {
-        var roleClaimTypes = new[]
-            {
-                bffOptions.Value.RoleClaimType
-            }
-            .Concat(bffOptions.Value.AdditionalRoleClaimTypes)
-            .Where(static claimType => !string.IsNullOrWhiteSpace(claimType))
-            .Distinct(StringComparer.OrdinalIgnoreCase);
+        var mappingContext = new OidcStarterRoleMappingContext(principal, accessToken);
 
-        return roleClaimTypes
-            .SelectMany(principal.FindAll)
-            .Select(static claim => claim.Value)
+        return roleMappers
+            .SelectMany(mapper => mapper.GetRoles(mappingContext))
             .Where(static role => !string.IsNullOrWhiteSpace(role))
+            .Select(static role => role.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToArray();
