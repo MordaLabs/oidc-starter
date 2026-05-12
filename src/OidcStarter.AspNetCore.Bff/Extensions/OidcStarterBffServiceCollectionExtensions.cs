@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Controllers;
 using OidcStarter.AspNetCore.Bff.Security;
@@ -33,6 +34,7 @@ public static class OidcStarterBffServiceCollectionExtensions
         ConfigureForwardedHeaders(services, bffSettings);
         ConfigureCors(services, bffSettings);
         ConfigureAuthentication(services, configuration);
+        ConfigureAntiforgery(services, bffSettings);
 
         services.AddAuthorization();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -54,6 +56,22 @@ public static class OidcStarterBffServiceCollectionExtensions
             foreach (var host in bffSettings.AllowedForwardedHosts.Where(static host => !string.IsNullOrWhiteSpace(host)))
             {
                 options.AllowedHosts.Add(host);
+            }
+
+            foreach (var proxy in bffSettings.KnownForwardedProxies.Where(static proxy => !string.IsNullOrWhiteSpace(proxy)))
+            {
+                if (IPAddress.TryParse(proxy, out var address))
+                {
+                    options.KnownProxies.Add(address);
+                }
+            }
+
+            foreach (var network in bffSettings.KnownForwardedNetworks.Where(static network => !string.IsNullOrWhiteSpace(network)))
+            {
+                if (TryParseNetwork(network, out var parsedNetwork))
+                {
+                    options.KnownNetworks.Add(parsedNetwork);
+                }
             }
         });
     }
@@ -80,6 +98,9 @@ public static class OidcStarterBffServiceCollectionExtensions
         var oidcSettings = configuration
             .GetSection(OidcOptions.SectionName)
             .Get<OidcOptions>() ?? new OidcOptions();
+        var bffSettings = configuration
+            .GetSection(OidcStarterBffOptions.SectionName)
+            .Get<OidcStarterBffOptions>() ?? new OidcStarterBffOptions();
 
         services.AddAuthentication(options =>
             {
@@ -88,14 +109,14 @@ public static class OidcStarterBffServiceCollectionExtensions
             })
             .AddCookie(options =>
             {
-                options.Cookie.Name = "__Host-oidc-starter-bff";
+                options.Cookie.Name = bffSettings.CookieName;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.Path = "/";
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = bffSettings.CookieSameSite;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.IsEssential = true;
-                options.ExpireTimeSpan = TimeSpan.FromHours(8);
-                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = bffSettings.SessionLifetime;
+                options.SlidingExpiration = bffSettings.SlidingExpiration;
                 options.LoginPath = "/api/auth/login";
                 options.AccessDeniedPath = "/api/auth/denied";
                 options.Events.OnRedirectToLogin = context =>
@@ -133,9 +154,9 @@ public static class OidcStarterBffServiceCollectionExtensions
                 options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
-                options.CorrelationCookie.SameSite = SameSiteMode.None;
+                options.CorrelationCookie.SameSite = bffSettings.CookieSameSite;
                 options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.NonceCookie.SameSite = SameSiteMode.None;
+                options.NonceCookie.SameSite = bffSettings.CookieSameSite;
                 options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
 
                 options.Scope.Clear();
@@ -144,5 +165,35 @@ public static class OidcStarterBffServiceCollectionExtensions
                     options.Scope.Add(scope);
                 }
             });
+    }
+
+    private static void ConfigureAntiforgery(IServiceCollection services, OidcStarterBffOptions bffSettings)
+    {
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = bffSettings.AntiforgeryHeaderName;
+            options.Cookie.Name = bffSettings.AntiforgeryCookieName;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.Path = "/";
+            options.Cookie.SameSite = bffSettings.CookieSameSite;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.IsEssential = true;
+        });
+    }
+
+    private static bool TryParseNetwork(string value, out Microsoft.AspNetCore.HttpOverrides.IPNetwork network)
+    {
+        network = null!;
+        var parts = value.Split('/', StringSplitOptions.TrimEntries);
+
+        if (parts.Length != 2
+            || !IPAddress.TryParse(parts[0], out var prefix)
+            || !int.TryParse(parts[1], out var prefixLength))
+        {
+            return false;
+        }
+
+        network = new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, prefixLength);
+        return true;
     }
 }

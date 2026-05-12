@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Configuration;
@@ -15,6 +17,7 @@ namespace OidcStarter.AspNetCore.Bff.Controllers;
 public sealed class AuthController(
     IOptions<OidcStarterBffOptions> bffOptions,
     ICurrentUserService currentUserService,
+    IAntiforgery antiforgery,
     CsrfOriginValidator csrfOriginValidator) : ControllerBase
 {
     [HttpGet("login")]
@@ -38,12 +41,44 @@ public sealed class AuthController(
         return Ok(currentUser);
     }
 
+    [HttpGet("csrf")]
+    public IActionResult Csrf()
+    {
+        var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+
+        Response.Cookies.Append(
+            bffOptions.Value.AntiforgeryRequestTokenCookieName,
+            tokens.RequestToken ?? string.Empty,
+            new CookieOptions
+            {
+                HttpOnly = false,
+                IsEssential = true,
+                Path = "/",
+                SameSite = bffOptions.Value.CookieSameSite,
+                Secure = true
+            });
+
+        return NoContent();
+    }
+
     [HttpPost("logout")]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
         if (!csrfOriginValidator.IsTrustedOrigin(Request))
         {
             return Forbid();
+        }
+
+        if (bffOptions.Value.RequireAntiforgeryToken)
+        {
+            try
+            {
+                await antiforgery.ValidateRequestAsync(HttpContext);
+            }
+            catch (AntiforgeryValidationException)
+            {
+                return BadRequest();
+            }
         }
 
         var properties = CreateFrontendRedirectProperties();

@@ -18,6 +18,7 @@ dotnet add package OidcStarter.AspNetCore.Bff
 - `OidcOptions` and `OidcStarterBffOptions` configuration models.
 - `ICurrentUserService` and `CurrentUserResponse` for current-user claim mapping.
 - A lightweight origin check for logout form posts.
+- Antiforgery token groundwork for cookie-authenticated BFF endpoints.
 
 ## Sample Backend Usage
 
@@ -41,7 +42,14 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
 {
   "Starter": {
     "FrontendOrigin": "http://localhost:4200",
-    "AllowedForwardedHosts": [ "localhost" ]
+    "AllowedForwardedHosts": [ "localhost" ],
+    "KnownForwardedProxies": [],
+    "KnownForwardedNetworks": [],
+    "SessionLifetime": "08:00:00",
+    "SlidingExpiration": true,
+    "CookieSameSite": "None",
+    "RequireAntiforgeryToken": false,
+    "AntiforgeryHeaderName": "X-XSRF-TOKEN"
   },
   "Oidc": {
     "Authority": "https://identity.example.com/realms/example",
@@ -54,6 +62,24 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
   }
 }
 ```
+
+## Security And Hosting Notes
+
+The package sets an HTTP-only, secure `__Host-` session cookie with an 8-hour sliding lifetime by
+default. Keep `CookieSameSite` as `None` for split-origin local development; production BFF
+deployments should usually serve the frontend and backend from one public site and change it to
+`Lax` or `Strict` where the OIDC provider flow and hosting topology allow it.
+
+`POST /api/auth/logout` always checks `Origin` or `Referer` against `Starter:FrontendOrigin` and the
+current backend origin. For stronger CSRF protection, call `GET /api/auth/csrf` from the frontend,
+read the `XSRF-TOKEN` cookie, send it back in the `X-XSRF-TOKEN` header on state-changing BFF calls,
+and set `Starter:RequireAntiforgeryToken` to `true`. Validation is opt-in for now so existing sample
+logout behavior remains compatible.
+
+`UseOidcStarterBff()` applies forwarded headers before HTTPS redirection. `AllowedForwardedHosts`
+limits accepted `X-Forwarded-Host` values. In production, also set `KnownForwardedProxies` to trusted
+proxy IP addresses or `KnownForwardedNetworks` to trusted CIDR ranges such as `10.0.0.0/8`; do not
+trust arbitrary forwarded headers from the public internet.
 
 ## Local Packaging
 
