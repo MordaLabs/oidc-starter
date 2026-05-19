@@ -63,23 +63,12 @@ public sealed class AuthController(
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    [OidcStarterValidateAntiforgeryToken]
+    public IActionResult Logout()
     {
         if (!csrfOriginValidator.IsTrustedOrigin(Request))
         {
             return Forbid();
-        }
-
-        if (bffOptions.Value.RequireAntiforgeryToken)
-        {
-            try
-            {
-                await antiforgery.ValidateRequestAsync(HttpContext);
-            }
-            catch (AntiforgeryValidationException)
-            {
-                return BadRequest();
-            }
         }
 
         var properties = CreateFrontendRedirectProperties();

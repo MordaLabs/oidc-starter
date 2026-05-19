@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Controllers;
@@ -17,47 +20,90 @@ namespace OidcStarter.AspNetCore.Bff.Tests.Controllers;
 public sealed class AuthControllerTests
 {
     [Fact]
-    public async Task Logout_rejects_missing_trusted_origin_before_antiforgery_validation()
+    public void Logout_rejects_missing_trusted_origin()
     {
         var antiforgery = new FakeAntiforgery();
         var controller = CreateController(antiforgery);
 
-        var result = await controller.Logout();
+        var result = controller.Logout();
 
         Assert.IsType<ForbidResult>(result);
         Assert.False(antiforgery.ValidateRequestCalled);
     }
 
     [Fact]
-    public async Task Logout_returns_bad_request_when_required_antiforgery_validation_fails()
+    public void Logout_is_protected_by_package_antiforgery_filter()
     {
-        var controller = CreateController(new FakeAntiforgery(throwsOnValidate: true));
-        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+        var method = typeof(AuthController).GetMethod(nameof(AuthController.Logout));
 
-        var result = await controller.Logout();
-
-        Assert.IsType<BadRequestResult>(result);
+        Assert.NotNull(method);
+        Assert.Contains(
+            method.GetCustomAttributes(inherit: false),
+            static attribute => attribute is OidcStarterValidateAntiforgeryTokenAttribute);
     }
 
     [Fact]
-    public async Task Logout_signs_out_cookie_and_oidc_schemes_when_origin_and_antiforgery_are_valid()
+    public async Task Package_antiforgery_filter_returns_bad_request_when_validation_fails()
+    {
+        var filter = new OidcStarterValidateAntiforgeryTokenFilter(
+            new FakeAntiforgery(throwsOnValidate: true));
+        var context = CreateAuthorizationFilterContext();
+
+        await filter.OnAuthorizationAsync(context);
+
+        Assert.IsType<BadRequestResult>(context.Result);
+    }
+
+    [Fact]
+    public async Task Package_antiforgery_filter_allows_request_when_validation_succeeds()
+    {
+        var antiforgery = new FakeAntiforgery();
+        var filter = new OidcStarterValidateAntiforgeryTokenFilter(antiforgery);
+        var context = CreateAuthorizationFilterContext();
+
+        await filter.OnAuthorizationAsync(context);
+
+        Assert.True(antiforgery.ValidateRequestCalled);
+        Assert.Null(context.Result);
+    }
+
+    [Fact]
+    public void Logout_signs_out_cookie_and_oidc_schemes_when_origin_is_valid()
     {
         var controller = CreateController(new FakeAntiforgery());
         controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
 
-        var result = Assert.IsType<SignOutResult>(await controller.Logout());
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
 
         Assert.Contains(CookieAuthenticationDefaults.AuthenticationScheme, result.AuthenticationSchemes);
         Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
     }
 
-    private static AuthController CreateController(IAntiforgery antiforgery)
+    [Fact]
+    public void Csrf_sets_readable_request_token_cookie_with_configured_same_site()
     {
-        var options = Options.Create(new OidcStarterBffOptions
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            options => options.CookieSameSite = SameSiteMode.Strict);
+
+        var result = controller.Csrf();
+
+        Assert.IsType<NoContentResult>(result);
+        var setCookie = Assert.Single(controller.HttpContext.Response.Headers.SetCookie);
+        Assert.Contains("XSRF-TOKEN=request-token", setCookie);
+        Assert.Contains("samesite=strict", setCookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static AuthController CreateController(
+        IAntiforgery antiforgery,
+        Action<OidcStarterBffOptions>? configureOptions = null)
+    {
+        var bffOptions = new OidcStarterBffOptions
         {
-            FrontendOrigin = "http://localhost:4200",
-            RequireAntiforgeryToken = true
-        });
+            FrontendOrigin = "http://localhost:4200"
+        };
+        configureOptions?.Invoke(bffOptions);
+        var options = Options.Create(bffOptions);
         var controller = new AuthController(
             options,
             new StubCurrentUserService(),
@@ -73,6 +119,14 @@ public sealed class AuthControllerTests
 
         return controller;
     }
+
+    private static AuthorizationFilterContext CreateAuthorizationFilterContext()
+        => new(
+            new ActionContext(
+                new DefaultHttpContext(),
+                new RouteData(),
+                new ActionDescriptor()),
+            []);
 
     private sealed class FakeAntiforgery(bool throwsOnValidate = false) : IAntiforgery
     {

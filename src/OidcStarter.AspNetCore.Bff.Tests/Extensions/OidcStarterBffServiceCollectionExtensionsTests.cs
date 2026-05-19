@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Extensions;
 
@@ -42,6 +46,33 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         var mappers = provider.GetServices<IOidcStarterRoleMapper>().ToArray();
         Assert.Contains(mappers, static mapper => mapper is CustomRoleMapper);
         Assert.Contains(mappers, static mapper => mapper.GetType().Name == "DefaultOidcStarterRoleMapper");
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_applies_configured_same_site_to_cookie_related_options()
+    {
+        using var provider = CreateServices(new Dictionary<string, string?>
+        {
+            ["Starter:CookieSameSite"] = "Strict",
+            ["Oidc:Authority"] = "https://identity.example.test",
+            ["Oidc:ClientId"] = "bff-client",
+            ["Oidc:ClientSecret"] = "secret"
+        });
+
+        var cookieOptions = provider
+            .GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        var oidcOptions = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+        var antiforgeryOptions = provider
+            .GetRequiredService<IOptions<AntiforgeryOptions>>()
+            .Value;
+
+        Assert.Equal(SameSiteMode.Strict, cookieOptions.Cookie.SameSite);
+        Assert.Equal(SameSiteMode.Strict, oidcOptions.CorrelationCookie.SameSite);
+        Assert.Equal(SameSiteMode.Strict, oidcOptions.NonceCookie.SameSite);
+        Assert.Equal(SameSiteMode.Strict, antiforgeryOptions.Cookie.SameSite);
     }
 
     private static ServiceProvider CreateServices(Dictionary<string, string?> values)

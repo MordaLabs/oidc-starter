@@ -42,14 +42,30 @@ Before either publish, confirm the target version, changelog/release notes, and 
 
 ## Integration Notes
 
-- Backend antiforgery validation remains opt-in through `Starter:RequireAntiforgeryToken`; this is
-  not a backend package breaking default change yet.
-- The sample backend enables `RequireAntiforgeryToken` because the sample frontend now initializes
-  antiforgery with `GET /api/auth/csrf` before BFF logout.
+- Package logout antiforgery validation is always on through a package-local filter that calls
+  ASP.NET Core `IAntiforgery`. Custom frontends must initialize antiforgery with
+  `GET /api/auth/csrf` before BFF logout.
+- `Starter:RequireAntiforgeryToken` is retained for compatibility but no longer controls
+  package-provided endpoints.
 - Frontends integrating with the BFF package must call `GET /api/auth/csrf` and send the returned
-  `XSRF-TOKEN` value on state-changing BFF requests before enabling backend antiforgery validation.
+  `XSRF-TOKEN` value on state-changing BFF requests.
 - Role mapping is provider-agnostic by default. Consumers should register `IOidcStarterRoleMapper`
   for providers that emit nested or custom role structures.
+
+## Post-Release Hardening Fixes
+
+Use this section to accumulate security and hardening fixes identified after the latest package
+release and before the next patch/minor release.
+
+Hardening IDs such as `HARDENING-021` and baseline IDs such as `BFF-CSRF-004` are defined by the
+companion auditor repository, `oidc-starter-agent`: https://github.com/jszyduk/oidc-starter-agent/blob/master/docs/security-baseline-v1.md
+
+- `HARDENING-021 / BFF-CSRF-004`: The audit flagged that unsafe browser-to-BFF endpoints might not
+  be covered by antiforgery validation. In `oidc-starter`, `POST /api/auth/logout` is now always
+  protected by antiforgery validation through a package-local filter that calls ASP.NET Core
+  `IAntiforgery`. This matters for consumers because frontend logout integrations must continue to
+  follow the documented contract: call `GET /api/auth/csrf` and send the returned token with logout
+  requests. This is a behavioral hardening change relevant for the next backend package release.
 
 ## v1.0.0 Readiness Checklist
 

@@ -70,7 +70,6 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
     "SessionLifetime": "08:00:00",
     "SlidingExpiration": true,
     "CookieSameSite": "None",
-    "RequireAntiforgeryToken": false,
     "AntiforgeryHeaderName": "X-XSRF-TOKEN",
     "AntiforgeryCookieSecurePolicy": "SameAsRequest",
     "NameClaimType": "name",
@@ -103,12 +102,10 @@ deployments should usually serve the frontend and backend from one public site a
 
 ## Antiforgery Contract
 
-`POST /api/auth/logout` always checks `Origin` or `Referer` against `Starter:FrontendOrigin` and the
-current backend origin.
-
-Set `Starter:RequireAntiforgeryToken` to `true` to require ASP.NET Core antiforgery validation for
-state-changing BFF endpoints. This remains opt-in in the package defaults, so enabling it is not a
-breaking default behavior change yet.
+`POST /api/auth/logout` is protected by a package-local MVC authorization filter that calls
+ASP.NET Core `IAntiforgery.ValidateRequestAsync`. It also checks `Origin` or `Referer` against
+`Starter:FrontendOrigin` and the current backend origin. The origin check remains defense in depth;
+antiforgery validation is the primary CSRF protection for the package-provided unsafe endpoint.
 
 The antiforgery cookie secure policy defaults to `SameAsRequest` so local HTTP samples can obtain a
 token. Production apps should run behind HTTPS and set `Starter:AntiforgeryCookieSecurePolicy` to
@@ -129,7 +126,7 @@ Frontend integration contract:
   by consuming apps should follow the same rule for `POST`, `PUT`, `PATCH`, and `DELETE`.
 
 Any custom frontend or third-party frontend integrating with this backend package must implement this
-contract before `Starter:RequireAntiforgeryToken` is enabled.
+contract before calling package-provided or app-defined state-changing BFF endpoints.
 
 ## Authorization Foundation
 
@@ -228,23 +225,26 @@ trust arbitrary forwarded headers from the public internet.
 
 ## Release Readiness Notes
 
-The package is being prepared for a stable `1.0.0` API. No default behavior change is introduced by
-the current hardening path: antiforgery validation is still opt-in at the package level, default role
-mapping still reads flat role claims, and provider-specific role extraction remains app-owned.
+The package is being prepared for a stable `1.0.0` API. Default role mapping still reads flat role
+claims, and provider-specific role extraction remains app-owned.
 
 Integration requirements consumers should know before enabling production settings:
 
 - Configure `Oidc` with a confidential OIDC client suitable for server-side login.
 - Set `Starter:FrontendOrigin` to the trusted frontend origin.
-- Implement the antiforgery contract before enabling `Starter:RequireAntiforgeryToken`.
+- Implement the antiforgery contract before calling state-changing BFF endpoints such as
+  `POST /api/auth/logout`.
 - Configure forwarded headers with trusted hosts/proxies when running behind a reverse proxy.
 - Normalize provider-specific roles with `IOidcStarterRoleMapper` when the provider does not emit
   flat role claims.
 - Move secrets out of checked-in appsettings files for real deployments.
 
-Version 1.0.0 establishes the initial stable contract for the package: cookie-backed OIDC BFF authentication, 
-antiforgery integration points, authorization helpers, and provider-agnostic role-mapping extensibility. 
-No known breaking changes are planned for consumers already using the documented extension points.
+Version 1.0.0 establishes the initial stable contract for the package: cookie-backed OIDC BFF authentication,
+antiforgery integration points, authorization helpers, and provider-agnostic role-mapping extensibility.
+`POST /api/auth/logout` now always requires antiforgery validation. Consumers with custom frontends
+must call `GET /api/auth/csrf` and submit the returned token with logout requests. The earlier
+`Starter:RequireAntiforgeryToken` switch is retained for compatibility but no longer controls
+package-provided endpoints.
 
 ## Local Packaging
 

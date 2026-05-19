@@ -23,6 +23,7 @@ public sealed class OidcStarterBffOptions
 
     public SameSiteMode CookieSameSite { get; set; } = SameSiteMode.None;
 
+    [Obsolete("Package-provided unsafe BFF endpoints always require antiforgery validation. This option is retained for compatibility and no longer controls package endpoints.")]
     public bool RequireAntiforgeryToken { get; set; }
 
     public string AntiforgeryHeaderName { get; set; } = "X-XSRF-TOKEN";
