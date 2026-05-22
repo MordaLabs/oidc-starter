@@ -13,6 +13,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OidcStarter.AspNetCore.Bff"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OidcStarter.AspNetCore.Bff.Tests", "src\OidcStarter.AspNetCore.Bff.Tests\OidcStarter.AspNetCore.Bff.Tests.csproj", "{AB9B48E7-E0DF-474D-93E2-6B89C3CDB0A4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai", "ai", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		ai\agent-rules.md = ai\agent-rules.md
+		ai\current-status.md = ai\current-status.md
+		ai\project-context.md = ai\project-context.md
+		ai\token-budget.md = ai\token-budget.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,5 +76,9 @@ Global
 		{7BB109FE-F5DF-467C-BFCF-91C85971C450} = {FE360695-3F2B-1049-3887-35FBB5135923}
 		{4E506C79-76F6-41DC-AEF3-EA97B2F42576} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{AB9B48E7-E0DF-474D-93E2-6B89C3CDB0A4} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {02F7C976-A8BA-4333-947E-CD6FF55868C9}
 	EndGlobalSection
 EndGlobal
