@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Controllers;
@@ -19,6 +20,62 @@ namespace OidcStarter.AspNetCore.Bff.Tests.Controllers;
 
 public sealed class AuthControllerTests
 {
+    [Fact]
+    public void Login_challenges_openid_connect_with_frontend_redirect()
+    {
+        var controller = CreateController(new FakeAntiforgery());
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login());
+
+        Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public async Task Me_returns_unauthorized_when_current_user_service_has_no_session()
+    {
+        var controller = CreateController(new FakeAntiforgery());
+
+        var result = await controller.Me();
+
+        Assert.IsType<UnauthorizedResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Me_returns_current_user_with_access_token_from_session()
+    {
+        var expectedUser = new CurrentUserResponse(
+            true,
+            "user-123",
+            "Test User",
+            "testuser",
+            "test@example.local");
+        ClaimsPrincipal? observedPrincipal = null;
+        string? observedAccessToken = null;
+        var currentUserService = new StubCurrentUserService((principal, accessToken) =>
+        {
+            observedPrincipal = principal;
+            observedAccessToken = accessToken;
+            return expectedUser;
+        });
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: currentUserService,
+            accessToken: "access-token");
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(
+        [
+            new Claim("sub", "user-123")
+        ], authenticationType: "cookie"));
+        controller.HttpContext.User = principal;
+
+        var result = await controller.Me();
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Same(expectedUser, okResult.Value);
+        Assert.Same(principal, observedPrincipal);
+        Assert.Equal("access-token", observedAccessToken);
+    }
+
     [Fact]
     public void Logout_rejects_missing_trusted_origin()
     {
@@ -84,7 +141,7 @@ public sealed class AuthControllerTests
     {
         var controller = CreateController(
             new FakeAntiforgery(),
-            options => options.CookieSameSite = SameSiteMode.Strict);
+            configureOptions: options => options.CookieSameSite = SameSiteMode.Strict);
 
         var result = controller.Csrf();
 
@@ -96,6 +153,8 @@ public sealed class AuthControllerTests
 
     private static AuthController CreateController(
         IAntiforgery antiforgery,
+        ICurrentUserService? currentUserService = null,
+        string? accessToken = null,
         Action<OidcStarterBffOptions>? configureOptions = null)
     {
         var bffOptions = new OidcStarterBffOptions
@@ -106,12 +165,15 @@ public sealed class AuthControllerTests
         var options = Options.Create(bffOptions);
         var controller = new AuthController(
             options,
-            new StubCurrentUserService(),
+            currentUserService ?? new StubCurrentUserService(),
             antiforgery,
             new CsrfOriginValidator(options));
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Scheme = "https";
         httpContext.Request.Host = new HostString("api.example.com");
+        httpContext.RequestServices = new ServiceCollection()
+            .AddSingleton<IAuthenticationService>(new FakeAuthenticationService(accessToken))
+            .BuildServiceProvider();
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -158,9 +220,53 @@ public sealed class AuthControllerTests
         }
     }
 
-    private sealed class StubCurrentUserService : ICurrentUserService
+    private sealed class FakeAuthenticationService(string? accessToken) : IAuthenticationService
+    {
+        public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string? scheme)
+        {
+            if (accessToken is null)
+            {
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+
+            var properties = new AuthenticationProperties();
+            properties.StoreTokens(
+            [
+                new AuthenticationToken
+                {
+                    Name = "access_token",
+                    Value = accessToken
+                }
+            ]);
+            var ticket = new AuthenticationTicket(
+                context.User,
+                properties,
+                scheme ?? CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+
+        public Task ChallengeAsync(HttpContext context, string? scheme, AuthenticationProperties? properties)
+            => Task.CompletedTask;
+
+        public Task ForbidAsync(HttpContext context, string? scheme, AuthenticationProperties? properties)
+            => Task.CompletedTask;
+
+        public Task SignInAsync(
+            HttpContext context,
+            string? scheme,
+            ClaimsPrincipal principal,
+            AuthenticationProperties? properties)
+            => Task.CompletedTask;
+
+        public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubCurrentUserService(
+        Func<ClaimsPrincipal, string?, CurrentUserResponse?>? getCurrentUser = null) : ICurrentUserService
     {
         public CurrentUserResponse? GetCurrentUser(ClaimsPrincipal user, string? accessToken = null)
-            => null;
+            => getCurrentUser?.Invoke(user, accessToken);
     }
 }
