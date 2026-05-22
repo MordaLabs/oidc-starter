@@ -100,6 +100,33 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
+    public async Task Logout_request_filter_returns_bad_request_when_antiforgery_validation_fails()
+    {
+        var antiforgery = new FakeAntiforgery(throwsOnValidate: true);
+        var method = typeof(AuthController).GetMethod(nameof(AuthController.Logout));
+        var httpContext = new DefaultHttpContext
+        {
+            RequestServices = new ServiceCollection()
+                .AddSingleton<IAntiforgery>(antiforgery)
+                .BuildServiceProvider()
+        };
+        var context = CreateAuthorizationFilterContext(httpContext);
+
+        Assert.NotNull(method);
+        var attribute = Assert.Single(
+            method.GetCustomAttributes(inherit: false),
+            static attribute => attribute is OidcStarterValidateAntiforgeryTokenAttribute);
+        var filterFactory = Assert.IsAssignableFrom<IFilterFactory>(attribute);
+        var filter = Assert.IsAssignableFrom<IAsyncAuthorizationFilter>(
+            filterFactory.CreateInstance(httpContext.RequestServices));
+
+        await filter.OnAuthorizationAsync(context);
+
+        Assert.True(antiforgery.ValidateRequestCalled);
+        Assert.IsType<BadRequestResult>(context.Result);
+    }
+
+    [Fact]
     public async Task Package_antiforgery_filter_returns_bad_request_when_validation_fails()
     {
         var filter = new OidcStarterValidateAntiforgeryTokenFilter(
@@ -182,10 +209,11 @@ public sealed class AuthControllerTests
         return controller;
     }
 
-    private static AuthorizationFilterContext CreateAuthorizationFilterContext()
+    private static AuthorizationFilterContext CreateAuthorizationFilterContext(
+        DefaultHttpContext? httpContext = null)
         => new(
             new ActionContext(
-                new DefaultHttpContext(),
+                httpContext ?? new DefaultHttpContext(),
                 new RouteData(),
                 new ActionDescriptor()),
             []);
