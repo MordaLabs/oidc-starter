@@ -20,6 +20,13 @@
     <ProjectReference Include="..\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj" />
   </ItemGroup>
 
+  <Target Name="BuildSampleBackendCompatibility" BeforeTargets="CoreCompile">
+    <MSBuild
+      Projects="..\backend\Backend.csproj"
+      Targets="Build"
+      Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+  </Target>
+
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
