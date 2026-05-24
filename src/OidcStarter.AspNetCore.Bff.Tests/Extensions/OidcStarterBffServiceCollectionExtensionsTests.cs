@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -75,6 +76,44 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal(SameSiteMode.Strict, antiforgeryOptions.Cookie.SameSite);
     }
 
+    [Fact]
+    public async Task AddOidcStarterBff_returns_unauthorized_for_api_login_redirect()
+    {
+        using var provider = CreateServices([]);
+        var cookieOptions = provider
+            .GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Path = "/api/secure";
+        var context = CreateCookieRedirectContext(
+            httpContext,
+            cookieOptions,
+            "https://api.example.com/api/auth/login");
+
+        await cookieOptions.Events.OnRedirectToLogin(context);
+
+        Assert.Equal(StatusCodes.Status401Unauthorized, httpContext.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterBff_returns_forbidden_for_api_access_denied_redirect()
+    {
+        using var provider = CreateServices([]);
+        var cookieOptions = provider
+            .GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Path = "/api/secure";
+        var context = CreateCookieRedirectContext(
+            httpContext,
+            cookieOptions,
+            "https://api.example.com/api/auth/denied");
+
+        await cookieOptions.Events.OnRedirectToAccessDenied(context);
+
+        Assert.Equal(StatusCodes.Status403Forbidden, httpContext.Response.StatusCode);
+    }
+
     private static ServiceProvider CreateServices(Dictionary<string, string?> values)
     {
         var services = new ServiceCollection();
@@ -82,6 +121,20 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
 
         return services.BuildServiceProvider();
     }
+
+    private static RedirectContext<CookieAuthenticationOptions> CreateCookieRedirectContext(
+        HttpContext httpContext,
+        CookieAuthenticationOptions cookieOptions,
+        string redirectUri)
+        => new(
+            httpContext,
+            new AuthenticationScheme(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                typeof(CookieAuthenticationHandler)),
+            cookieOptions,
+            new AuthenticationProperties(),
+            redirectUri);
 
     private static IConfiguration CreateConfiguration(Dictionary<string, string?> values)
         => new ConfigurationBuilder()
