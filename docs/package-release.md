@@ -18,7 +18,7 @@ dotnet pack .\src\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj -
 Publication command for maintainers:
 
 ```powershell
-dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.0.1.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
+dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
 ## npm: @flying-bee/oidc-starter-auth
@@ -65,9 +65,27 @@ companion auditor repository, `oidc-starter-agent`: https://github.com/jszyduk/o
   protected by antiforgery validation through a package-local filter that calls ASP.NET Core
   `IAntiforgery`. This matters for consumers because frontend logout integrations must continue to
   follow the documented contract: call `GET /api/auth/csrf` and send the returned token with logout
-  requests. This is a behavioral hardening change relevant for the next backend package release.
+  requests. This behavior is part of the current package contract; `v1.0.1` only adds validation
+  evidence and documentation clarification, with no runtime behavior change.
 
-## v1.0.0 Readiness Checklist
+## v1.0.1 Hardening Validation Patch
+
+`OidcStarter.AspNetCore.Bff` `v1.0.1` is a hardening validation patch release.
+
+- Breaking changes: none.
+- Public API changes: none.
+- Runtime behavior changes: none.
+- Validation improvements:
+  - focused login/logout/current-user/session-state behavior test coverage,
+  - antiforgery token issuing, request validation, and unsafe endpoint protection test coverage,
+  - unauthorized/forbidden API behavior test coverage,
+  - package/sample build compatibility evidence,
+  - audit smoke confirmed 0 findings.
+
+For `v1.0.1`, confirm the package project version has been bumped in a separate versioning task,
+then pack and publish the generated `OidcStarter.AspNetCore.Bff.1.0.1.nupkg` after final validation.
+
+## Release Readiness Checklist
 
 - Confirm final package version and release notes.
 - Run `dotnet test .\src\OidcStarter.AspNetCore.Bff.Tests\OidcStarter.AspNetCore.Bff.Tests.csproj`.

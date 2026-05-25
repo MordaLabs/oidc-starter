@@ -1,8 +1,26 @@
 # OidcStarter.AspNetCore.Bff Release Notes
 
-## Toward 1.0.0
+## v1.0.1
 
-The package is stabilizing around a small public API for cookie-backed OIDC BFF authentication in
+Hardening validation patch release.
+
+- Added focused validation coverage for login/logout/current-user/session-state behavior.
+- Added focused antiforgery behavior coverage for token issuing, request validation, and unsafe
+  endpoint protection.
+- Added unauthorized and forbidden API behavior coverage for package-configured cookie auth events.
+- Added package/sample build compatibility evidence by building the sample backend from the package
+  test project.
+- Audit smoke confirmed 0 findings after the hardening validation work.
+
+Breaking changes: none.
+
+Public API changes: none.
+
+Runtime behavior changes: none.
+
+## v1.0.0
+
+Version 1.0.0 established a small public API for cookie-backed OIDC BFF authentication in
 ASP.NET Core.
 
 Current package capabilities:

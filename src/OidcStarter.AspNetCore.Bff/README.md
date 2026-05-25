@@ -125,6 +125,11 @@ Frontend integration contract:
   as state-changing. In this package today that means `POST /api/auth/logout`; custom endpoints added
   by consuming apps should follow the same rule for `POST`, `PUT`, `PATCH`, and `DELETE`.
 
+Compatibility note: package-provided unsafe BFF endpoints always require antiforgery validation.
+`Starter:RequireAntiforgeryToken` is obsolete and retained only for compatibility with existing
+configuration. It no longer controls package-provided endpoints. Custom frontends must call
+`GET /api/auth/csrf` and submit the token for logout and other state-changing BFF requests.
+
 Any custom frontend or third-party frontend integrating with this backend package must implement this
 contract before calling package-provided or app-defined state-changing BFF endpoints.
 
@@ -225,8 +230,8 @@ trust arbitrary forwarded headers from the public internet.
 
 ## Release Readiness Notes
 
-The package is being prepared for a stable `1.0.0` API. Default role mapping still reads flat role
-claims, and provider-specific role extraction remains app-owned.
+The package has a stable `1.0.x` API. Default role mapping still reads flat role claims, and
+provider-specific role extraction remains app-owned.
 
 Integration requirements consumers should know before enabling production settings:
 
@@ -246,6 +251,12 @@ must call `GET /api/auth/csrf` and submit the returned token with logout request
 `Starter:RequireAntiforgeryToken` switch is retained for compatibility but no longer controls
 package-provided endpoints.
 
+Version 1.0.1 is a hardening validation patch release. It adds focused validation coverage for
+login/logout/current-user/session-state behavior, antiforgery token issuing and request validation,
+unsafe endpoint protection, unauthorized/forbidden API behavior, and package/sample build
+compatibility evidence. Audit smoke confirmed 0 findings. Breaking changes: none. Public API
+changes: none. Runtime behavior changes: none.
+
 ## Local Packaging
 
 From the repository root:
@@ -260,7 +271,7 @@ The package is written to `src/OidcStarter.AspNetCore.Bff/bin/Release`.
 Publication command for maintainers:
 
 ```powershell
-dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.1.0.0.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
+dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.1.0.1.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
 Only publish after confirming the target version, release notes, and registry credentials.

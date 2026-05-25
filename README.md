@@ -7,9 +7,9 @@ working sample app.
 
 The BFF path is the primary production-oriented direction. It already includes practical foundations
 for server-side OIDC sign-in, HTTP-only cookie sessions, antiforgery protection, authorization
-policies, role mapping, local Keycloak provisioning, and package-level tests. Work toward a polished
-`1.0.0` release is still in progress, especially around broader provider validation, deployment
-guidance, and release hardening.
+policies, role mapping, local Keycloak provisioning, and package-level tests. The reusable backend
+package has a stable `1.0.x` contract; the `1.0.1` backend package release is a hardening validation
+patch with no runtime behavior changes, no public API changes, and no breaking changes.
 
 The repository contains:
 
@@ -131,7 +131,7 @@ Angular dev-server proxy.
 The reusable package sources live in this repository and are also published for external use:
 
 - NuGet: [`OidcStarter.AspNetCore.Bff`](https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/)
-- npm: [`@flying-bee/oidc-starter-auth`] (https://www.npmjs.com/package/@flying-bee/oidc-starter-auth)
+- npm: [`@flying-bee/oidc-starter-auth`](https://www.npmjs.com/package/@flying-bee/oidc-starter-auth)
 
 The local sample apps still consume the in-repository projects so the package sources remain easy to
 develop and verify alongside the sample.
@@ -143,8 +143,11 @@ The backend package has focused automated tests for its core reusable behavior:
 - default flat role mapping
 - custom role mapper composition and role claims transformation
 - current-user role projection
+- login/logout/current-user/session-state behavior
 - CSRF origin validation
-- logout antiforgery behavior
+- antiforgery token issuing, request validation, and unsafe endpoint protection
+- unauthorized and forbidden API behavior
+- package/sample build compatibility evidence
 - package service and authorization policy registration
 
 Run them from the repository root:
@@ -182,14 +185,19 @@ Expected result: the backend completes the OIDC flow, sets the local session coo
 `/api/auth/me` returns the current user and mapped roles to the frontend. With the imported local
 realm, `testuser` has `my-test-role` assigned automatically.
 
-## Current 1.0.0 Hardening Focus
+## Current Release Readiness
 
-- Validate the reusable BFF package against additional OIDC providers beyond the local Keycloak setup.
-- Add broader integration/e2e coverage for real browser login flows.
-- Expand reverse proxy, hosting, and deployment guidance.
-- Client secrets are stored in development config and should move to user secrets or a secret store.
-- Decide final `1.0.0` defaults and release notes for package consumers.
-- SPA mode is retained as a reference flow; the BFF mode is the recommended starter path for internal
+`OidcStarter.AspNetCore.Bff` `v1.0.1` is a hardening validation patch release.
+
+- Breaking changes: none.
+- Public API changes: none.
+- Runtime behavior changes: none.
+- Audit-driven validation added focused coverage for login/logout/current-user/session-state
+  behavior, antiforgery token issuing and request validation, unsafe endpoint protection,
+  unauthorized/forbidden API behavior, and package/sample build compatibility.
+- Final handoff validation passed the BFF test project with 24/24 tests and an audit smoke with
+  0 findings.
+- SPA mode is retained as a reference flow; BFF mode remains the recommended starter path for
   applications that want server-side token handling.
 
 ## More Notes
