@@ -6,7 +6,7 @@ This file captures current working assumptions for Codex.
 
 Update it after meaningful milestone changes, not after every small task.
 
-Last reviewed: after `v1.0.0` release and during audit-driven hardening.
+Last reviewed: 2026-07-15, after the `OidcStarter.AspNetCore.Bff` `v1.0.1` hardening validation patch release.
 
 ## Repository Stage
 
@@ -14,22 +14,22 @@ Last reviewed: after `v1.0.0` release and during audit-driven hardening.
 
 Current state:
 
-- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` has been released at `v1.0.0`,
+- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is at the verified `v1.0.1` baseline,
 - the reusable frontend package `@flying-bee/oidc-starter-auth` exists and is published,
 - the repository remains a public reference implementation and sample app,
-- the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract.
+- the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract,
+- the `v1.0.1` backend release was a hardening validation patch with no breaking changes, no public API changes, and no runtime behavior changes.
 
 ## Current Primary Focus
 
 Current work in this repository is focused on:
 
-- small hardening fixes,
-- package-safe improvements,
-- fixes driven by `oidc-starter-agent` audit findings,
-- focused test additions,
+- controlled, incremental feature development,
+- package-safe compatibility, security, and maintenance improvements,
+- focused test additions for behavior-changing or security-sensitive work,
 - and minimal documentation updates when consumer-visible behavior changes.
 
-The current goal is not broad redesign. The current goal is to strengthen the starter incrementally while preserving package stability.
+The current goal is not broad redesign. The current goal is to evolve the starter incrementally while preserving package stability and the security guarantees validated in the `v1.0.1` hardening checkpoint.
 
 ## Stable Assumptions
 
@@ -44,16 +44,25 @@ Treat the following as established project assumptions:
 - Not every audit finding is a real starter bug.
 - Prefer grouped follow-up releases over publishing a patch release after every single finding.
 
-## Recent Post-Release Direction
+## Recent Hardening Checkpoint
 
-After `v1.0.0`, work has shifted toward audit-driven hardening.
+After `v1.0.0`, the repository completed an audit-driven hardening validation checkpoint for the backend package.
 
-This means:
+The `OidcStarter.AspNetCore.Bff` `v1.0.1` checkpoint is closed and recorded as:
 
-- findings from `oidc-starter-agent` are used as input for small implementation tasks,
-- stale and false-negative findings are treated as valid outcomes of the audit process,
-- real issues are fixed incrementally in the starter,
-- release decisions should be made after several meaningful fixes, not after every isolated change.
+- hardening validation patch release,
+- BFF test project passed,
+- audit smoke confirmed 0 findings at the checkpoint,
+- breaking changes: none,
+- public API changes: none,
+- runtime behavior changes: none.
+
+Going forward:
+
+- findings from `oidc-starter-agent` remain structured input for small implementation tasks,
+- findings classified as stale or false positives are valid outcomes of the audit process and do not require starter changes,
+- real issues should be fixed incrementally in the starter after classification,
+- future security-sensitive work should retain targeted regression tests and an audit smoke check at an appropriate final validation point.
 
 ## Things Already Intentionally Solved
 
@@ -73,10 +82,12 @@ Do not reopen these areas unless the current task explicitly targets them or new
 
 ## Current Release Discipline
 
-Do not assume every post-release hardening fix should immediately trigger a new package release.
+Do not assume every feature, compatibility, security, or maintenance change should immediately trigger a new package release.
 
 Default approach:
 
-- accumulate several meaningful hardening or compatibility fixes,
+- accumulate coherent feature, compatibility, security, or maintenance changes,
+- classify future audit findings before changing behavior,
+- preserve public package APIs and documented BFF contracts unless a breaking release is explicitly approved,
 - keep release notes in `docs/package-release.md` when release planning is part of the task,
 - and release only when the resulting patch/minor version is worth publishing as a coherent update.
