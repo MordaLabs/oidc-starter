@@ -26,6 +26,7 @@ Repository-scoped skills live under `/.agents/skills` and define repeatable task
 
 - `$oidc-starter-implementation-task`: one focused implementation change; file modifications are allowed within the invoking scope.
 - `$oidc-starter-review-task`: one explicitly identified review target; review only, with no file modifications.
+- `$oidc-starter-docs-update`: one explicitly identified documentation scope; documentation files only, with no runtime behavior changes.
 
 Concrete requirements in the invoking prompt remain the source of truth for the current task. If the prompt, an applicable skill, this file, or an `/ai` contract materially conflicts, stop and report the conflict instead of guessing.
 

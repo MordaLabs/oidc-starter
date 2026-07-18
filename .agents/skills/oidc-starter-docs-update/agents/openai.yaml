@@ -1,0 +1,6 @@
+interface:
+  display_name: "OIDC Starter Docs Update"
+  short_description: "Update one oidc-starter documentation scope safely"
+  default_prompt: "Use $oidc-starter-docs-update to update one explicitly identified documentation scope in oidc-starter without changing runtime behavior."
+policy:
+  allow_implicit_invocation: false

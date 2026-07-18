@@ -69,6 +69,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{F913F5
 		.agents\skills\oidc-starter-review-task\agents\openai.yaml = .agents\skills\oidc-starter-review-task\agents\openai.yaml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oidc-starter-docs-update", "oidc-starter-docs-update", "{CAA7A526-7780-442F-9EFE-BA465FAB1460}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\oidc-starter-docs-update\SKILL.md = .agents\skills\oidc-starter-docs-update\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{D8DF156B-52D2-442C-BDD2-234C9951D1D7}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\oidc-starter-docs-update\agents\openai.yaml = .agents\skills\oidc-starter-docs-update\agents\openai.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -131,6 +141,8 @@ Global
 		{D0B6D361-3C81-45DF-AA68-2059E367D5EB} = {E1477B38-BB3A-4689-8FE7-1FAEBC66DE37}
 		{384599FF-D753-4D61-87B4-65AA1AB6684D} = {3B4B9845-18B5-40AC-974A-AFF67340990B}
 		{F913F5DC-67D6-4519-B006-8F5A8C37369F} = {384599FF-D753-4D61-87B4-65AA1AB6684D}
+		{CAA7A526-7780-442F-9EFE-BA465FAB1460} = {3B4B9845-18B5-40AC-974A-AFF67340990B}
+		{D8DF156B-52D2-442C-BDD2-234C9951D1D7} = {CAA7A526-7780-442F-9EFE-BA465FAB1460}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {02F7C976-A8BA-4333-947E-CD6FF55868C9}
