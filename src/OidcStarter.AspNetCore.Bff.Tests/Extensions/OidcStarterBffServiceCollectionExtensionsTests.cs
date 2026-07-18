@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Extensions;
+using OidcStarter.AspNetCore.Bff.Services.Auth;
 
 namespace OidcStarter.AspNetCore.Bff.Tests.Extensions;
 
@@ -30,6 +31,36 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal(typeof(CookieAuthenticationHandler), cookieScheme.HandlerType);
         Assert.NotNull(oidcScheme);
         Assert.Equal(typeof(OpenIdConnectHandler), oidcScheme.HandlerType);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_registers_the_default_oidc_login_provider()
+    {
+        using var provider = CreateServices(CreateValidOidcConfiguration());
+        var registry = provider.GetRequiredService<LoginProviderRegistry>();
+
+        var registeredProvider = Assert.Single(registry.Providers);
+        Assert.Equal("oidc", registeredProvider.Id);
+        Assert.Equal("OpenID Connect", registeredProvider.DisplayName);
+        Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, registeredProvider.AuthenticationScheme);
+        Assert.True(registeredProvider.IsDefault);
+        Assert.Same(registeredProvider, registry.DefaultProvider);
+        Assert.True(registry.TryGetProvider("OIDC", out var caseInsensitiveProvider));
+        Assert.Same(registeredProvider, caseInsensitiveProvider);
+        Assert.False(registry.TryGetProvider("unknown", out _));
+    }
+
+    [Fact]
+    public void Login_provider_registry_returns_providers_in_deterministic_id_order()
+    {
+        var registry = new LoginProviderRegistry(
+        [
+            new LoginProviderDescriptor("zeta", "Zeta", "zeta-scheme", false),
+            new LoginProviderDescriptor("oidc", "OpenID Connect", OpenIdConnectDefaults.AuthenticationScheme, true),
+            new LoginProviderDescriptor("alpha", "Alpha", "alpha-scheme", false)
+        ]);
+
+        Assert.Equal(["alpha", "oidc", "zeta"], registry.Providers.Select(static provider => provider.Id));
     }
 
     [Fact]

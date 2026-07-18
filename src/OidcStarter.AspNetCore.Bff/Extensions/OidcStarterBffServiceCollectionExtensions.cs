@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
@@ -39,6 +40,13 @@ public static class OidcStarterBffServiceCollectionExtensions
             configuration.GetSection(OidcStarterBffOptions.SectionName));
         services.Configure<OidcOptions>(
             configuration.GetSection(OidcOptions.SectionName));
+        services.AddSingleton(new LoginProviderDescriptor(
+            "oidc",
+            "OpenID Connect",
+            OpenIdConnectDefaults.AuthenticationScheme,
+            true));
+        services.TryAddSingleton<LoginProviderRegistry>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<OidcStarterBffOptions>, LoginProviderRegistryOptionsPostConfigure>());
 
         var bffSettings = configuration
             .GetSection(OidcStarterBffOptions.SectionName)

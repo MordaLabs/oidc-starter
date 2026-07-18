@@ -44,6 +44,49 @@ public sealed class AuthControllerTests
         Assert.Equal("/", result.Properties?.RedirectUri);
     }
 
+    [Theory]
+    [InlineData("oidc")]
+    [InlineData("OIDC")]
+    public void Login_for_registered_provider_challenges_its_registered_authentication_scheme(string provider)
+    {
+        var controller = CreateController(new FakeAntiforgery());
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
+
+        Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public void Login_for_unknown_provider_returns_not_found_without_challenging_a_route_value()
+    {
+        var controller = CreateController(new FakeAntiforgery());
+
+        var result = controller.Login("unknown-scheme");
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public void Providers_returns_safe_canonical_login_provider_metadata()
+    {
+        var controller = CreateController(new FakeAntiforgery());
+
+        var result = controller.Providers();
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var providers = Assert.IsAssignableFrom<IReadOnlyList<LoginProviderResponse>>(okResult.Value);
+        var provider = Assert.Single(providers);
+        Assert.Equal("oidc", provider.Id);
+        Assert.Equal("OpenID Connect", provider.DisplayName);
+        Assert.True(provider.IsDefault);
+        Assert.Equal("/api/auth/login/oidc", provider.LoginUrl);
+        Assert.Single(providers.Where(static provider => provider.IsDefault));
+        Assert.DoesNotContain(
+            typeof(LoginProviderResponse).GetProperties(),
+            static property => property.Name == "AuthenticationScheme");
+    }
+
     [Fact]
     public void AuthController_routes_match_current_api_auth_contract()
     {
@@ -52,6 +95,8 @@ public sealed class AuthControllerTests
 
         Assert.Equal("api/auth", controllerRoute.Template);
         AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Login), "login");
+        AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Login), "login/{provider}");
+        AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Providers), "providers");
         AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Me), "me");
         AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Csrf), "csrf");
         AssertHttpRoute<HttpPostAttribute>(nameof(AuthController.Logout), "logout");
@@ -247,11 +292,15 @@ public sealed class AuthControllerTests
     private static void AssertHttpRoute<TAttribute>(string actionName, string expectedTemplate)
         where TAttribute : HttpMethodAttribute
     {
-        var method = typeof(AuthController).GetMethod(actionName);
+        var method = Assert.Single(typeof(AuthController).GetMethods().Where(method =>
+            method.Name == actionName
+            && method.GetCustomAttributes(inherit: false)
+                .OfType<TAttribute>()
+                .Any(attribute => attribute.Template == expectedTemplate)));
 
-        Assert.NotNull(method);
-        var attribute = Assert.Single(method.GetCustomAttributes(inherit: false).OfType<TAttribute>());
-        Assert.Equal(expectedTemplate, attribute.Template);
+        Assert.Contains(
+            method.GetCustomAttributes(inherit: false).OfType<TAttribute>(),
+            attribute => attribute.Template == expectedTemplate);
     }
 
     private sealed class FakeAntiforgery(bool throwsOnValidate = false) : IAntiforgery

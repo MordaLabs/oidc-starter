@@ -25,8 +25,31 @@ public sealed class AuthController(
     {
         var properties = CreateFrontendRedirectProperties();
 
-        return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
+        return Challenge(properties, bffOptions.Value.LoginProviders.DefaultProvider.AuthenticationScheme);
     }
+
+    [HttpGet("login/{provider}")]
+    public IActionResult Login(string provider)
+    {
+        if (!bffOptions.Value.LoginProviders.TryGetProvider(provider, out var loginProvider))
+        {
+            return NotFound();
+        }
+
+        var properties = CreateFrontendRedirectProperties();
+
+        return Challenge(properties, loginProvider.AuthenticationScheme);
+    }
+
+    [HttpGet("providers")]
+    public ActionResult<IReadOnlyList<LoginProviderResponse>> Providers()
+        => Ok(bffOptions.Value.LoginProviders.Providers
+            .Select(static provider => new LoginProviderResponse(
+                provider.Id,
+                provider.DisplayName,
+                provider.IsDefault,
+                $"/api/auth/login/{provider.Id}"))
+            .ToArray());
 
     [HttpGet("me")]
     public async Task<ActionResult<CurrentUserResponse>> Me()
