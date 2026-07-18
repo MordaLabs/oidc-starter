@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -29,6 +30,31 @@ public sealed class AuthControllerTests
 
         Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
         Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public void Login_uses_root_fallback_redirect_when_frontend_origin_is_blank()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.FrontendOrigin = string.Empty);
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login());
+
+        Assert.Equal("/", result.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public void AuthController_routes_match_current_api_auth_contract()
+    {
+        var controllerRoute = Assert.Single(
+            typeof(AuthController).GetCustomAttributes(inherit: false).OfType<RouteAttribute>());
+
+        Assert.Equal("api/auth", controllerRoute.Template);
+        AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Login), "login");
+        AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Me), "me");
+        AssertHttpRoute<HttpGetAttribute>(nameof(AuthController.Csrf), "csrf");
+        AssertHttpRoute<HttpPostAttribute>(nameof(AuthController.Logout), "logout");
     }
 
     [Fact]
@@ -217,6 +243,16 @@ public sealed class AuthControllerTests
                 new RouteData(),
                 new ActionDescriptor()),
             []);
+
+    private static void AssertHttpRoute<TAttribute>(string actionName, string expectedTemplate)
+        where TAttribute : HttpMethodAttribute
+    {
+        var method = typeof(AuthController).GetMethod(actionName);
+
+        Assert.NotNull(method);
+        var attribute = Assert.Single(method.GetCustomAttributes(inherit: false).OfType<TAttribute>());
+        Assert.Equal(expectedTemplate, attribute.Template);
+    }
 
     private sealed class FakeAntiforgery(bool throwsOnValidate = false) : IAntiforgery
     {

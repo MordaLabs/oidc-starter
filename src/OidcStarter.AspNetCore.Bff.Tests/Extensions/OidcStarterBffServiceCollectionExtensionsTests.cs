@@ -15,6 +15,69 @@ namespace OidcStarter.AspNetCore.Bff.Tests.Extensions;
 public sealed class OidcStarterBffServiceCollectionExtensionsTests
 {
     [Fact]
+    public async Task AddOidcStarterBff_registers_single_provider_authentication_scheme_defaults()
+    {
+        using var provider = CreateServices(CreateValidOidcConfiguration());
+        var authenticationOptions = provider.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+        var schemeProvider = provider.GetRequiredService<IAuthenticationSchemeProvider>();
+
+        var cookieScheme = await schemeProvider.GetSchemeAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var oidcScheme = await schemeProvider.GetSchemeAsync(OpenIdConnectDefaults.AuthenticationScheme);
+
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, authenticationOptions.DefaultScheme);
+        Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, authenticationOptions.DefaultChallengeScheme);
+        Assert.NotNull(cookieScheme);
+        Assert.Equal(typeof(CookieAuthenticationHandler), cookieScheme.HandlerType);
+        Assert.NotNull(oidcScheme);
+        Assert.Equal(typeof(OpenIdConnectHandler), oidcScheme.HandlerType);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_binds_supported_openid_connect_options()
+    {
+        using var provider = CreateServices(new Dictionary<string, string?>
+        {
+            ["Oidc:Authority"] = "https://identity.example.test",
+            ["Oidc:ClientId"] = "bff-client",
+            ["Oidc:ClientSecret"] = "secret-value",
+            ["Oidc:CallbackPath"] = "/custom-signin-oidc",
+            ["Oidc:SignedOutCallbackPath"] = "/custom-signout-callback-oidc",
+            ["Oidc:RequireHttpsMetadata"] = "false",
+            ["Oidc:Scopes:0"] = "openid",
+            ["Oidc:Scopes:1"] = "profile",
+            ["Oidc:Scopes:2"] = "email"
+        });
+
+        var oidcOptions = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+
+        Assert.Equal("https://identity.example.test", oidcOptions.Authority);
+        Assert.Equal("bff-client", oidcOptions.ClientId);
+        Assert.Equal("secret-value", oidcOptions.ClientSecret);
+        Assert.Equal(new PathString("/custom-signin-oidc"), oidcOptions.CallbackPath);
+        Assert.Equal(new PathString("/custom-signout-callback-oidc"), oidcOptions.SignedOutCallbackPath);
+        Assert.False(oidcOptions.RequireHttpsMetadata);
+        Assert.Equal(["openid", "profile", "email"], oidcOptions.Scope);
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, oidcOptions.SignInScheme);
+        Assert.True(oidcOptions.SaveTokens);
+        Assert.True(oidcOptions.GetClaimsFromUserInfoEndpoint);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_uses_default_openid_connect_callback_paths()
+    {
+        using var provider = CreateServices(CreateValidOidcConfiguration());
+
+        var oidcOptions = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+
+        Assert.Equal(new PathString("/signin-oidc"), oidcOptions.CallbackPath);
+        Assert.Equal(new PathString("/signout-callback-oidc"), oidcOptions.SignedOutCallbackPath);
+    }
+
+    [Fact]
     public async Task AddOidcStarterBff_registers_authorization_policies_from_configuration()
     {
         using var provider = CreateServices(new Dictionary<string, string?>
@@ -140,6 +203,14 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         => new ConfigurationBuilder()
             .AddInMemoryCollection(values)
             .Build();
+
+    private static Dictionary<string, string?> CreateValidOidcConfiguration()
+        => new()
+        {
+            ["Oidc:Authority"] = "https://identity.example.test",
+            ["Oidc:ClientId"] = "bff-client",
+            ["Oidc:ClientSecret"] = "secret"
+        };
 
     private sealed class CustomRoleMapper : IOidcStarterRoleMapper
     {
