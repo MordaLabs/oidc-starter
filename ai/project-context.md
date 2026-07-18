@@ -92,7 +92,7 @@ For each finding, first classify it as one of:
 
 - valid
 - partially valid
-- stale / false negative
+- stale / false positive
 
 Only then decide whether to:
 

@@ -41,7 +41,7 @@ For findings coming from `oidc-starter-agent`, use this workflow:
 3. Classify the finding as:
    - valid,
    - partially valid,
-   - stale / false negative.
+   - stale / false positive.
 4. Only after classification decide whether the right action is:
    - code fix,
    - test update,
