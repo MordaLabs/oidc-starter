@@ -54,6 +54,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{D0B6D3
 		.agents\skills\oidc-starter-implementation-task\agents\openai.yaml = .agents\skills\oidc-starter-implementation-task\agents\openai.yaml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3859D6FE-F31E-4F9D-BFE9-55981E26A0D9}"
+	ProjectSection(SolutionItems) = preProject
+		AGENTS.md = AGENTS.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
