@@ -1,0 +1,6 @@
+interface:
+  display_name: "OIDC Starter Implementation Task"
+  short_description: "Implement one focused oidc-starter change safely"
+  default_prompt: "Use $oidc-starter-implementation-task to implement one focused change in oidc-starter."
+policy:
+  allow_implicit_invocation: false

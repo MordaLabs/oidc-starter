@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.8.11925.187 insiders
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
@@ -19,6 +19,39 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ai", "ai", "{02EA681E-C7D8-
 		ai\current-status.md = ai\current-status.md
 		ai\project-context.md = ai\project-context.md
 		ai\token-budget.md = ai\token-budget.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{25953CB9-7DB1-4E89-8FFB-1F15FBA4135C}"
+	ProjectSection(SolutionItems) = preProject
+		docs\architecture.md = docs\architecture.md
+		docs\package-release.md = docs\package-release.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{6419AD52-0CC5-47D0-A157-CA6BC25F8181}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{2FF98F04-2688-4A2B-B3EB-EA9409F4D448}"
+	ProjectSection(SolutionItems) = preProject
+		infra\keycloak\docker-compose.yml = infra\keycloak\docker-compose.yml
+		infra\keycloak\README.md = infra\keycloak\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "realm-import", "realm-import", "{8C77D60C-AED7-4934-A4B5-2EA2B4BC0CA9}"
+	ProjectSection(SolutionItems) = preProject
+		infra\keycloak\realm-import\oidc-starter-realm.json = infra\keycloak\realm-import\oidc-starter-realm.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".agents", ".agents", "{F90613E3-A308-49D9-9B12-8946D0015990}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "skills", "skills", "{3B4B9845-18B5-40AC-974A-AFF67340990B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oidc-starter-implementation-task", "oidc-starter-implementation-task", "{E1477B38-BB3A-4689-8FE7-1FAEBC66DE37}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\oidc-starter-implementation-task\SKILL.md = .agents\skills\oidc-starter-implementation-task\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{D0B6D361-3C81-45DF-AA68-2059E367D5EB}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\oidc-starter-implementation-task\agents\openai.yaml = .agents\skills\oidc-starter-implementation-task\agents\openai.yaml
 	EndProjectSection
 EndProject
 Global
@@ -76,7 +109,11 @@ Global
 		{7BB109FE-F5DF-467C-BFCF-91C85971C450} = {FE360695-3F2B-1049-3887-35FBB5135923}
 		{4E506C79-76F6-41DC-AEF3-EA97B2F42576} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{AB9B48E7-E0DF-474D-93E2-6B89C3CDB0A4} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{2FF98F04-2688-4A2B-B3EB-EA9409F4D448} = {6419AD52-0CC5-47D0-A157-CA6BC25F8181}
+		{8C77D60C-AED7-4934-A4B5-2EA2B4BC0CA9} = {2FF98F04-2688-4A2B-B3EB-EA9409F4D448}
+		{3B4B9845-18B5-40AC-974A-AFF67340990B} = {F90613E3-A308-49D9-9B12-8946D0015990}
+		{E1477B38-BB3A-4689-8FE7-1FAEBC66DE37} = {3B4B9845-18B5-40AC-974A-AFF67340990B}
+		{D0B6D361-3C81-45DF-AA68-2059E367D5EB} = {E1477B38-BB3A-4689-8FE7-1FAEBC66DE37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {02F7C976-A8BA-4333-947E-CD6FF55868C9}
