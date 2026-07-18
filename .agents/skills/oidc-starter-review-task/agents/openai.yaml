@@ -1,0 +1,6 @@
+interface:
+  display_name: "OIDC Starter Review Task"
+  short_description: "Review one oidc-starter change without editing files"
+  default_prompt: "Use $oidc-starter-review-task to review one explicitly identified change in oidc-starter without modifying files."
+policy:
+  allow_implicit_invocation: false

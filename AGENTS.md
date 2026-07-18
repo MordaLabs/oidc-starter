@@ -22,7 +22,10 @@ Additionally read `/ai/project-context.md` for architecture, repository responsi
 
 Additionally read `/ai/current-status.md` for the current project phase, task ordering, recent milestones, hardening or audit status, release state, release preparation, or project-status documentation.
 
-Repository-scoped skills live under `/.agents/skills` and define repeatable task procedures. Load a skill when the invoking prompt explicitly names its `$skill-name`. The current focused implementation workflow is `$oidc-starter-implementation-task`.
+Repository-scoped skills live under `/.agents/skills` and define repeatable task procedures. Load a skill when the invoking prompt explicitly names its `$skill-name`. The current explicitly invoked workflows are:
+
+- `$oidc-starter-implementation-task`: one focused implementation change; file modifications are allowed within the invoking scope.
+- `$oidc-starter-review-task`: one explicitly identified review target; review only, with no file modifications.
 
 Concrete requirements in the invoking prompt remain the source of truth for the current task. If the prompt, an applicable skill, this file, or an `/ai` contract materially conflicts, stop and report the conflict instead of guessing.
 
