@@ -78,6 +78,38 @@ public sealed class AuthControllerTests
             result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
     }
 
+    [Theory]
+    [InlineData("google")]
+    [InlineData("GOOGLE")]
+    public void Login_for_google_challenges_the_internal_google_scheme_with_a_canonical_marker(string provider)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("oidc"));
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
+
+        Assert.Contains(OidcStarterGoogleDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal(
+            "google",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+    }
+
+    [Fact]
+    public void Login_challenges_google_when_google_is_the_configured_default()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"));
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login());
+
+        Assert.Contains(OidcStarterGoogleDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal(
+            "google",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+    }
+
     [Fact]
     public void Login_for_unknown_provider_returns_not_found_without_challenging_a_route_value()
     {
@@ -125,6 +157,26 @@ public sealed class AuthControllerTests
         var defaultProvider = Assert.Single(providers.Where(static provider => provider.IsDefault));
         Assert.Equal("google", defaultProvider.Id);
         Assert.Equal("/api/auth/login/google", defaultProvider.LoginUrl);
+    }
+
+    [Fact]
+    public void Providers_includes_google_metadata_without_exposing_its_scheme()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"));
+
+        var result = controller.Providers();
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var providers = Assert.IsAssignableFrom<IReadOnlyList<LoginProviderResponse>>(okResult.Value);
+        var google = Assert.Single(providers.Where(provider => provider.Id == "google"));
+        Assert.Equal("Google", google.DisplayName);
+        Assert.True(google.IsDefault);
+        Assert.Equal("/api/auth/login/google", google.LoginUrl);
+        Assert.DoesNotContain(
+            typeof(LoginProviderResponse).GetProperties(),
+            property => property.Name == "AuthenticationScheme");
     }
 
     [Fact]
@@ -295,6 +347,22 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
+    public void Logout_signs_out_only_the_cookie_for_a_google_provider_session()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("google"));
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Equal([CookieAuthenticationDefaults.AuthenticationScheme], result.AuthenticationSchemes);
+        Assert.DoesNotContain(OidcStarterGoogleDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.DoesNotContain(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+    }
+
+    [Fact]
     public void Logout_preserves_oidc_remote_sign_out_for_legacy_sessions_without_a_provider_marker()
     {
         var controller = CreateController(
@@ -400,6 +468,21 @@ public sealed class AuthControllerTests
                 OpenIdConnectDefaults.AuthenticationScheme,
                 true),
             new LoginProviderDescriptor("google", "Google", "google-scheme")
+        ],
+        defaultProviderId);
+
+    private static LoginProviderRegistry CreateGoogleRegistry(string defaultProviderId)
+        => new(
+        [
+            new LoginProviderDescriptor(
+                "oidc",
+                "OpenID Connect",
+                OpenIdConnectDefaults.AuthenticationScheme,
+                true),
+            new LoginProviderDescriptor(
+                OidcStarterGoogleDefaults.ProviderId,
+                OidcStarterGoogleDefaults.DisplayName,
+                OidcStarterGoogleDefaults.AuthenticationScheme)
         ],
         defaultProviderId);
 

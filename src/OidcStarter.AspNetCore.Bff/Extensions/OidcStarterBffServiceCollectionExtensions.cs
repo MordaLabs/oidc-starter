@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -21,6 +22,45 @@ namespace OidcStarter.AspNetCore.Bff.Extensions;
 
 public static class OidcStarterBffServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds opt-in Google authentication using the supplied Google handler configuration section.
+    /// </summary>
+    /// <remarks>
+    /// The Google handler uses the common BFF cookie session and local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterGoogle(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+        ValidateGoogleCallbackPath(configurationSection["CallbackPath"]);
+
+        services.AddAuthentication()
+            .AddGoogle(OidcStarterGoogleDefaults.AuthenticationScheme, options =>
+            {
+                configurationSection.Bind(options);
+            });
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<GoogleOptions>, OidcStarterGoogleOptionsPostConfigure>());
+        services.AddOptions<GoogleOptions>(OidcStarterGoogleDefaults.AuthenticationScheme)
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientId),
+                "Google ClientId is required.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientSecret),
+                "Google ClientSecret is required.")
+            .Validate(
+                static options => IsValidGoogleCallbackPath(options.CallbackPath.Value),
+                "Google CallbackPath must be a local absolute path.")
+            .ValidateOnStart();
+        services.AddOidcStarterLoginProvider(
+            OidcStarterGoogleDefaults.ProviderId,
+            OidcStarterGoogleDefaults.DisplayName,
+            OidcStarterGoogleDefaults.AuthenticationScheme);
+
+        return services;
+    }
+
     /// <summary>
     /// Registers metadata for an existing authentication scheme as an opt-in login provider.
     /// </summary>
@@ -107,6 +147,23 @@ public static class OidcStarterBffServiceCollectionExtensions
 
         return services;
     }
+
+    private static void ValidateGoogleCallbackPath(string? callbackPath)
+    {
+        if (callbackPath is not null && !IsValidGoogleCallbackPath(callbackPath))
+        {
+            throw new ArgumentException(
+                "Google CallbackPath must be a local absolute path.",
+                nameof(callbackPath));
+        }
+    }
+
+    private static bool IsValidGoogleCallbackPath(string? callbackPath)
+        => !string.IsNullOrWhiteSpace(callbackPath)
+            && callbackPath[0] == '/'
+            && !callbackPath.StartsWith("//", StringComparison.Ordinal)
+            && !callbackPath.Contains('?')
+            && !callbackPath.Contains('#');
 
     private static void ConfigureForwardedHeaders(IServiceCollection services, OidcStarterBffOptions bffSettings)
     {

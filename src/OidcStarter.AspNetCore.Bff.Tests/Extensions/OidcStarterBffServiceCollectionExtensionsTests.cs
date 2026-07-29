@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,190 @@ namespace OidcStarter.AspNetCore.Bff.Tests.Extensions;
 
 public sealed class OidcStarterBffServiceCollectionExtensionsTests
 {
+    [Fact]
+    public void AddOidcStarterGoogle_returns_the_original_collection_and_rejects_null_arguments()
+    {
+        var services = new ServiceCollection();
+        var configurationSection = CreateGoogleConfigurationSection();
+
+        var result = services.AddOidcStarterGoogle(configurationSection);
+
+        Assert.Same(services, result);
+        Assert.Throws<ArgumentNullException>(() =>
+            OidcStarterBffServiceCollectionExtensions.AddOidcStarterGoogle(null!, configurationSection));
+        Assert.Throws<ArgumentNullException>(() => services.AddOidcStarterGoogle(null!));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AddOidcStarterGoogle_registers_provider_metadata_before_or_after_bff(bool googleFirst)
+    {
+        var services = new ServiceCollection();
+        var googleConfiguration = CreateGoogleConfigurationSection();
+
+        if (googleFirst)
+        {
+            services.AddOidcStarterGoogle(googleConfiguration);
+            services.AddOidcStarterBff(CreateConfiguration([]));
+        }
+        else
+        {
+            services.AddOidcStarterBff(CreateConfiguration([]));
+            services.AddOidcStarterGoogle(googleConfiguration);
+        }
+
+        using var provider = services.BuildServiceProvider();
+        var registry = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value.LoginProviders;
+
+        var google = Assert.Single(registry.Providers.Where(provider => provider.Id == "google"));
+        Assert.Equal("Google", google.DisplayName);
+        Assert.Equal(OidcStarterGoogleDefaults.AuthenticationScheme, google.AuthenticationScheme);
+        Assert.False(google.SupportsRemoteSignOut);
+        Assert.Equal("oidc", registry.DefaultProvider.Id);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterGoogle_registers_the_official_handler_with_bff_session_options()
+    {
+        using var provider = CreateGoogleServices(
+            new Dictionary<string, string?>
+            {
+                ["Google:ClientId"] = "google-client-id",
+                ["Google:ClientSecret"] = "google-client-secret"
+            },
+            new Dictionary<string, string?>
+            {
+                ["Starter:CookieSameSite"] = "Strict"
+            });
+        var schemeProvider = provider.GetRequiredService<IAuthenticationSchemeProvider>();
+        var googleScheme = await schemeProvider.GetSchemeAsync(OidcStarterGoogleDefaults.AuthenticationScheme);
+        var oidcScheme = await schemeProvider.GetSchemeAsync(OpenIdConnectDefaults.AuthenticationScheme);
+        var googleOptions = provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme);
+        var authenticationOptions = provider.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+
+        Assert.NotNull(googleScheme);
+        Assert.Equal(typeof(GoogleHandler), googleScheme.HandlerType);
+        Assert.NotNull(oidcScheme);
+        Assert.NotEqual(oidcScheme.Name, googleScheme.Name);
+        Assert.Equal("google-client-id", googleOptions.ClientId);
+        Assert.Equal("google-client-secret", googleOptions.ClientSecret);
+        Assert.Equal(new PathString("/signin-google"), googleOptions.CallbackPath);
+        Assert.NotEqual(new PathString("/signin-oidc"), googleOptions.CallbackPath);
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, googleOptions.SignInScheme);
+        Assert.Equal(SameSiteMode.Strict, googleOptions.CorrelationCookie.SameSite);
+        Assert.Equal(CookieSecurePolicy.Always, googleOptions.CorrelationCookie.SecurePolicy);
+        Assert.False(googleOptions.SaveTokens);
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, authenticationOptions.DefaultScheme);
+        Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, authenticationOptions.DefaultChallengeScheme);
+    }
+
+    [Fact]
+    public void AddOidcStarterGoogle_binds_a_configured_callback_path()
+    {
+        using var provider = CreateGoogleServices(new Dictionary<string, string?>
+        {
+            ["Google:ClientId"] = "google-client-id",
+            ["Google:ClientSecret"] = "google-client-secret",
+            ["Google:CallbackPath"] = "/custom-signin-google"
+        });
+
+        var googleOptions = provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme);
+
+        Assert.Equal(new PathString("/custom-signin-google"), googleOptions.CallbackPath);
+    }
+
+    [Theory]
+    [InlineData("Google:ClientId")]
+    [InlineData("Google:ClientSecret")]
+    public void AddOidcStarterGoogle_fails_closed_when_essential_configuration_is_missing(string missingKey)
+    {
+        var googleConfiguration = new Dictionary<string, string?>
+        {
+            ["Google:ClientId"] = "google-client-id",
+            ["Google:ClientSecret"] = "google-client-secret"
+        };
+        googleConfiguration.Remove(missingKey);
+
+        using var provider = CreateGoogleServices(googleConfiguration);
+
+        Assert.ThrowsAny<ArgumentException>(() => provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme));
+    }
+
+    [Theory]
+    [InlineData("Google:ClientId")]
+    [InlineData("Google:ClientSecret")]
+    public void AddOidcStarterGoogle_fails_closed_when_essential_configuration_is_blank(string blankKey)
+    {
+        var googleConfiguration = new Dictionary<string, string?>
+        {
+            ["Google:ClientId"] = "google-client-id",
+            ["Google:ClientSecret"] = "google-client-secret",
+            [blankKey] = " "
+        };
+
+        using var provider = CreateGoogleServices(googleConfiguration);
+
+        Assert.Throws<OptionsValidationException>(() => provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("signin-google")]
+    [InlineData("//signin-google")]
+    public void AddOidcStarterGoogle_rejects_blank_or_invalid_callback_paths(string callbackPath)
+    {
+        var services = new ServiceCollection();
+        var configurationSection = CreateGoogleConfigurationSection(new Dictionary<string, string?>
+        {
+            ["Google:CallbackPath"] = callbackPath
+        });
+
+        Assert.Throws<ArgumentException>(() => services.AddOidcStarterGoogle(configurationSection));
+    }
+
+    [Fact]
+    public void AddOidcStarterGoogle_rejects_duplicate_registration_deterministically()
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration([]));
+        var configurationSection = CreateGoogleConfigurationSection();
+        services.AddOidcStarterGoogle(configurationSection);
+        services.AddOidcStarterGoogle(configurationSection);
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Throws<InvalidOperationException>(() => provider
+            .GetRequiredService<IOptions<OidcStarterBffOptions>>().Value);
+    }
+
+    [Fact]
+    public void AddOidcStarterGoogle_uses_a_configured_google_default_without_replacing_oidc_by_default()
+    {
+        using var provider = CreateGoogleServices(
+            new Dictionary<string, string?>
+            {
+                ["Google:ClientId"] = "google-client-id",
+                ["Google:ClientSecret"] = "google-client-secret"
+            },
+            new Dictionary<string, string?>
+            {
+                ["Starter:DefaultLoginProvider"] = "google"
+            });
+
+        var registry = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value.LoginProviders;
+
+        Assert.Equal("google", registry.DefaultProvider.Id);
+    }
+
     [Fact]
     public async Task AddOidcStarterBff_registers_single_provider_authentication_scheme_defaults()
     {
@@ -417,6 +602,28 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         => new ConfigurationBuilder()
             .AddInMemoryCollection(values)
             .Build();
+
+    private static ServiceProvider CreateGoogleServices(
+        Dictionary<string, string?> googleValues,
+        Dictionary<string, string?>? bffValues = null)
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration(bffValues ?? new Dictionary<string, string?>()));
+        services.AddOidcStarterGoogle(CreateGoogleConfigurationSection(googleValues));
+
+        return services.BuildServiceProvider();
+    }
+
+    private static IConfigurationSection CreateGoogleConfigurationSection(
+        Dictionary<string, string?>? values = null)
+        => new ConfigurationBuilder()
+            .AddInMemoryCollection(values ?? new Dictionary<string, string?>
+            {
+                ["Google:ClientId"] = "google-client-id",
+                ["Google:ClientSecret"] = "google-client-secret"
+            })
+            .Build()
+            .GetSection("Google");
 
     private static Dictionary<string, string?> CreateValidOidcConfiguration()
         => new()
