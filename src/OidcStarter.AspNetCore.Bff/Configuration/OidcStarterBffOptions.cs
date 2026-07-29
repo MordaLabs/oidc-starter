@@ -49,5 +49,10 @@ public sealed class OidcStarterBffOptions
 
     public RequiredClaimOptions[] RequiredClaims { get; set; } = [];
 
+    /// <summary>
+    /// Gets or sets the canonical id of the login provider used by <c>GET /api/auth/login</c>.
+    /// </summary>
+    public string DefaultLoginProvider { get; set; } = "oidc";
+
     internal LoginProviderRegistry LoginProviders { get; set; } = LoginProviderRegistry.CreateDefault();
 }

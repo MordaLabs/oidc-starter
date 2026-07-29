@@ -44,6 +44,18 @@ public sealed class AuthControllerTests
         Assert.Equal("/", result.Properties?.RedirectUri);
     }
 
+    [Fact]
+    public void Login_challenges_the_configured_default_provider_scheme()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateRegistry("google"));
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login());
+
+        Assert.Contains("google-scheme", result.AuthenticationSchemes);
+    }
+
     [Theory]
     [InlineData("oidc")]
     [InlineData("OIDC")]
@@ -85,6 +97,22 @@ public sealed class AuthControllerTests
         Assert.DoesNotContain(
             typeof(LoginProviderResponse).GetProperties(),
             static property => property.Name == "AuthenticationScheme");
+    }
+
+    [Fact]
+    public void Providers_marks_only_the_configured_default_provider()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateRegistry("google"));
+
+        var result = controller.Providers();
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var providers = Assert.IsAssignableFrom<IReadOnlyList<LoginProviderResponse>>(okResult.Value);
+        var defaultProvider = Assert.Single(providers.Where(static provider => provider.IsDefault));
+        Assert.Equal("google", defaultProvider.Id);
+        Assert.Equal("/api/auth/login/google", defaultProvider.LoginUrl);
     }
 
     [Fact]
@@ -288,6 +316,17 @@ public sealed class AuthControllerTests
                 new RouteData(),
                 new ActionDescriptor()),
             []);
+
+    private static LoginProviderRegistry CreateRegistry(string defaultProviderId)
+        => new(
+        [
+            new LoginProviderDescriptor(
+                "oidc",
+                "OpenID Connect",
+                OpenIdConnectDefaults.AuthenticationScheme),
+            new LoginProviderDescriptor("google", "Google", "google-scheme")
+        ],
+        defaultProviderId);
 
     private static void AssertHttpRoute<TAttribute>(string actionName, string expectedTemplate)
         where TAttribute : HttpMethodAttribute

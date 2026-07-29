@@ -21,6 +21,30 @@ namespace OidcStarter.AspNetCore.Bff.Extensions;
 
 public static class OidcStarterBffServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers metadata for an existing authentication scheme as an opt-in login provider.
+    /// </summary>
+    /// <remarks>
+    /// Register the referenced authentication scheme separately before the provider is challenged.
+    /// This method does not add or configure an authentication handler.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterLoginProvider(
+        this IServiceCollection services,
+        string providerId,
+        string displayName,
+        string authenticationScheme)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        LoginProviderRegistration.Validate(providerId, displayName, authenticationScheme);
+
+        services.AddSingleton(new LoginProviderDescriptor(
+            providerId,
+            displayName,
+            authenticationScheme));
+
+        return services;
+    }
+
     public static IServiceCollection AddOidcStarterRoleMapper<TMapper>(this IServiceCollection services)
         where TMapper : class, IOidcStarterRoleMapper
     {
@@ -40,13 +64,12 @@ public static class OidcStarterBffServiceCollectionExtensions
             configuration.GetSection(OidcStarterBffOptions.SectionName));
         services.Configure<OidcOptions>(
             configuration.GetSection(OidcOptions.SectionName));
-        services.AddSingleton(new LoginProviderDescriptor(
+        services.AddOidcStarterLoginProvider(
             "oidc",
             "OpenID Connect",
-            OpenIdConnectDefaults.AuthenticationScheme,
-            true));
-        services.TryAddSingleton<LoginProviderRegistry>();
+            OpenIdConnectDefaults.AuthenticationScheme);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<OidcStarterBffOptions>, LoginProviderRegistryOptionsPostConfigure>());
+        services.AddOptions<OidcStarterBffOptions>().ValidateOnStart();
 
         var bffSettings = configuration
             .GetSection(OidcStarterBffOptions.SectionName)

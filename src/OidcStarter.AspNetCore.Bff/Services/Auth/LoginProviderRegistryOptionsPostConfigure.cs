@@ -4,9 +4,8 @@ using OidcStarter.AspNetCore.Bff.Configuration;
 namespace OidcStarter.AspNetCore.Bff.Services.Auth;
 
 internal sealed class LoginProviderRegistryOptionsPostConfigure(
-    LoginProviderRegistry loginProviderRegistry) : IPostConfigureOptions<OidcStarterBffOptions>
+    IEnumerable<LoginProviderDescriptor> loginProviders) : IPostConfigureOptions<OidcStarterBffOptions>
 {
     public void PostConfigure(string? name, OidcStarterBffOptions options)
-        => options.LoginProviders = loginProviderRegistry;
+        => options.LoginProviders = new LoginProviderRegistry(loginProviders, options.DefaultLoginProvider);
 }
-

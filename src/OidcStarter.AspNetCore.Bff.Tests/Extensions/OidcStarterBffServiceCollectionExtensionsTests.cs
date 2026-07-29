@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Authorization;
+using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Extensions;
 using OidcStarter.AspNetCore.Bff.Services.Auth;
 
@@ -34,17 +35,99 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public async Task AddOidcStarterLoginProvider_returns_the_original_collection_without_adding_a_handler()
+    {
+        var services = new ServiceCollection();
+        services.AddAuthentication();
+
+        var result = services.AddOidcStarterLoginProvider("google", "Google", "google-scheme");
+
+        using var provider = services.BuildServiceProvider();
+        var schemeProvider = provider.GetRequiredService<IAuthenticationSchemeProvider>();
+
+        Assert.Same(services, result);
+        Assert.Null(await schemeProvider.GetSchemeAsync("google-scheme"));
+    }
+
+    [Theory]
+    [InlineData("google")]
+    [InlineData("github")]
+    [InlineData("facebook")]
+    [InlineData("entra-id")]
+    [InlineData("oidc2")]
+    public void AddOidcStarterLoginProvider_accepts_canonical_route_safe_provider_ids(string providerId)
+    {
+        var services = new ServiceCollection();
+
+        services.AddOidcStarterLoginProvider(providerId, "Provider", "provider-scheme");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("Google")]
+    [InlineData(" google")]
+    [InlineData("google/tenant")]
+    [InlineData("google_test")]
+    [InlineData("-google")]
+    [InlineData("google-")]
+    [InlineData("google--corp")]
+    public void AddOidcStarterLoginProvider_rejects_noncanonical_or_unsafe_provider_ids(string providerId)
+    {
+        var services = new ServiceCollection();
+
+        Assert.Throws<ArgumentException>(() =>
+            services.AddOidcStarterLoginProvider(providerId, "Provider", "provider-scheme"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void AddOidcStarterLoginProvider_rejects_blank_display_names(string? displayName)
+    {
+        var services = new ServiceCollection();
+
+        Assert.Throws<ArgumentException>(() =>
+            services.AddOidcStarterLoginProvider("google", displayName!, "google-scheme"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void AddOidcStarterLoginProvider_rejects_blank_authentication_schemes(string? authenticationScheme)
+    {
+        var services = new ServiceCollection();
+
+        Assert.Throws<ArgumentException>(() =>
+            services.AddOidcStarterLoginProvider("google", "Google", authenticationScheme!));
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_preserves_the_existing_public_registration_signature()
+    {
+        var method = typeof(OidcStarterBffServiceCollectionExtensions).GetMethod(
+            nameof(OidcStarterBffServiceCollectionExtensions.AddOidcStarterBff),
+            [typeof(IServiceCollection), typeof(IConfiguration)]);
+
+        Assert.NotNull(method);
+        Assert.Equal(typeof(IServiceCollection), method.ReturnType);
+    }
+
+    [Fact]
     public void AddOidcStarterBff_registers_the_default_oidc_login_provider()
     {
         using var provider = CreateServices(CreateValidOidcConfiguration());
-        var registry = provider.GetRequiredService<LoginProviderRegistry>();
+        var options = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value;
+        var registry = options.LoginProviders;
 
         var registeredProvider = Assert.Single(registry.Providers);
         Assert.Equal("oidc", registeredProvider.Id);
         Assert.Equal("OpenID Connect", registeredProvider.DisplayName);
         Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, registeredProvider.AuthenticationScheme);
-        Assert.True(registeredProvider.IsDefault);
         Assert.Same(registeredProvider, registry.DefaultProvider);
+        Assert.Equal("oidc", options.DefaultLoginProvider);
         Assert.True(registry.TryGetProvider("OIDC", out var caseInsensitiveProvider));
         Assert.Same(registeredProvider, caseInsensitiveProvider);
         Assert.False(registry.TryGetProvider("unknown", out _));
@@ -55,12 +138,110 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
     {
         var registry = new LoginProviderRegistry(
         [
-            new LoginProviderDescriptor("zeta", "Zeta", "zeta-scheme", false),
-            new LoginProviderDescriptor("oidc", "OpenID Connect", OpenIdConnectDefaults.AuthenticationScheme, true),
-            new LoginProviderDescriptor("alpha", "Alpha", "alpha-scheme", false)
-        ]);
+            new LoginProviderDescriptor("zeta", "Zeta", "zeta-scheme"),
+            new LoginProviderDescriptor("oidc", "OpenID Connect", OpenIdConnectDefaults.AuthenticationScheme),
+            new LoginProviderDescriptor("alpha", "Alpha", "alpha-scheme")
+        ],
+        "oidc");
 
         Assert.Equal(["alpha", "oidc", "zeta"], registry.Providers.Select(static provider => provider.Id));
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_uses_a_configured_registered_default_login_provider()
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["Starter:DefaultLoginProvider"] = "google"
+        }));
+        services.AddOidcStarterLoginProvider("google", "Google", "google-scheme");
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value;
+
+        Assert.Equal("google", options.DefaultLoginProvider);
+        Assert.Equal("google", options.LoginProviders.DefaultProvider.Id);
+    }
+
+    [Fact]
+    public void Login_provider_registry_rejects_duplicate_provider_ids_case_insensitively()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(() => new LoginProviderRegistry(
+        [
+            new LoginProviderDescriptor("google", "Google", "google-scheme"),
+            new LoginProviderDescriptor("GOOGLE", "Google Workspace", "workspace-scheme")
+        ],
+        "google"));
+
+        Assert.Contains("already registered", exception.Message);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_rejects_duplicate_authentication_schemes()
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration([]));
+        services.AddOidcStarterLoginProvider("google", "Google", "shared-scheme");
+        services.AddOidcStarterLoginProvider("github", "GitHub", "SHARED-SCHEME");
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Throws<InvalidOperationException>(
+            () => provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_rejects_collisions_with_the_built_in_oidc_provider()
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration([]));
+        services.AddOidcStarterLoginProvider("oidc", "Another OIDC", "another-scheme");
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Throws<InvalidOperationException>(
+            () => provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_rejects_collisions_with_the_built_in_oidc_scheme()
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration([]));
+        services.AddOidcStarterLoginProvider(
+            "google",
+            "Google",
+            OpenIdConnectDefaults.AuthenticationScheme);
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Throws<InvalidOperationException>(
+            () => provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_fails_closed_when_the_configured_default_is_missing()
+    {
+        using var provider = CreateServices(new Dictionary<string, string?>
+        {
+            ["Starter:DefaultLoginProvider"] = "google"
+        });
+
+        Assert.Throws<InvalidOperationException>(
+            () => provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value);
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_fails_closed_when_the_configured_default_id_is_invalid()
+    {
+        using var provider = CreateServices(new Dictionary<string, string?>
+        {
+            ["Starter:DefaultLoginProvider"] = "Google"
+        });
+
+        Assert.Throws<ArgumentException>(
+            () => provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value);
     }
 
     [Fact]

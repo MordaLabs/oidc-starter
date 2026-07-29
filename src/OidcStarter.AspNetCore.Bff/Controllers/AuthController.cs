@@ -44,10 +44,10 @@ public sealed class AuthController(
     [HttpGet("providers")]
     public ActionResult<IReadOnlyList<LoginProviderResponse>> Providers()
         => Ok(bffOptions.Value.LoginProviders.Providers
-            .Select(static provider => new LoginProviderResponse(
+            .Select(provider => new LoginProviderResponse(
                 provider.Id,
                 provider.DisplayName,
-                provider.IsDefault,
+                provider.Id == bffOptions.Value.LoginProviders.DefaultProvider.Id,
                 $"/api/auth/login/{provider.Id}"))
             .ToArray());
 
