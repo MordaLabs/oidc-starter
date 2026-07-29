@@ -30,6 +30,9 @@ public sealed class AuthControllerTests
 
         Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
         Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+        Assert.Equal(
+            "oidc",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
     }
 
     [Fact]
@@ -54,6 +57,9 @@ public sealed class AuthControllerTests
         var result = Assert.IsType<ChallengeResult>(controller.Login());
 
         Assert.Contains("google-scheme", result.AuthenticationSchemes);
+        Assert.Equal(
+            "google",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
     }
 
     [Theory]
@@ -67,6 +73,9 @@ public sealed class AuthControllerTests
 
         Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
         Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+        Assert.Equal(
+            "oidc",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
     }
 
     [Fact]
@@ -97,6 +106,9 @@ public sealed class AuthControllerTests
         Assert.DoesNotContain(
             typeof(LoginProviderResponse).GetProperties(),
             static property => property.Name == "AuthenticationScheme");
+        Assert.DoesNotContain(
+            typeof(LoginProviderResponse).GetProperties(),
+            static property => property.Name == "SupportsRemoteSignOut");
     }
 
     [Fact]
@@ -251,7 +263,66 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
-    public void Logout_signs_out_cookie_and_oidc_schemes_when_origin_is_valid()
+    public void Logout_signs_out_cookie_and_oidc_schemes_for_an_oidc_provider_session()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("oidc"));
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Contains(CookieAuthenticationDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public void Logout_signs_out_only_the_cookie_for_a_local_only_provider_session()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateRegistry("google"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("google"));
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Equal([CookieAuthenticationDefaults.AuthenticationScheme], result.AuthenticationSchemes);
+        Assert.DoesNotContain("google-scheme", result.AuthenticationSchemes);
+        Assert.DoesNotContain(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public void Logout_preserves_oidc_remote_sign_out_for_legacy_sessions_without_a_provider_marker()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties());
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Contains(CookieAuthenticationDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+    }
+
+    [Fact]
+    public void Logout_signs_out_only_the_cookie_for_an_unknown_provider_marker()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("removed-provider"));
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Equal([CookieAuthenticationDefaults.AuthenticationScheme], result.AuthenticationSchemes);
+    }
+
+    [Fact]
+    public void Logout_preserves_legacy_sign_out_behavior_when_no_cookie_ticket_is_available()
     {
         var controller = CreateController(new FakeAntiforgery());
         controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
@@ -281,7 +352,8 @@ public sealed class AuthControllerTests
         IAntiforgery antiforgery,
         ICurrentUserService? currentUserService = null,
         string? accessToken = null,
-        Action<OidcStarterBffOptions>? configureOptions = null)
+        Action<OidcStarterBffOptions>? configureOptions = null,
+        AuthenticationProperties? cookieAuthenticationProperties = null)
     {
         var bffOptions = new OidcStarterBffOptions
         {
@@ -298,7 +370,9 @@ public sealed class AuthControllerTests
         httpContext.Request.Scheme = "https";
         httpContext.Request.Host = new HostString("api.example.com");
         httpContext.RequestServices = new ServiceCollection()
-            .AddSingleton<IAuthenticationService>(new FakeAuthenticationService(accessToken))
+            .AddSingleton<IAuthenticationService>(new FakeAuthenticationService(
+                accessToken,
+                cookieAuthenticationProperties))
             .BuildServiceProvider();
         controller.ControllerContext = new ControllerContext
         {
@@ -323,10 +397,23 @@ public sealed class AuthControllerTests
             new LoginProviderDescriptor(
                 "oidc",
                 "OpenID Connect",
-                OpenIdConnectDefaults.AuthenticationScheme),
+                OpenIdConnectDefaults.AuthenticationScheme,
+                true),
             new LoginProviderDescriptor("google", "Google", "google-scheme")
         ],
         defaultProviderId);
+
+    private static AuthenticationProperties CreateCookieAuthenticationProperties(string? providerId = null)
+    {
+        var properties = new AuthenticationProperties();
+
+        if (providerId is not null)
+        {
+            properties.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey] = providerId;
+        }
+
+        return properties;
+    }
 
     private static void AssertHttpRoute<TAttribute>(string actionName, string expectedTemplate)
         where TAttribute : HttpMethodAttribute
@@ -372,10 +459,23 @@ public sealed class AuthControllerTests
         }
     }
 
-    private sealed class FakeAuthenticationService(string? accessToken) : IAuthenticationService
+    private sealed class FakeAuthenticationService(
+        string? accessToken,
+        AuthenticationProperties? cookieAuthenticationProperties) : IAuthenticationService
     {
         public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string? scheme)
         {
+            if (scheme == CookieAuthenticationDefaults.AuthenticationScheme
+                && cookieAuthenticationProperties is not null)
+            {
+                var cookieTicket = new AuthenticationTicket(
+                    context.User,
+                    cookieAuthenticationProperties,
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+
+                return Task.FromResult(AuthenticateResult.Success(cookieTicket));
+            }
+
             if (accessToken is null)
             {
                 return Task.FromResult(AuthenticateResult.NoResult());

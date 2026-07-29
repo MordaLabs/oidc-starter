@@ -126,6 +126,7 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal("oidc", registeredProvider.Id);
         Assert.Equal("OpenID Connect", registeredProvider.DisplayName);
         Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, registeredProvider.AuthenticationScheme);
+        Assert.True(registeredProvider.SupportsRemoteSignOut);
         Assert.Same(registeredProvider, registry.DefaultProvider);
         Assert.Equal("oidc", options.DefaultLoginProvider);
         Assert.True(registry.TryGetProvider("OIDC", out var caseInsensitiveProvider));
@@ -162,6 +163,7 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
 
         Assert.Equal("google", options.DefaultLoginProvider);
         Assert.Equal("google", options.LoginProviders.DefaultProvider.Id);
+        Assert.False(options.LoginProviders.Providers.Single(provider => provider.Id == "google").SupportsRemoteSignOut);
     }
 
     [Fact]

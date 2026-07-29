@@ -5,7 +5,8 @@ namespace OidcStarter.AspNetCore.Bff.Services.Auth;
 internal sealed record LoginProviderDescriptor(
     string Id,
     string DisplayName,
-    string AuthenticationScheme);
+    string AuthenticationScheme,
+    bool SupportsRemoteSignOut = false);
 
 internal static class LoginProviderRegistration
 {
@@ -133,7 +134,8 @@ internal sealed class LoginProviderRegistry
             new LoginProviderDescriptor(
                 "oidc",
                 "OpenID Connect",
-                OpenIdConnectDefaults.AuthenticationScheme)
+                OpenIdConnectDefaults.AuthenticationScheme,
+                true)
         ],
         "oidc");
 }

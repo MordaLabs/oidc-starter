@@ -23,9 +23,10 @@ public sealed class AuthController(
     [HttpGet("login")]
     public IActionResult Login()
     {
-        var properties = CreateFrontendRedirectProperties();
+        var loginProvider = bffOptions.Value.LoginProviders.DefaultProvider;
+        var properties = CreateLoginProperties(loginProvider);
 
-        return Challenge(properties, bffOptions.Value.LoginProviders.DefaultProvider.AuthenticationScheme);
+        return Challenge(properties, loginProvider.AuthenticationScheme);
     }
 
     [HttpGet("login/{provider}")]
@@ -36,7 +37,7 @@ public sealed class AuthController(
             return NotFound();
         }
 
-        var properties = CreateFrontendRedirectProperties();
+        var properties = CreateLoginProperties(loginProvider);
 
         return Challenge(properties, loginProvider.AuthenticationScheme);
     }
@@ -95,11 +96,30 @@ public sealed class AuthController(
         }
 
         var properties = CreateFrontendRedirectProperties();
+        var authenticationResult = HttpContext
+            .AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme)
+            .GetAwaiter()
+            .GetResult();
+        var signOutSchemes = new List<string>
+        {
+            CookieAuthenticationDefaults.AuthenticationScheme
+        };
 
-        return SignOut(
-            properties,
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            OpenIdConnectDefaults.AuthenticationScheme);
+        var remoteSignOutScheme = GetRemoteSignOutScheme(authenticationResult);
+        if (remoteSignOutScheme is not null)
+        {
+            signOutSchemes.Add(remoteSignOutScheme);
+        }
+
+        return SignOut(properties, signOutSchemes.ToArray());
+    }
+
+    private AuthenticationProperties CreateLoginProperties(LoginProviderDescriptor loginProvider)
+    {
+        var properties = CreateFrontendRedirectProperties();
+        properties.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey] = loginProvider.Id;
+
+        return properties;
     }
 
     private AuthenticationProperties CreateFrontendRedirectProperties()
@@ -109,6 +129,23 @@ public sealed class AuthController(
                 ? "/"
                 : bffOptions.Value.FrontendOrigin
         };
+
+    private string? GetRemoteSignOutScheme(AuthenticateResult authenticationResult)
+    {
+        if (!authenticationResult.Succeeded
+            || authenticationResult.Properties is null
+            || !authenticationResult.Properties.Items.TryGetValue(
+                LoginProviderAuthenticationProperties.ProviderIdItemKey,
+                out var providerId))
+        {
+            return OpenIdConnectDefaults.AuthenticationScheme;
+        }
+
+        return bffOptions.Value.LoginProviders.TryGetProvider(providerId, out var loginProvider)
+            && loginProvider.SupportsRemoteSignOut
+            ? loginProvider.AuthenticationScheme
+            : null;
+    }
 
     private bool ShouldSecureAntiforgeryRequestTokenCookie()
         => bffOptions.Value.AntiforgeryCookieSecurePolicy switch

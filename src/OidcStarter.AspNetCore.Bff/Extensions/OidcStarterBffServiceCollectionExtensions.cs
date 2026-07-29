@@ -27,6 +27,7 @@ public static class OidcStarterBffServiceCollectionExtensions
     /// <remarks>
     /// Register the referenced authentication scheme separately before the provider is challenged.
     /// This method does not add or configure an authentication handler.
+    /// Generic provider registrations use local-session-only logout behavior.
     /// </remarks>
     public static IServiceCollection AddOidcStarterLoginProvider(
         this IServiceCollection services,
@@ -34,15 +35,12 @@ public static class OidcStarterBffServiceCollectionExtensions
         string displayName,
         string authenticationScheme)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        LoginProviderRegistration.Validate(providerId, displayName, authenticationScheme);
-
-        services.AddSingleton(new LoginProviderDescriptor(
+        return AddLoginProvider(
+            services,
             providerId,
             displayName,
-            authenticationScheme));
-
-        return services;
+            authenticationScheme,
+            supportsRemoteSignOut: false);
     }
 
     public static IServiceCollection AddOidcStarterRoleMapper<TMapper>(this IServiceCollection services)
@@ -64,10 +62,12 @@ public static class OidcStarterBffServiceCollectionExtensions
             configuration.GetSection(OidcStarterBffOptions.SectionName));
         services.Configure<OidcOptions>(
             configuration.GetSection(OidcOptions.SectionName));
-        services.AddOidcStarterLoginProvider(
+        AddLoginProvider(
+            services,
             "oidc",
             "OpenID Connect",
-            OpenIdConnectDefaults.AuthenticationScheme);
+            OpenIdConnectDefaults.AuthenticationScheme,
+            supportsRemoteSignOut: true);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<OidcStarterBffOptions>, LoginProviderRegistryOptionsPostConfigure>());
         services.AddOptions<OidcStarterBffOptions>().ValidateOnStart();
 
@@ -85,6 +85,25 @@ public static class OidcStarterBffServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IClaimsTransformation, OidcStarterRoleClaimsTransformation>());
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddSingleton<CsrfOriginValidator>();
+
+        return services;
+    }
+
+    internal static IServiceCollection AddLoginProvider(
+        IServiceCollection services,
+        string providerId,
+        string displayName,
+        string authenticationScheme,
+        bool supportsRemoteSignOut)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        LoginProviderRegistration.Validate(providerId, displayName, authenticationScheme);
+
+        services.AddSingleton(new LoginProviderDescriptor(
+            providerId,
+            displayName,
+            authenticationScheme,
+            supportsRemoteSignOut));
 
         return services;
     }
