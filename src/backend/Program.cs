@@ -11,6 +11,12 @@ builder.Services.Configure<StarterOptions>(
 builder.Services.AddOidcStarterRoleMapper<KeycloakRoleMapper>();
 builder.Services.AddOidcStarterBff(builder.Configuration);
 
+var googleSection = builder.Configuration.GetSection("ExternalLogin:Google");
+if (googleSection.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
+}
+
 var app = builder.Build();
 
 app.UseOidcStarterBff();
