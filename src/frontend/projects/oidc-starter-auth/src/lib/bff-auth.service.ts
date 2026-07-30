@@ -113,8 +113,9 @@ export class BffAuthService {
   private getAuthBaseUrl(): string {
     const apiOrigin = this.config.apiOrigin?.replace(/\/$/, '') ?? '';
     const authPath = this.config.authPath ?? '/api/auth';
+    const normalizedAuthPath = authPath.replace(/^\/+|\/+$/g, '');
 
-    return `${apiOrigin}${authPath.startsWith('/') ? authPath : `/${authPath}`}`;
+    return `${apiOrigin}${normalizedAuthPath ? `/${normalizedAuthPath}` : ''}`;
   }
 
   private getCookieValue(name: string): string | null {
