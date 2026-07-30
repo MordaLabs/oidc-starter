@@ -2,7 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { BffAuthService, provideBffAuth } from '../public-api';
+import { BFF_AUTH_NAVIGATOR } from './internal/bff-auth-navigator';
 import type { BffAuthConfig } from '../public-api';
+import type { BffAuthNavigator } from './internal/bff-auth-navigator';
 
 describe('BffAuthService', () => {
   let httpTesting: HttpTestingController;
@@ -40,6 +42,39 @@ describe('BffAuthService', () => {
     });
 
     expectCurrentUserRequest('https://api.example.test/api/auth/me').flush({ isAuthenticated: false });
+  });
+
+  it('navigates to the default login endpoint without making an HTTP request', () => {
+    const authNavigator = createAuthNavigator();
+    const service = createService({}, authNavigator);
+    expectCurrentUserRequest('/api/auth/me').flush({ isAuthenticated: false });
+
+    service.login();
+
+    expect(authNavigator.navigate).toHaveBeenCalledOnceWith('/api/auth/login');
+    expect(service.isLoading()).toBeTrue();
+    httpTesting.expectNone('/api/auth/login');
+  });
+
+  it('uses the same canonical login URL for repeated configured navigation', () => {
+    const config: BffAuthConfig = {
+      apiOrigin: 'https://api.example.test/',
+      authPath: '/api/auth/',
+    };
+    const authNavigator = createAuthNavigator();
+    const service = createService(config, authNavigator);
+    expectCurrentUserRequest('https://api.example.test/api/auth/me').flush({ isAuthenticated: false });
+
+    service.login();
+    service.login();
+
+    expect(authNavigator.navigate).toHaveBeenCalledTimes(2);
+    expect(authNavigator.navigate).toHaveBeenCalledWith('https://api.example.test/api/auth/login');
+    expect(config).toEqual({
+      apiOrigin: 'https://api.example.test/',
+      authPath: '/api/auth/',
+    });
+    httpTesting.expectNone('https://api.example.test/api/auth/login');
   });
 
   it('normalizes a trailing auth path slash for current-user, CSRF, and logout endpoints', () => {
@@ -137,9 +172,14 @@ describe('BffAuthService', () => {
     expect(service.isLoggingOut()).toBeFalse();
   });
 
-  function createService(config: BffAuthConfig = {}): BffAuthService {
+  function createService(config: BffAuthConfig = {}, authNavigator?: BffAuthNavigator): BffAuthService {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideBffAuth(config)],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideBffAuth(config),
+        ...(authNavigator ? [{ provide: BFF_AUTH_NAVIGATOR, useValue: authNavigator }] : []),
+      ],
     });
 
     httpTesting = TestBed.inject(HttpTestingController);
@@ -148,5 +188,11 @@ describe('BffAuthService', () => {
 
   function expectCurrentUserRequest(url: string) {
     return httpTesting.expectOne(url);
+  }
+
+  function createAuthNavigator(): BffAuthNavigator {
+    return {
+      navigate: jasmine.createSpy('navigate'),
+    };
   }
 });

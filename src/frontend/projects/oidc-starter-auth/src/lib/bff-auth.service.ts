@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
+import { BFF_AUTH_NAVIGATOR } from './internal/bff-auth-navigator';
 import { BFF_AUTH_CONFIG } from './internal/bff-auth-token';
 import type { BffCurrentUser } from './bff-current-user';
 
@@ -8,6 +9,7 @@ import type { BffCurrentUser } from './bff-current-user';
 export class BffAuthService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(BFF_AUTH_CONFIG);
+  private readonly navigator = inject(BFF_AUTH_NAVIGATOR);
   private readonly authBaseUrl = this.getAuthBaseUrl();
   private readonly antiforgeryCookieName = this.config.antiforgeryCookieName ?? 'XSRF-TOKEN';
   private readonly antiforgeryFormFieldName =
@@ -25,7 +27,7 @@ export class BffAuthService {
 
   login(): void {
     this.isLoading.set(true);
-    window.location.href = `${this.authBaseUrl}/login`;
+    this.navigator.navigate(`${this.authBaseUrl}/login`);
   }
 
   logout(): void {
