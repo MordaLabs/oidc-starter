@@ -12,9 +12,29 @@
         Logout
       </button>
     } @else {
-      <button type="button" class="button" [disabled]="service.isLoading()" (click)="service.login()">Login</button>
+      @if (service.isLoading() || service.isDiscoveringLoginProviders()) {
+        <button type="button" class="button" disabled>Loading login options...</button>
+      } @else if (service.loginProviders(); as providers) {
+        @if (providers.length) {
+          <div class="provider-actions">
+            @for (provider of providers; track provider.id) {
+              <button type="button" class="button" (click)="service.login(provider.id)">
+                Continue with {{ provider.displayName }}
+              </button>
+            }
+          </div>
+        } @else {
+          <button type="button" class="button legacy-login" (click)="service.login()">Login</button>
+        }
+      } @else {
+        <button type="button" class="button legacy-login" (click)="service.login()">Login</button>
+      }
     }
   </div>
+
+  @if (service.providerDiscoveryError()) {
+    <p class="status" role="alert">Login options could not be loaded. Use the default login.</p>
+  }
 
   <dl class="details">
     <div>

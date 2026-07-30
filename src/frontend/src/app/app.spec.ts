@@ -55,6 +55,20 @@ describe('App', () => {
     expect(compiled.querySelector('h1')?.textContent).toContain('OIDC Starter UI');
   });
 
+  it('does not request BFF providers when the demo is running in SPA mode', () => {
+    if (environment.authMode !== 'spa') {
+      return;
+    }
+
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+
+    const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
+    expect(fixture.nativeElement.querySelector('app-spa-auth-view')).not.toBeNull();
+    expect(httpTestingController.match(`${apiOrigin}/api/auth/providers`)).toHaveSize(0);
+  });
+
   function flushPing(): void {
     const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
 

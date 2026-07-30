@@ -1,5 +1,5 @@
-import { computed, inject, Injectable } from '@angular/core';
-import { BffAuthService } from '@flying-bee/oidc-starter-auth';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { BffAuthService, type BffLoginProvider } from '@flying-bee/oidc-starter-auth';
 
 @Injectable({ providedIn: 'root' })
 export class BffAuthViewService {
@@ -10,6 +10,10 @@ export class BffAuthViewService {
   readonly isLoggingOut = this.auth.isLoggingOut;
   readonly authenticated = this.auth.authenticated;
   readonly currentUser = this.auth.currentUser;
+  readonly loginProviders = signal<readonly BffLoginProvider[] | null>(null);
+  readonly isDiscoveringLoginProviders = signal(false);
+  readonly providerDiscoveryError = signal(false);
+  private readonly providerDiscoveryRequested = signal(false);
   readonly statusMessage = computed(() =>
     this.isLoggingOut()
       ? 'Logging out...'
@@ -19,11 +23,40 @@ export class BffAuthViewService {
   );
   readonly loggedOutMessage = 'Not logged in yet. Use the login button to start the backend login flow.';
 
-  login(): void {
-    this.auth.login();
+  constructor() {
+    effect(() => {
+      if (!this.isLoading() && !this.authenticated() && !this.providerDiscoveryRequested()) {
+        this.loadLoginProviders();
+      }
+    });
+  }
+
+  login(providerId?: string): void {
+    if (providerId === undefined) {
+      this.auth.login();
+      return;
+    }
+
+    this.auth.login(providerId);
   }
 
   logout(): void {
     this.auth.logout();
+  }
+
+  private loadLoginProviders(): void {
+    this.providerDiscoveryRequested.set(true);
+    this.isDiscoveringLoginProviders.set(true);
+
+    this.auth.getLoginProviders().subscribe({
+      next: (providers) => {
+        this.loginProviders.set(providers);
+        this.isDiscoveringLoginProviders.set(false);
+      },
+      error: () => {
+        this.providerDiscoveryError.set(true);
+        this.isDiscoveringLoginProviders.set(false);
+      },
+    });
   }
 }

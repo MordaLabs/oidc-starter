@@ -85,6 +85,11 @@ dd {
   background: #dfe6f0;
 }
 
+.provider-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .status {
   color: #41506b;
 }
