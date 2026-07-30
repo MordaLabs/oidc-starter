@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { BffAuthService, provideBffAuth } from '../public-api';
 import { BFF_AUTH_NAVIGATOR } from './internal/bff-auth-navigator';
-import type { BffAuthConfig } from '../public-api';
+import type { BffAuthConfig, BffLoginProvider } from '../public-api';
 import type { BffAuthNavigator } from './internal/bff-auth-navigator';
 
 describe('BffAuthService', () => {
@@ -75,6 +75,103 @@ describe('BffAuthService', () => {
       authPath: '/api/auth/',
     });
     httpTesting.expectNone('https://api.example.test/api/auth/login');
+  });
+
+  it('discovers providers from the default credentialed endpoint', () => {
+    const service = createService();
+    expectCurrentUserRequest('/api/auth/me').flush({ isAuthenticated: false });
+    const providers: readonly BffLoginProvider[] = [
+      {
+        id: 'google',
+        displayName: 'Google',
+        isDefault: false,
+        loginUrl: '/api/auth/login/google',
+      },
+    ];
+    let discoveredProviders: readonly BffLoginProvider[] | undefined;
+
+    service.getLoginProviders().subscribe((result) => (discoveredProviders = result));
+
+    const request = httpTesting.expectOne('/api/auth/providers');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.withCredentials).toBeTrue();
+    request.flush(providers);
+
+    expect(discoveredProviders).toEqual(providers);
+  });
+
+  it('uses configured normalized paths and does not cache provider discovery', () => {
+    const service = createService({
+      apiOrigin: 'https://localhost:7233/',
+      authPath: '/api/auth/',
+    });
+    expectCurrentUserRequest('https://localhost:7233/api/auth/me').flush({ isAuthenticated: false });
+    const discoveredProviders: Array<readonly BffLoginProvider[]> = [];
+
+    service.getLoginProviders().subscribe((result) => discoveredProviders.push(result));
+    service.getLoginProviders().subscribe((result) => discoveredProviders.push(result));
+
+    const requests = httpTesting.match('https://localhost:7233/api/auth/providers');
+    expect(requests).toHaveSize(2);
+    requests.forEach((request) => expect(request.request.withCredentials).toBeTrue());
+    requests[0].flush([]);
+    requests[1].flush([]);
+
+    expect(discoveredProviders).toEqual([[], []]);
+    expect(httpTesting.match('https://localhost:7233/api/auth//providers')).toHaveSize(0);
+  });
+
+  it('propagates provider-discovery errors', () => {
+    const service = createService();
+    expectCurrentUserRequest('/api/auth/me').flush({ isAuthenticated: false });
+    let status: number | undefined;
+
+    service.getLoginProviders().subscribe({
+      error: (error: { status: number }) => (status = error.status),
+    });
+    httpTesting.expectOne('/api/auth/providers').flush('Server Error', {
+      status: 500,
+      statusText: 'Server Error',
+    });
+
+    expect(status).toBe(500);
+  });
+
+  it('navigates to an encoded provider-specific login endpoint without an HTTP request', () => {
+    const authNavigator = createAuthNavigator();
+    const config: BffAuthConfig = {
+      apiOrigin: 'https://localhost:7233/',
+      authPath: '/api/auth/',
+    };
+    const service = createService(config, authNavigator);
+    expectCurrentUserRequest('https://localhost:7233/api/auth/me').flush({ isAuthenticated: false });
+
+    service.login('GOOGLE');
+    service.login('GOOGLE');
+    service.login('google/provider');
+
+    expect(authNavigator.navigate).toHaveBeenCalledTimes(3);
+    expect(authNavigator.navigate).toHaveBeenCalledWith('https://localhost:7233/api/auth/login/GOOGLE');
+    expect(authNavigator.navigate).toHaveBeenCalledWith('https://localhost:7233/api/auth/login/google%2Fprovider');
+    expect(config).toEqual({
+      apiOrigin: 'https://localhost:7233/',
+      authPath: '/api/auth/',
+    });
+    httpTesting.expectNone('https://localhost:7233/api/auth/login/GOOGLE');
+    httpTesting.expectNone('https://localhost:7233/api/auth/login/google%2Fprovider');
+  });
+
+  it('rejects blank provider IDs without navigating', () => {
+    const authNavigator = createAuthNavigator();
+    const service = createService({}, authNavigator);
+    expectCurrentUserRequest('/api/auth/me').flush({ isAuthenticated: false });
+
+    expect(() => service.login('')).toThrowError('Provider ID must not be empty.');
+    expect(() => service.login('   ')).toThrowError('Provider ID must not be empty.');
+
+    expect(authNavigator.navigate).not.toHaveBeenCalled();
+    expect(service.isLoading()).toBeFalse();
+    httpTesting.expectNone('/api/auth/login');
   });
 
   it('normalizes a trailing auth path slash for current-user, CSRF, and logout endpoints', () => {
