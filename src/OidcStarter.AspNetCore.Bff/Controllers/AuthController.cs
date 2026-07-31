@@ -63,7 +63,10 @@ public sealed class AuthController(
             return Unauthorized();
         }
 
-        return Ok(currentUser);
+        var externalIdentity = await GetExternalIdentityAsync();
+        return Ok(externalIdentity is null
+            ? currentUser
+            : currentUser with { ExternalIdentity = externalIdentity });
     }
 
     [HttpGet("csrf")]
@@ -145,6 +148,24 @@ public sealed class AuthController(
             && loginProvider.SupportsRemoteSignOut
             ? loginProvider.AuthenticationScheme
             : null;
+    }
+
+    private async Task<ExternalIdentityResponse?> GetExternalIdentityAsync()
+    {
+        var authenticationResult = await HttpContext.AuthenticateAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme);
+
+        if (!authenticationResult.Succeeded
+            || authenticationResult.Properties is null
+            || !authenticationResult.Properties.Items.TryGetValue(
+                LoginProviderAuthenticationProperties.ProviderIdItemKey,
+                out var providerId)
+            || !bffOptions.Value.LoginProviders.TryGetProvider(providerId, out var loginProvider))
+        {
+            return null;
+        }
+
+        return new ExternalIdentityResponse(loginProvider.Id);
     }
 
     private bool ShouldSecureAntiforgeryRequestTokenCookie()

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -237,6 +238,96 @@ public sealed class AuthControllerTests
         Assert.Same(expectedUser, okResult.Value);
         Assert.Same(principal, observedPrincipal);
         Assert.Equal("access-token", observedAccessToken);
+    }
+
+    [Theory]
+    [InlineData("oidc", "oidc")]
+    [InlineData("OIDC", "oidc")]
+    [InlineData("google", "google")]
+    [InlineData("GOOGLE", "google")]
+    public async Task Me_exposes_the_canonical_registered_provider_id_from_the_cookie_ticket(
+        string marker,
+        string expectedProviderId)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("oidc"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties(marker));
+
+        var result = await controller.Me();
+
+        var response = GetCurrentUserResponse(result);
+        Assert.Equal(expectedProviderId, response.ExternalIdentity?.ProviderId);
+    }
+
+    [Fact]
+    public async Task Me_exposes_a_registered_custom_provider_id_from_the_cookie_ticket()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateCustomRegistry(),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("CUSTOM"));
+
+        var result = await controller.Me();
+
+        Assert.Equal("custom", GetCurrentUserResponse(result).ExternalIdentity?.ProviderId);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("removed-provider")]
+    public async Task Me_hides_missing_blank_and_unknown_provider_markers(string? marker)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateRegistry("oidc"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties(marker));
+
+        var result = await controller.Me();
+
+        var response = GetCurrentUserResponse(result);
+        Assert.Null(response.ExternalIdentity);
+
+        if (marker == "removed-provider")
+        {
+            Assert.DoesNotContain(marker, JsonSerializer.Serialize(response));
+        }
+    }
+
+    [Fact]
+    public void Current_user_response_preserves_its_existing_constructor_and_has_nullable_external_identity()
+    {
+        var response = new CurrentUserResponse(true, "user-123", "Test User", "testuser", "test@example.local")
+        {
+            Roles = ["reader"]
+        };
+
+        Assert.True(response.IsAuthenticated);
+        Assert.Equal("user-123", response.Sub);
+        Assert.Equal("Test User", response.Name);
+        Assert.Equal("testuser", response.Username);
+        Assert.Equal("test@example.local", response.Email);
+        Assert.Equal(["reader"], response.Roles);
+        Assert.Null(response.ExternalIdentity);
+    }
+
+    [Fact]
+    public void External_identity_response_serializes_only_the_provider_id()
+    {
+        var externalIdentity = new ExternalIdentityResponse("oidc");
+        using var document = JsonDocument.Parse(JsonSerializer.Serialize(
+            externalIdentity,
+            new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+
+        Assert.Equal(["ProviderId"], typeof(ExternalIdentityResponse).GetProperties().Select(static property => property.Name));
+        var property = Assert.Single(document.RootElement.EnumerateObject());
+        Assert.Equal("providerId", property.Name);
+        Assert.Equal("oidc", property.Value.GetString());
     }
 
     [Fact]
@@ -485,6 +576,29 @@ public sealed class AuthControllerTests
                 OidcStarterGoogleDefaults.AuthenticationScheme)
         ],
         defaultProviderId);
+
+    private static LoginProviderRegistry CreateCustomRegistry()
+        => new(
+        [
+            new LoginProviderDescriptor(
+                "oidc",
+                "OpenID Connect",
+                OpenIdConnectDefaults.AuthenticationScheme,
+                true),
+            new LoginProviderDescriptor("custom", "Custom", "custom-scheme")
+        ],
+        "oidc");
+
+    private static ICurrentUserService CreateAuthenticatedCurrentUserService()
+        => new StubCurrentUserService(static (_, _) => new CurrentUserResponse(
+            true,
+            "user-123",
+            "Test User",
+            "testuser",
+            "test@example.local"));
+
+    private static CurrentUserResponse GetCurrentUserResponse(ActionResult<CurrentUserResponse> result)
+        => Assert.IsType<CurrentUserResponse>(Assert.IsType<OkObjectResult>(result.Result).Value);
 
     private static AuthenticationProperties CreateCookieAuthenticationProperties(string? providerId = null)
     {
