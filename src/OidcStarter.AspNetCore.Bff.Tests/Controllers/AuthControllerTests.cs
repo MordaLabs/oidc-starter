@@ -259,6 +259,8 @@ public sealed class AuthControllerTests
 
         var response = GetCurrentUserResponse(result);
         Assert.Equal(expectedProviderId, response.ExternalIdentity?.ProviderId);
+        Assert.Null(response.ExternalIdentity?.EmailVerified);
+        Assert.Null(response.ExternalIdentity?.PictureUrl);
     }
 
     [Fact]
@@ -273,6 +275,82 @@ public sealed class AuthControllerTests
         var result = await controller.Me();
 
         Assert.Equal("custom", GetCurrentUserResponse(result).ExternalIdentity?.ProviderId);
+    }
+
+    [Fact]
+    public async Task Me_projects_normalized_external_identity_profile_claims_from_the_validated_cookie_ticket()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("google"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+            new Claim(ExternalIdentityClaimTypes.PictureUrl, "https://example.test/picture.jpg"));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("google", response.ExternalIdentity?.ProviderId);
+        Assert.True(response.ExternalIdentity?.EmailVerified);
+        Assert.Equal("https://example.test/picture.jpg", response.ExternalIdentity?.PictureUrl);
+    }
+
+    [Theory]
+    [InlineData("false", false)]
+    [InlineData("not-a-boolean", null)]
+    public async Task Me_projects_only_valid_normalized_verified_email_values(string claimValue, bool? expectedValue)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("google"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.EmailVerified, claimValue));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("google", response.ExternalIdentity?.ProviderId);
+        Assert.Equal(expectedValue, response.ExternalIdentity?.EmailVerified);
+        Assert.Null(response.ExternalIdentity?.PictureUrl);
+    }
+
+    [Fact]
+    public async Task Me_hides_blank_normalized_picture_claims_but_preserves_provider_provenance()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("google"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.PictureUrl, "   "));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("google", response.ExternalIdentity?.ProviderId);
+        Assert.Null(response.ExternalIdentity?.EmailVerified);
+        Assert.Null(response.ExternalIdentity?.PictureUrl);
+    }
+
+    [Fact]
+    public async Task Me_projects_normalized_external_identity_profile_claims_for_a_registered_custom_provider()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateCustomRegistry(),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("custom"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.EmailVerified, "false"),
+            new Claim(ExternalIdentityClaimTypes.PictureUrl, "https://example.test/custom-picture.jpg"));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("custom", response.ExternalIdentity?.ProviderId);
+        Assert.False(response.ExternalIdentity?.EmailVerified);
+        Assert.Equal("https://example.test/custom-picture.jpg", response.ExternalIdentity?.PictureUrl);
     }
 
     [Theory]
@@ -299,6 +377,46 @@ public sealed class AuthControllerTests
         }
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("removed-provider")]
+    public async Task Me_does_not_expose_normalized_profile_claims_without_valid_provider_provenance(string? marker)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("oidc"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties(marker));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.EmailVerified, "true"),
+            new Claim(ExternalIdentityClaimTypes.PictureUrl, "https://example.test/picture.jpg"));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Null(response.ExternalIdentity);
+        Assert.DoesNotContain("picture.jpg", JsonSerializer.Serialize(response));
+    }
+
+    [Fact]
+    public async Task Me_does_not_fall_back_to_raw_provider_profile_claims()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGoogleRegistry("google"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("google"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim("email_verified", "true"),
+            new Claim("verified_email", "true"),
+            new Claim("picture", "https://example.test/raw-picture.jpg"));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("google", response.ExternalIdentity?.ProviderId);
+        Assert.Null(response.ExternalIdentity?.EmailVerified);
+        Assert.Null(response.ExternalIdentity?.PictureUrl);
+    }
+
     [Fact]
     public void Current_user_response_preserves_its_existing_constructor_and_has_nullable_external_identity()
     {
@@ -317,17 +435,21 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
-    public void External_identity_response_serializes_only_the_provider_id()
+    public void External_identity_response_preserves_its_constructor_and_serializes_optional_profile_fields()
     {
         var externalIdentity = new ExternalIdentityResponse("oidc");
         using var document = JsonDocument.Parse(JsonSerializer.Serialize(
             externalIdentity,
             new JsonSerializerOptions(JsonSerializerDefaults.Web)));
 
-        Assert.Equal(["ProviderId"], typeof(ExternalIdentityResponse).GetProperties().Select(static property => property.Name));
-        var property = Assert.Single(document.RootElement.EnumerateObject());
-        Assert.Equal("providerId", property.Name);
-        Assert.Equal("oidc", property.Value.GetString());
+        Assert.Equal(
+            ["ProviderId", "EmailVerified", "PictureUrl"],
+            typeof(ExternalIdentityResponse).GetProperties().Select(static property => property.Name));
+        Assert.Null(externalIdentity.EmailVerified);
+        Assert.Null(externalIdentity.PictureUrl);
+        Assert.Equal("oidc", document.RootElement.GetProperty("providerId").GetString());
+        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("emailVerified").ValueKind);
+        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("pictureUrl").ValueKind);
     }
 
     [Fact]
@@ -611,6 +733,9 @@ public sealed class AuthControllerTests
 
         return properties;
     }
+
+    private static ClaimsPrincipal CreateCookieTicketPrincipal(params Claim[] claims)
+        => new(new ClaimsIdentity(claims, authenticationType: "cookie"));
 
     private static void AssertHttpRoute<TAttribute>(string actionName, string expectedTemplate)
         where TAttribute : HttpMethodAttribute

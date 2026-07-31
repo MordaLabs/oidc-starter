@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using System.Text.Json;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Extensions;
@@ -93,8 +96,79 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal(SameSiteMode.Strict, googleOptions.CorrelationCookie.SameSite);
         Assert.Equal(CookieSecurePolicy.Always, googleOptions.CorrelationCookie.SecurePolicy);
         Assert.False(googleOptions.SaveTokens);
+        Assert.Equal(["openid", "profile", "email"], googleOptions.Scope);
         Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, authenticationOptions.DefaultScheme);
         Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, authenticationOptions.DefaultChallengeScheme);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AddOidcStarterGoogle_maps_google_user_info_profile_claims(bool emailVerified)
+    {
+        using var provider = CreateGoogleServices(new Dictionary<string, string?>
+        {
+            ["Google:ClientId"] = "google-client-id",
+            ["Google:ClientSecret"] = "google-client-secret"
+        });
+        var googleOptions = provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme);
+        using var userInfo = JsonDocument.Parse($$"""
+            {
+              "id": "google-user-123",
+              "name": "Google User",
+              "given_name": "Google",
+              "family_name": "User",
+              "link": "https://example.test/profile",
+              "email": "user@example.test",
+              "verified_email": {{emailVerified.ToString().ToLowerInvariant()}},
+              "email_verified": false,
+              "picture": "https://example.test/picture.jpg"
+            }
+            """);
+        var identity = new ClaimsIdentity();
+
+        RunClaimActions(googleOptions, userInfo.RootElement, identity);
+
+        Assert.Equal("google-user-123", identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        Assert.Equal("Google User", identity.FindFirst(ClaimTypes.Name)?.Value);
+        Assert.Equal("Google", identity.FindFirst(ClaimTypes.GivenName)?.Value);
+        Assert.Equal("User", identity.FindFirst(ClaimTypes.Surname)?.Value);
+        Assert.Equal("https://example.test/profile", identity.FindFirst("urn:google:profile")?.Value);
+        Assert.Equal("user@example.test", identity.FindFirst(ClaimTypes.Email)?.Value);
+        var verifiedEmailClaim = Assert.Single(identity.FindAll(ExternalIdentityClaimTypes.EmailVerified));
+        Assert.Equal(emailVerified.ToString(), verifiedEmailClaim.Value);
+        Assert.Equal(ClaimValueTypes.Boolean, verifiedEmailClaim.ValueType);
+        Assert.Equal(
+            "https://example.test/picture.jpg",
+            identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl)?.Value);
+    }
+
+    [Fact]
+    public void AddOidcStarterGoogle_ignores_unusable_verified_email_and_empty_picture_user_info_values()
+    {
+        using var provider = CreateGoogleServices(new Dictionary<string, string?>
+        {
+            ["Google:ClientId"] = "google-client-id",
+            ["Google:ClientSecret"] = "google-client-secret"
+        });
+        var googleOptions = provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme);
+        using var userInfo = JsonDocument.Parse("""
+            {
+              "id": "google-user-123",
+              "verified_email": "not-a-boolean",
+              "picture": ""
+            }
+            """);
+        var identity = new ClaimsIdentity();
+
+        RunClaimActions(googleOptions, userInfo.RootElement, identity);
+
+        Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.EmailVerified));
+        Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl));
     }
 
     [Fact]
@@ -612,6 +686,17 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         services.AddOidcStarterGoogle(CreateGoogleConfigurationSection(googleValues));
 
         return services.BuildServiceProvider();
+    }
+
+    private static void RunClaimActions(
+        GoogleOptions googleOptions,
+        JsonElement userInfo,
+        ClaimsIdentity identity)
+    {
+        foreach (var claimAction in googleOptions.ClaimActions)
+        {
+            claimAction.Run(userInfo, identity, "Google");
+        }
     }
 
     private static IConfigurationSection CreateGoogleConfigurationSection(

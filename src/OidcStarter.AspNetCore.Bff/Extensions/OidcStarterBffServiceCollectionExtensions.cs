@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.IdentityModel.Tokens;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
@@ -40,6 +42,16 @@ public static class OidcStarterBffServiceCollectionExtensions
             .AddGoogle(OidcStarterGoogleDefaults.AuthenticationScheme, options =>
             {
                 configurationSection.Bind(options);
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    ExternalIdentityClaimTypes.EmailVerified,
+                    ClaimValueTypes.Boolean,
+                    static userInfo => userInfo.TryGetProperty("verified_email", out var verifiedEmail)
+                        && (verifiedEmail.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        ? verifiedEmail.GetBoolean().ToString()
+                        : null));
+                options.ClaimActions.MapJsonKey(
+                    ExternalIdentityClaimTypes.PictureUrl,
+                    "picture");
             });
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<GoogleOptions>, OidcStarterGoogleOptionsPostConfigure>());
         services.AddOptions<GoogleOptions>(OidcStarterGoogleDefaults.AuthenticationScheme)

@@ -165,7 +165,27 @@ public sealed class AuthController(
             return null;
         }
 
-        return new ExternalIdentityResponse(loginProvider.Id);
+        return new ExternalIdentityResponse(loginProvider.Id)
+        {
+            EmailVerified = GetEmailVerified(authenticationResult.Principal),
+            PictureUrl = GetPictureUrl(authenticationResult.Principal)
+        };
+    }
+
+    private static bool? GetEmailVerified(System.Security.Claims.ClaimsPrincipal? principal)
+        => bool.TryParse(
+            principal?.FindFirst(ExternalIdentityClaimTypes.EmailVerified)?.Value,
+            out var emailVerified)
+            ? emailVerified
+            : null;
+
+    private static string? GetPictureUrl(System.Security.Claims.ClaimsPrincipal? principal)
+    {
+        var pictureUrl = principal?.FindFirst(ExternalIdentityClaimTypes.PictureUrl)?.Value;
+
+        return string.IsNullOrWhiteSpace(pictureUrl)
+            ? null
+            : pictureUrl;
     }
 
     private bool ShouldSecureAntiforgeryRequestTokenCookie()
