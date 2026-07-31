@@ -1,3 +1,5 @@
+import type { BffExternalIdentity } from './bff-external-identity';
+
 export type BffCurrentUser = {
   isAuthenticated: boolean;
   sub?: string | null;
@@ -5,4 +7,5 @@ export type BffCurrentUser = {
   username?: string | null;
   email?: string | null;
   roles?: readonly string[];
+  readonly externalIdentity?: BffExternalIdentity | null;
 };

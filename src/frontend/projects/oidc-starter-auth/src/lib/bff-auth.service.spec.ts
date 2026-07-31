@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { BffAuthService, provideBffAuth } from '../public-api';
 import { BFF_AUTH_NAVIGATOR } from './internal/bff-auth-navigator';
-import type { BffAuthConfig, BffLoginProvider } from '../public-api';
+import type { BffAuthConfig, BffCurrentUser, BffExternalIdentity, BffLoginProvider } from '../public-api';
 import type { BffAuthNavigator } from './internal/bff-auth-navigator';
 
 describe('BffAuthService', () => {
@@ -33,6 +33,34 @@ describe('BffAuthService', () => {
     });
 
     expectCurrentUserRequest('https://api.example.test/api/auth/me').flush({ isAuthenticated: false });
+  });
+
+  it('exports compatible external identity current-user types', () => {
+    const externalIdentity: BffExternalIdentity = {
+      providerId: 'google',
+      emailVerified: false,
+      pictureUrl: null,
+    };
+    const currentUserWithIdentity: BffCurrentUser = {
+      isAuthenticated: true,
+      externalIdentity,
+    };
+    const currentUserWithNullIdentity: BffCurrentUser = {
+      isAuthenticated: true,
+      externalIdentity: null,
+    };
+    const currentUserWithoutIdentity: BffCurrentUser = {
+      isAuthenticated: true,
+    };
+    const identityWithoutProfileFields: BffExternalIdentity = {
+      providerId: 'oidc',
+    };
+
+    expect(currentUserWithIdentity.externalIdentity?.emailVerified).toBeFalse();
+    expect(currentUserWithIdentity.externalIdentity?.pictureUrl).toBeNull();
+    expect(currentUserWithNullIdentity.externalIdentity).toBeNull();
+    expect(currentUserWithoutIdentity.externalIdentity).toBeUndefined();
+    expect(identityWithoutProfileFields.providerId).toBe('oidc');
   });
 
   it('preserves a leading auth path slash without duplicating it after the configured origin', () => {
@@ -194,11 +222,16 @@ describe('BffAuthService', () => {
 
   it('loads and exposes an authenticated current user with credentialed GET /me', () => {
     const service = createService({ apiOrigin: 'https://api.example.test' });
-    const user = {
+    const user: BffCurrentUser = {
       isAuthenticated: true,
       sub: 'subject-123',
       name: 'Test User',
       roles: ['reader'],
+      externalIdentity: {
+        providerId: 'google',
+        emailVerified: false,
+        pictureUrl: null,
+      },
     };
 
     const request = expectCurrentUserRequest('https://api.example.test/api/auth/me');
@@ -209,6 +242,22 @@ describe('BffAuthService', () => {
     expect(service.currentUser()).toEqual(user);
     expect(service.authenticated()).toBeTrue();
     expect(service.isLoading()).toBeFalse();
+  });
+
+  it('accepts an older current-user response without external identity', () => {
+    const service = createService();
+    const user: BffCurrentUser = {
+      isAuthenticated: true,
+      sub: 'subject-123',
+      name: 'Test User',
+      roles: ['reader'],
+    };
+
+    expectCurrentUserRequest('/api/auth/me').flush(user);
+
+    expect(service.currentUser()).toEqual(user);
+    expect(service.currentUser()?.externalIdentity).toBeUndefined();
+    expect(service.authenticated()).toBeTrue();
   });
 
   it('clears current-user state when GET /me is unauthenticated', () => {
