@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,52 @@ namespace OidcStarter.AspNetCore.Bff.Extensions;
 
 public static class OidcStarterBffServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds opt-in Facebook authentication using the supplied Facebook handler configuration section.
+    /// </summary>
+    /// <remarks>
+    /// The Facebook handler uses the common BFF cookie session and local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterFacebook(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+        ValidateFacebookCallbackPath(configurationSection["CallbackPath"]);
+
+        services.AddAuthentication()
+            .AddFacebook(OidcStarterFacebookDefaults.AuthenticationScheme, options =>
+            {
+                configurationSection.Bind(options);
+                options.Fields.Add("picture");
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    ExternalIdentityClaimTypes.PictureUrl,
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetFacebookPictureUrl(userInfo, out var pictureUrl)
+                        ? pictureUrl
+                        : null));
+            });
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<FacebookOptions>, OidcStarterFacebookOptionsPostConfigure>());
+        services.AddOptions<FacebookOptions>(OidcStarterFacebookDefaults.AuthenticationScheme)
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.AppId),
+                "Facebook AppId is required.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.AppSecret),
+                "Facebook AppSecret is required.")
+            .Validate(
+                static options => IsValidFacebookCallbackPath(options.CallbackPath.Value),
+                "Facebook CallbackPath must be a local absolute path.")
+            .ValidateOnStart();
+        services.AddOidcStarterLoginProvider(
+            OidcStarterFacebookDefaults.ProviderId,
+            OidcStarterFacebookDefaults.DisplayName,
+            OidcStarterFacebookDefaults.AuthenticationScheme);
+
+        return services;
+    }
+
     /// <summary>
     /// Adds opt-in Google authentication using the supplied Google handler configuration section.
     /// </summary>
@@ -170,12 +217,47 @@ public static class OidcStarterBffServiceCollectionExtensions
         }
     }
 
+    private static void ValidateFacebookCallbackPath(string? callbackPath)
+    {
+        if (callbackPath is not null && !IsValidFacebookCallbackPath(callbackPath))
+        {
+            throw new ArgumentException(
+                "Facebook CallbackPath must be a local absolute path.",
+                nameof(callbackPath));
+        }
+    }
+
     private static bool IsValidGoogleCallbackPath(string? callbackPath)
         => !string.IsNullOrWhiteSpace(callbackPath)
             && callbackPath[0] == '/'
             && !callbackPath.StartsWith("//", StringComparison.Ordinal)
             && !callbackPath.Contains('?')
             && !callbackPath.Contains('#');
+
+    private static bool IsValidFacebookCallbackPath(string? callbackPath)
+        => !string.IsNullOrWhiteSpace(callbackPath)
+            && callbackPath[0] == '/'
+            && !callbackPath.StartsWith("//", StringComparison.Ordinal)
+            && !callbackPath.Contains('?')
+            && !callbackPath.Contains('#');
+
+    private static bool TryGetFacebookPictureUrl(JsonElement userInfo, out string? pictureUrl)
+    {
+        pictureUrl = null;
+
+        if (!userInfo.TryGetProperty("picture", out var picture)
+            || picture.ValueKind != JsonValueKind.Object
+            || !picture.TryGetProperty("data", out var data)
+            || data.ValueKind != JsonValueKind.Object
+            || !data.TryGetProperty("url", out var url)
+            || url.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        pictureUrl = url.GetString();
+        return !string.IsNullOrWhiteSpace(pictureUrl);
+    }
 
     private static void ConfigureForwardedHeaders(IServiceCollection services, OidcStarterBffOptions bffSettings)
     {

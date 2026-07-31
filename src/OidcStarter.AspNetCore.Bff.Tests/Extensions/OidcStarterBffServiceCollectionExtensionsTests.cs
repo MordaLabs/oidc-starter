@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +22,169 @@ namespace OidcStarter.AspNetCore.Bff.Tests.Extensions;
 
 public sealed class OidcStarterBffServiceCollectionExtensionsTests
 {
+    [Fact]
+    public void AddOidcStarterFacebook_returns_the_original_collection_and_rejects_null_arguments()
+    {
+        var services = new ServiceCollection();
+        var configurationSection = CreateFacebookConfigurationSection();
+
+        var result = services.AddOidcStarterFacebook(configurationSection);
+
+        Assert.Same(services, result);
+        Assert.Throws<ArgumentNullException>(() =>
+            OidcStarterBffServiceCollectionExtensions.AddOidcStarterFacebook(null!, configurationSection));
+        Assert.Throws<ArgumentNullException>(() => services.AddOidcStarterFacebook(null!));
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_does_not_register_facebook_by_default()
+    {
+        using var provider = CreateServices(CreateValidOidcConfiguration());
+        var registry = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value.LoginProviders;
+
+        Assert.DoesNotContain(registry.Providers, provider => provider.Id == OidcStarterFacebookDefaults.ProviderId);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterFacebook_registers_the_official_handler_with_bff_session_options()
+    {
+        using var provider = CreateFacebookServices(
+            new Dictionary<string, string?>
+            {
+                ["Facebook:AppId"] = "facebook-app-id",
+                ["Facebook:AppSecret"] = "facebook-app-secret"
+            },
+            new Dictionary<string, string?>
+            {
+                ["Starter:CookieSameSite"] = "Strict"
+            });
+        var schemeProvider = provider.GetRequiredService<IAuthenticationSchemeProvider>();
+        var facebookScheme = await schemeProvider.GetSchemeAsync(OidcStarterFacebookDefaults.AuthenticationScheme);
+        var facebookOptions = provider
+            .GetRequiredService<IOptionsMonitor<FacebookOptions>>()
+            .Get(OidcStarterFacebookDefaults.AuthenticationScheme);
+        var registry = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value.LoginProviders;
+
+        Assert.NotNull(facebookScheme);
+        Assert.Equal(typeof(FacebookHandler), facebookScheme.HandlerType);
+        Assert.Equal("facebook-app-id", facebookOptions.AppId);
+        Assert.Equal("facebook-app-secret", facebookOptions.AppSecret);
+        Assert.Equal(new PathString("/signin-facebook"), facebookOptions.CallbackPath);
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, facebookOptions.SignInScheme);
+        Assert.Equal(SameSiteMode.Strict, facebookOptions.CorrelationCookie.SameSite);
+        Assert.Equal(CookieSecurePolicy.Always, facebookOptions.CorrelationCookie.SecurePolicy);
+        Assert.True(facebookOptions.UsePkce);
+        Assert.True(facebookOptions.SendAppSecretProof);
+        Assert.False(facebookOptions.SaveTokens);
+        Assert.Equal(["email"], facebookOptions.Scope);
+        Assert.Contains("name", facebookOptions.Fields);
+        Assert.Contains("first_name", facebookOptions.Fields);
+        Assert.Contains("last_name", facebookOptions.Fields);
+        Assert.Contains("email", facebookOptions.Fields);
+        Assert.Equal(1, facebookOptions.Fields.Count(field => field == "picture"));
+        var expectedFields = new[] { "name", "first_name", "last_name", "email", "picture" };
+        Assert.All(
+            facebookOptions.Fields,
+            field => Assert.Contains(field, expectedFields));
+        var facebook = Assert.Single(registry.Providers.Where(provider => provider.Id == "facebook"));
+        Assert.Equal("Facebook", facebook.DisplayName);
+        Assert.Equal(OidcStarterFacebookDefaults.AuthenticationScheme, facebook.AuthenticationScheme);
+        Assert.False(facebook.SupportsRemoteSignOut);
+        Assert.Equal("oidc", registry.DefaultProvider.Id);
+    }
+
+    [Theory]
+    [InlineData("Facebook:AppId")]
+    [InlineData("Facebook:AppSecret")]
+    public void AddOidcStarterFacebook_fails_closed_when_essential_configuration_is_missing_or_blank(string key)
+    {
+        var missingConfiguration = new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret"
+        };
+        missingConfiguration.Remove(key);
+        using var missingProvider = CreateFacebookServices(missingConfiguration);
+
+        Assert.ThrowsAny<ArgumentException>(() => GetFacebookOptions(missingProvider));
+
+        using var blankProvider = CreateFacebookServices(new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret",
+            [key] = " "
+        });
+
+        Assert.Throws<OptionsValidationException>(() => GetFacebookOptions(blankProvider));
+    }
+
+    [Fact]
+    public void AddOidcStarterFacebook_maps_standard_and_normalized_picture_claims()
+    {
+        using var provider = CreateFacebookServices(new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret"
+        });
+        using var userInfo = JsonDocument.Parse("""
+            {
+              "id": "facebook-user-123",
+              "name": "Facebook User",
+              "first_name": "Facebook",
+              "last_name": "User",
+              "email": "user@example.test",
+              "picture": { "data": { "url": "https://example.test/picture.jpg" } }
+            }
+            """);
+        var identity = new ClaimsIdentity();
+
+        RunClaimActions(GetFacebookOptions(provider), userInfo.RootElement, identity);
+
+        Assert.Equal("facebook-user-123", identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        Assert.Equal("Facebook User", identity.FindFirst(ClaimTypes.Name)?.Value);
+        Assert.Equal("Facebook", identity.FindFirst(ClaimTypes.GivenName)?.Value);
+        Assert.Equal("User", identity.FindFirst(ClaimTypes.Surname)?.Value);
+        Assert.Equal("user@example.test", identity.FindFirst(ClaimTypes.Email)?.Value);
+        var pictureUrlClaim = Assert.Single(identity.FindAll(ExternalIdentityClaimTypes.PictureUrl));
+        Assert.Equal("https://example.test/picture.jpg", pictureUrlClaim.Value);
+        Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.EmailVerified));
+        Assert.Null(identity.FindFirst("picture"));
+        Assert.Null(identity.FindFirst("access_token"));
+    }
+
+    [Fact]
+    public void AddOidcStarterFacebook_tolerates_missing_email_and_incomplete_picture_data()
+    {
+        using var provider = CreateFacebookServices(new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret"
+        });
+        var incompletePicturePayloads = new[]
+        {
+            """{ "id": "facebook-user-123" }""",
+            """{ "id": "facebook-user-123", "picture": {} }""",
+            """{ "id": "facebook-user-123", "picture": { "data": {} } }""",
+            """{ "id": "facebook-user-123", "picture": { "data": { "url": null } } }""",
+            """{ "id": "facebook-user-123", "picture": { "data": { "url": "" } } }""",
+            """{ "id": "facebook-user-123", "picture": { "data": { "url": "   " } } }""",
+            """{ "id": "facebook-user-123", "picture": { "data": { "url": {} } } }"""
+        };
+
+        foreach (var userInfoJson in incompletePicturePayloads)
+        {
+            using var userInfo = JsonDocument.Parse(userInfoJson);
+            var identity = new ClaimsIdentity();
+
+            RunClaimActions(GetFacebookOptions(provider), userInfo.RootElement, identity);
+
+            Assert.Equal("facebook-user-123", identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            Assert.Null(identity.FindFirst(ClaimTypes.Email));
+            Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl));
+            Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.EmailVerified));
+        }
+    }
+
     [Fact]
     public void AddOidcStarterGoogle_returns_the_original_collection_and_rejects_null_arguments()
     {
@@ -688,12 +853,28 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         return services.BuildServiceProvider();
     }
 
+    private static ServiceProvider CreateFacebookServices(
+        Dictionary<string, string?> facebookValues,
+        Dictionary<string, string?>? bffValues = null)
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration(bffValues ?? new Dictionary<string, string?>()));
+        services.AddOidcStarterFacebook(CreateFacebookConfigurationSection(facebookValues));
+
+        return services.BuildServiceProvider();
+    }
+
+    private static FacebookOptions GetFacebookOptions(ServiceProvider provider)
+        => provider
+            .GetRequiredService<IOptionsMonitor<FacebookOptions>>()
+            .Get(OidcStarterFacebookDefaults.AuthenticationScheme);
+
     private static void RunClaimActions(
-        GoogleOptions googleOptions,
+        OAuthOptions options,
         JsonElement userInfo,
         ClaimsIdentity identity)
     {
-        foreach (var claimAction in googleOptions.ClaimActions)
+        foreach (var claimAction in options.ClaimActions)
         {
             claimAction.Run(userInfo, identity, "Google");
         }
@@ -709,6 +890,17 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
             })
             .Build()
             .GetSection("Google");
+
+    private static IConfigurationSection CreateFacebookConfigurationSection(
+        Dictionary<string, string?>? values = null)
+        => new ConfigurationBuilder()
+            .AddInMemoryCollection(values ?? new Dictionary<string, string?>
+            {
+                ["Facebook:AppId"] = "facebook-app-id",
+                ["Facebook:AppSecret"] = "facebook-app-secret"
+            })
+            .Build()
+            .GetSection("Facebook");
 
     private static Dictionary<string, string?> CreateValidOidcConfiguration()
         => new()

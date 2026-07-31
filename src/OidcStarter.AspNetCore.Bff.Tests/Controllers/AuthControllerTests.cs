@@ -96,6 +96,23 @@ public sealed class AuthControllerTests
             result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
     }
 
+    [Theory]
+    [InlineData("facebook")]
+    [InlineData("FACEBOOK")]
+    public void Login_for_facebook_challenges_the_internal_facebook_scheme_with_a_canonical_marker(string provider)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateFacebookRegistry("oidc"));
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
+
+        Assert.Contains(OidcStarterFacebookDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal(
+            "facebook",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+    }
+
     [Fact]
     public void Login_challenges_google_when_google_is_the_configured_default()
     {
@@ -175,6 +192,26 @@ public sealed class AuthControllerTests
         Assert.Equal("Google", google.DisplayName);
         Assert.True(google.IsDefault);
         Assert.Equal("/api/auth/login/google", google.LoginUrl);
+        Assert.DoesNotContain(
+            typeof(LoginProviderResponse).GetProperties(),
+            property => property.Name == "AuthenticationScheme");
+    }
+
+    [Fact]
+    public void Providers_includes_facebook_metadata_without_exposing_its_scheme()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateFacebookRegistry("facebook"));
+
+        var result = controller.Providers();
+
+        var providers = Assert.IsAssignableFrom<IReadOnlyList<LoginProviderResponse>>(
+            Assert.IsType<OkObjectResult>(result.Result).Value);
+        var facebook = Assert.Single(providers.Where(provider => provider.Id == "facebook"));
+        Assert.Equal("Facebook", facebook.DisplayName);
+        Assert.True(facebook.IsDefault);
+        Assert.Equal("/api/auth/login/facebook", facebook.LoginUrl);
         Assert.DoesNotContain(
             typeof(LoginProviderResponse).GetProperties(),
             property => property.Name == "AuthenticationScheme");
@@ -294,6 +331,24 @@ public sealed class AuthControllerTests
         Assert.Equal("google", response.ExternalIdentity?.ProviderId);
         Assert.True(response.ExternalIdentity?.EmailVerified);
         Assert.Equal("https://example.test/picture.jpg", response.ExternalIdentity?.PictureUrl);
+    }
+
+    [Fact]
+    public async Task Me_projects_normalized_picture_claims_for_a_facebook_provider_ticket()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateFacebookRegistry("facebook"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("facebook"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.PictureUrl, "https://example.test/facebook-picture.jpg"));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("facebook", response.ExternalIdentity?.ProviderId);
+        Assert.Null(response.ExternalIdentity?.EmailVerified);
+        Assert.Equal("https://example.test/facebook-picture.jpg", response.ExternalIdentity?.PictureUrl);
     }
 
     [Theory]
@@ -576,6 +631,22 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
+    public void Logout_signs_out_only_the_cookie_for_a_facebook_provider_session()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateFacebookRegistry("facebook"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("facebook"));
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Equal([CookieAuthenticationDefaults.AuthenticationScheme], result.AuthenticationSchemes);
+        Assert.DoesNotContain(OidcStarterFacebookDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.DoesNotContain(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+    }
+
+    [Fact]
     public void Logout_preserves_oidc_remote_sign_out_for_legacy_sessions_without_a_provider_marker()
     {
         var controller = CreateController(
@@ -696,6 +767,21 @@ public sealed class AuthControllerTests
                 OidcStarterGoogleDefaults.ProviderId,
                 OidcStarterGoogleDefaults.DisplayName,
                 OidcStarterGoogleDefaults.AuthenticationScheme)
+        ],
+        defaultProviderId);
+
+    private static LoginProviderRegistry CreateFacebookRegistry(string defaultProviderId)
+        => new(
+        [
+            new LoginProviderDescriptor(
+                "oidc",
+                "OpenID Connect",
+                OpenIdConnectDefaults.AuthenticationScheme,
+                true),
+            new LoginProviderDescriptor(
+                OidcStarterFacebookDefaults.ProviderId,
+                OidcStarterFacebookDefaults.DisplayName,
+                OidcStarterFacebookDefaults.AuthenticationScheme)
         ],
         defaultProviderId);
 
