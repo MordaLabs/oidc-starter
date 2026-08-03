@@ -42,6 +42,9 @@ public static class OidcStarterBffServiceCollectionExtensions
         services.AddAuthentication()
             .AddFacebook(OidcStarterFacebookDefaults.AuthenticationScheme, options =>
             {
+                options.AuthorizationEndpoint = OidcStarterFacebookDefaults.AuthorizationEndpoint;
+                options.TokenEndpoint = OidcStarterFacebookDefaults.TokenEndpoint;
+                options.UserInformationEndpoint = OidcStarterFacebookDefaults.UserInformationEndpoint;
                 configurationSection.Bind(options);
                 options.Fields.Add("picture");
                 options.ClaimActions.Add(new CustomJsonClaimAction(
@@ -59,6 +62,15 @@ public static class OidcStarterBffServiceCollectionExtensions
             .Validate(
                 static options => !string.IsNullOrWhiteSpace(options.AppSecret),
                 "Facebook AppSecret is required.")
+            .Validate(
+                static options => IsValidFacebookEndpoint(options.AuthorizationEndpoint),
+                "Facebook AuthorizationEndpoint must be an absolute URI.")
+            .Validate(
+                static options => IsValidFacebookEndpoint(options.TokenEndpoint),
+                "Facebook TokenEndpoint must be an absolute URI.")
+            .Validate(
+                static options => IsValidFacebookEndpoint(options.UserInformationEndpoint),
+                "Facebook UserInformationEndpoint must be an absolute URI.")
             .Validate(
                 static options => IsValidFacebookCallbackPath(options.CallbackPath.Value),
                 "Facebook CallbackPath must be a local absolute path.")
@@ -240,6 +252,9 @@ public static class OidcStarterBffServiceCollectionExtensions
             && !callbackPath.StartsWith("//", StringComparison.Ordinal)
             && !callbackPath.Contains('?')
             && !callbackPath.Contains('#');
+
+    private static bool IsValidFacebookEndpoint(string? endpoint)
+        => Uri.TryCreate(endpoint, UriKind.Absolute, out _);
 
     private static bool TryGetFacebookPictureUrl(JsonElement userInfo, out string? pictureUrl)
     {

@@ -69,6 +69,20 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal(typeof(FacebookHandler), facebookScheme.HandlerType);
         Assert.Equal("facebook-app-id", facebookOptions.AppId);
         Assert.Equal("facebook-app-secret", facebookOptions.AppSecret);
+        Assert.Equal("https://www.facebook.com/v26.0/dialog/oauth", facebookOptions.AuthorizationEndpoint);
+        Assert.Equal("https://graph.facebook.com/v26.0/oauth/access_token", facebookOptions.TokenEndpoint);
+        Assert.Equal("https://graph.facebook.com/v26.0/me", facebookOptions.UserInformationEndpoint);
+        Assert.DoesNotContain("/v14.0/", facebookOptions.AuthorizationEndpoint);
+        Assert.DoesNotContain("/v14.0/", facebookOptions.TokenEndpoint);
+        Assert.DoesNotContain("/v14.0/", facebookOptions.UserInformationEndpoint);
+        Assert.All(
+            new[]
+            {
+                facebookOptions.AuthorizationEndpoint,
+                facebookOptions.TokenEndpoint,
+                facebookOptions.UserInformationEndpoint
+            },
+            endpoint => Assert.Contains($"/{OidcStarterFacebookDefaults.GraphApiVersion}/", endpoint));
         Assert.Equal(new PathString("/signin-facebook"), facebookOptions.CallbackPath);
         Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, facebookOptions.SignInScheme);
         Assert.Equal(SameSiteMode.Strict, facebookOptions.CorrelationCookie.SameSite);
@@ -91,6 +105,62 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal(OidcStarterFacebookDefaults.AuthenticationScheme, facebook.AuthenticationScheme);
         Assert.False(facebook.SupportsRemoteSignOut);
         Assert.Equal("oidc", registry.DefaultProvider.Id);
+    }
+
+    [Fact]
+    public void AddOidcStarterFacebook_preserves_all_configured_graph_api_endpoint_overrides()
+    {
+        using var provider = CreateFacebookServices(new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret",
+            ["Facebook:AuthorizationEndpoint"] = "https://login.example.test/custom-authorize",
+            ["Facebook:TokenEndpoint"] = "https://tokens.example.test/custom-token",
+            ["Facebook:UserInformationEndpoint"] = "https://profile.example.test/custom-user-info"
+        });
+
+        var facebookOptions = GetFacebookOptions(provider);
+
+        Assert.Equal("https://login.example.test/custom-authorize", facebookOptions.AuthorizationEndpoint);
+        Assert.Equal("https://tokens.example.test/custom-token", facebookOptions.TokenEndpoint);
+        Assert.Equal("https://profile.example.test/custom-user-info", facebookOptions.UserInformationEndpoint);
+    }
+
+    [Fact]
+    public void AddOidcStarterFacebook_preserves_partial_graph_api_endpoint_overrides()
+    {
+        using var provider = CreateFacebookServices(new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret",
+            ["Facebook:TokenEndpoint"] = "https://tokens.example.test/custom-token"
+        });
+
+        var facebookOptions = GetFacebookOptions(provider);
+
+        Assert.Equal(OidcStarterFacebookDefaults.AuthorizationEndpoint, facebookOptions.AuthorizationEndpoint);
+        Assert.Equal("https://tokens.example.test/custom-token", facebookOptions.TokenEndpoint);
+        Assert.Equal(OidcStarterFacebookDefaults.UserInformationEndpoint, facebookOptions.UserInformationEndpoint);
+    }
+
+    [Theory]
+    [InlineData("AuthorizationEndpoint", "")]
+    [InlineData("TokenEndpoint", "not-a-uri")]
+    [InlineData("UserInformationEndpoint", " ")]
+    public void AddOidcStarterFacebook_fails_closed_for_blank_or_invalid_configured_endpoints(
+        string endpointName,
+        string endpointValue)
+    {
+        using var provider = CreateFacebookServices(new Dictionary<string, string?>
+        {
+            ["Facebook:AppId"] = "facebook-app-id",
+            ["Facebook:AppSecret"] = "facebook-app-secret",
+            [$"Facebook:{endpointName}"] = endpointValue
+        });
+
+        var exception = Record.Exception(() => GetFacebookOptions(provider));
+
+        Assert.True(exception is ArgumentException or OptionsValidationException);
     }
 
     [Theory]
