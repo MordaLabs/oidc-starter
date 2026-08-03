@@ -17,6 +17,12 @@ if (googleSection.GetValue<bool>("Enabled"))
     builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
 }
 
+var facebookSection = builder.Configuration.GetSection("ExternalLogin:Facebook");
+if (facebookSection.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterFacebook(facebookSection.GetSection("Options"));
+}
+
 var app = builder.Build();
 
 app.UseOidcStarterBff();
