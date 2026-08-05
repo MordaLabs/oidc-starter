@@ -1,3 +1,4 @@
+using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Facebook;
@@ -253,6 +254,212 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
             Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl));
             Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.EmailVerified));
         }
+    }
+
+    [Fact]
+    public void AddOidcStarterGitHub_returns_the_original_collection_and_rejects_null_arguments()
+    {
+        var services = new ServiceCollection();
+        var configurationSection = CreateGitHubConfigurationSection();
+
+        var result = services.AddOidcStarterGitHub(configurationSection);
+
+        Assert.Same(services, result);
+        Assert.Throws<ArgumentNullException>(() =>
+            OidcStarterBffServiceCollectionExtensions.AddOidcStarterGitHub(null!, configurationSection));
+        Assert.Throws<ArgumentNullException>(() => services.AddOidcStarterGitHub(null!));
+    }
+
+    [Fact]
+    public void AddOidcStarterBff_does_not_register_github_by_default()
+    {
+        using var provider = CreateServices(CreateValidOidcConfiguration());
+        var registry = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value.LoginProviders;
+
+        Assert.DoesNotContain(registry.Providers, provider => provider.Id == OidcStarterGitHubDefaults.ProviderId);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AddOidcStarterGitHub_registers_provider_metadata_before_or_after_bff(bool githubFirst)
+    {
+        var services = new ServiceCollection();
+        var githubConfiguration = CreateGitHubConfigurationSection();
+
+        if (githubFirst)
+        {
+            services.AddOidcStarterGitHub(githubConfiguration);
+            services.AddOidcStarterBff(CreateConfiguration([]));
+        }
+        else
+        {
+            services.AddOidcStarterBff(CreateConfiguration([]));
+            services.AddOidcStarterGitHub(githubConfiguration);
+        }
+
+        using var provider = services.BuildServiceProvider();
+        var registry = provider.GetRequiredService<IOptions<OidcStarterBffOptions>>().Value.LoginProviders;
+
+        var github = Assert.Single(registry.Providers.Where(provider => provider.Id == "github"));
+        Assert.Equal("GitHub", github.DisplayName);
+        Assert.Equal(OidcStarterGitHubDefaults.AuthenticationScheme, github.AuthenticationScheme);
+        Assert.False(github.SupportsRemoteSignOut);
+        Assert.Equal("oidc", registry.DefaultProvider.Id);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterGitHub_registers_the_official_handler_with_bff_session_options()
+    {
+        using var provider = CreateGitHubServices(
+            new Dictionary<string, string?>
+            {
+                ["GitHub:ClientId"] = "github-client-id",
+                ["GitHub:ClientSecret"] = "github-client-secret"
+            },
+            new Dictionary<string, string?>
+            {
+                ["Starter:CookieSameSite"] = "Strict"
+            });
+        var schemeProvider = provider.GetRequiredService<IAuthenticationSchemeProvider>();
+        var githubScheme = await schemeProvider.GetSchemeAsync(OidcStarterGitHubDefaults.AuthenticationScheme);
+        var githubOptions = GetGitHubOptions(provider);
+        var authenticationOptions = provider.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+
+        Assert.NotNull(githubScheme);
+        Assert.Equal("github-client-id", githubOptions.ClientId);
+        Assert.Equal("github-client-secret", githubOptions.ClientSecret);
+        Assert.Equal("https://github.com/login/oauth/authorize", githubOptions.AuthorizationEndpoint);
+        Assert.Equal("https://github.com/login/oauth/access_token", githubOptions.TokenEndpoint);
+        Assert.Equal("https://api.github.com/user", githubOptions.UserInformationEndpoint);
+        Assert.Equal("https://api.github.com/user/emails", githubOptions.UserEmailsEndpoint);
+        Assert.Equal(new PathString("/signin-github"), githubOptions.CallbackPath);
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, githubOptions.SignInScheme);
+        Assert.Equal(SameSiteMode.Strict, githubOptions.CorrelationCookie.SameSite);
+        Assert.Equal(CookieSecurePolicy.Always, githubOptions.CorrelationCookie.SecurePolicy);
+        Assert.True(githubOptions.UsePkce);
+        Assert.False(githubOptions.SaveTokens);
+        Assert.Equal(["user:email"], githubOptions.Scope);
+        Assert.Equal(1, githubOptions.Scope.Count(scope => scope == "user:email"));
+        Assert.DoesNotContain(githubOptions.Scope, scope =>
+            scope is "user" or "read:user" or "repo" or "read:org" or "gist" or "notifications");
+        Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, authenticationOptions.DefaultScheme);
+        Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, authenticationOptions.DefaultChallengeScheme);
+    }
+
+    [Fact]
+    public void AddOidcStarterGitHub_binds_a_configured_local_callback_path()
+    {
+        using var provider = CreateGitHubServices(new Dictionary<string, string?>
+        {
+            ["GitHub:ClientId"] = "github-client-id",
+            ["GitHub:ClientSecret"] = "github-client-secret",
+            ["GitHub:CallbackPath"] = "/custom-signin-github"
+        });
+
+        Assert.Equal(new PathString("/custom-signin-github"), GetGitHubOptions(provider).CallbackPath);
+    }
+
+    [Theory]
+    [InlineData("GitHub:ClientId")]
+    [InlineData("GitHub:ClientSecret")]
+    public void AddOidcStarterGitHub_fails_closed_when_essential_configuration_is_missing_or_blank(string key)
+    {
+        var missingConfiguration = new Dictionary<string, string?>
+        {
+            ["GitHub:ClientId"] = "github-client-id",
+            ["GitHub:ClientSecret"] = "github-client-secret"
+        };
+        missingConfiguration.Remove(key);
+        using var missingProvider = CreateGitHubServices(missingConfiguration);
+
+        Assert.ThrowsAny<ArgumentException>(() => GetGitHubOptions(missingProvider));
+
+        using var blankProvider = CreateGitHubServices(new Dictionary<string, string?>
+        {
+            ["GitHub:ClientId"] = "github-client-id",
+            ["GitHub:ClientSecret"] = "github-client-secret",
+            [key] = " "
+        });
+
+        Assert.Throws<OptionsValidationException>(() => GetGitHubOptions(blankProvider));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("signin-github")]
+    [InlineData("//signin-github")]
+    [InlineData("/signin-github?next=/")]
+    [InlineData("/signin-github#fragment")]
+    public void AddOidcStarterGitHub_rejects_blank_or_invalid_callback_paths(string callbackPath)
+    {
+        var services = new ServiceCollection();
+        var configurationSection = CreateGitHubConfigurationSection(new Dictionary<string, string?>
+        {
+            ["GitHub:CallbackPath"] = callbackPath
+        });
+
+        Assert.Throws<ArgumentException>(() => services.AddOidcStarterGitHub(configurationSection));
+    }
+
+    [Fact]
+    public void AddOidcStarterGitHub_maps_standard_and_normalized_identity_claims()
+    {
+        using var provider = CreateGitHubServices(new Dictionary<string, string?>
+        {
+            ["GitHub:ClientId"] = "github-client-id",
+            ["GitHub:ClientSecret"] = "github-client-secret"
+        });
+        using var userInfo = JsonDocument.Parse("""
+            {
+              "id": 123,
+              "login": "octocat",
+              "name": "The Octocat",
+              "email": "octocat@example.test",
+              "avatar_url": "https://example.test/avatar.png"
+            }
+            """);
+        var identity = new ClaimsIdentity();
+
+        RunClaimActions(GetGitHubOptions(provider), userInfo.RootElement, identity);
+
+        Assert.Equal("123", identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        Assert.Equal("octocat", identity.FindFirst(ClaimTypes.Name)?.Value);
+        Assert.Equal("octocat", identity.FindFirst("preferred_username")?.Value);
+        Assert.Equal("The Octocat", identity.FindFirst("name")?.Value);
+        Assert.Equal("octocat@example.test", identity.FindFirst(ClaimTypes.Email)?.Value);
+        Assert.Equal(
+            "https://example.test/avatar.png",
+            identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl)?.Value);
+        Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.EmailVerified));
+        Assert.Null(identity.FindFirst("access_token"));
+        Assert.Null(identity.FindFirst("raw_user_info"));
+    }
+
+    [Theory]
+    [InlineData("{ \"id\": 123, \"login\": \"octocat\" }")]
+    [InlineData("{ \"id\": 123, \"login\": \"octocat\", \"name\": \"   \", \"avatar_url\": null }")]
+    [InlineData("{ \"id\": 123, \"login\": \"octocat\", \"avatar_url\": \"\" }")]
+    [InlineData("{ \"id\": 123, \"login\": \"octocat\", \"avatar_url\": \"   \" }")]
+    [InlineData("{ \"id\": 123, \"login\": \"octocat\", \"avatar_url\": {} }")]
+    public void AddOidcStarterGitHub_tolerates_missing_profile_values_and_unusable_avatars(string userInfoJson)
+    {
+        using var provider = CreateGitHubServices(new Dictionary<string, string?>
+        {
+            ["GitHub:ClientId"] = "github-client-id",
+            ["GitHub:ClientSecret"] = "github-client-secret"
+        });
+        using var userInfo = JsonDocument.Parse(userInfoJson);
+        var identity = new ClaimsIdentity();
+
+        RunClaimActions(GetGitHubOptions(provider), userInfo.RootElement, identity);
+
+        Assert.Equal("123", identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        Assert.Equal("octocat", identity.FindFirst("preferred_username")?.Value);
+        Assert.Null(identity.FindFirst("name"));
+        Assert.Null(identity.FindFirst(ClaimTypes.Email));
+        Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl));
+        Assert.Null(identity.FindFirst(ExternalIdentityClaimTypes.EmailVerified));
     }
 
     [Fact]
@@ -934,10 +1141,26 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         return services.BuildServiceProvider();
     }
 
+    private static ServiceProvider CreateGitHubServices(
+        Dictionary<string, string?> githubValues,
+        Dictionary<string, string?>? bffValues = null)
+    {
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration(bffValues ?? new Dictionary<string, string?>()));
+        services.AddOidcStarterGitHub(CreateGitHubConfigurationSection(githubValues));
+
+        return services.BuildServiceProvider();
+    }
+
     private static FacebookOptions GetFacebookOptions(ServiceProvider provider)
         => provider
             .GetRequiredService<IOptionsMonitor<FacebookOptions>>()
             .Get(OidcStarterFacebookDefaults.AuthenticationScheme);
+
+    private static GitHubAuthenticationOptions GetGitHubOptions(ServiceProvider provider)
+        => provider
+            .GetRequiredService<IOptionsMonitor<GitHubAuthenticationOptions>>()
+            .Get(OidcStarterGitHubDefaults.AuthenticationScheme);
 
     private static void RunClaimActions(
         OAuthOptions options,
@@ -971,6 +1194,17 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
             })
             .Build()
             .GetSection("Facebook");
+
+    private static IConfigurationSection CreateGitHubConfigurationSection(
+        Dictionary<string, string?>? values = null)
+        => new ConfigurationBuilder()
+            .AddInMemoryCollection(values ?? new Dictionary<string, string?>
+            {
+                ["GitHub:ClientId"] = "github-client-id",
+                ["GitHub:ClientSecret"] = "github-client-secret"
+            })
+            .Build()
+            .GetSection("GitHub");
 
     private static Dictionary<string, string?> CreateValidOidcConfiguration()
         => new()

@@ -1,3 +1,4 @@
+using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -25,6 +26,65 @@ namespace OidcStarter.AspNetCore.Bff.Extensions;
 
 public static class OidcStarterBffServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds opt-in GitHub authentication using the supplied GitHub handler configuration section.
+    /// </summary>
+    /// <remarks>
+    /// The GitHub handler uses the common BFF cookie session and local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterGitHub(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+        ValidateGitHubCallbackPath(configurationSection["CallbackPath"]);
+
+        services.AddAuthentication()
+            .AddGitHub(OidcStarterGitHubDefaults.AuthenticationScheme, options =>
+            {
+                configurationSection.Bind(options);
+                options.Scope.Clear();
+                options.Scope.Add("user:email");
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    "preferred_username",
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetGitHubString(userInfo, "login", out var login)
+                        ? login
+                        : null));
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    "name",
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetGitHubString(userInfo, "name", out var name)
+                        ? name
+                        : null));
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    ExternalIdentityClaimTypes.PictureUrl,
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetGitHubString(userInfo, "avatar_url", out var pictureUrl)
+                        ? pictureUrl
+                        : null));
+            });
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<GitHubAuthenticationOptions>, OidcStarterGitHubOptionsPostConfigure>());
+        services.AddOptions<GitHubAuthenticationOptions>(OidcStarterGitHubDefaults.AuthenticationScheme)
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientId),
+                "GitHub ClientId is required.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientSecret),
+                "GitHub ClientSecret is required.")
+            .Validate(
+                static options => IsValidGitHubCallbackPath(options.CallbackPath.Value),
+                "GitHub CallbackPath must be a local absolute path.")
+            .ValidateOnStart();
+        services.AddOidcStarterLoginProvider(
+            OidcStarterGitHubDefaults.ProviderId,
+            OidcStarterGitHubDefaults.DisplayName,
+            OidcStarterGitHubDefaults.AuthenticationScheme);
+
+        return services;
+    }
+
     /// <summary>
     /// Adds opt-in Facebook authentication using the supplied Facebook handler configuration section.
     /// </summary>
@@ -229,6 +289,16 @@ public static class OidcStarterBffServiceCollectionExtensions
         }
     }
 
+    private static void ValidateGitHubCallbackPath(string? callbackPath)
+    {
+        if (callbackPath is not null && !IsValidGitHubCallbackPath(callbackPath))
+        {
+            throw new ArgumentException(
+                "GitHub CallbackPath must be a local absolute path.",
+                nameof(callbackPath));
+        }
+    }
+
     private static void ValidateFacebookCallbackPath(string? callbackPath)
     {
         if (callbackPath is not null && !IsValidFacebookCallbackPath(callbackPath))
@@ -240,6 +310,13 @@ public static class OidcStarterBffServiceCollectionExtensions
     }
 
     private static bool IsValidGoogleCallbackPath(string? callbackPath)
+        => !string.IsNullOrWhiteSpace(callbackPath)
+            && callbackPath[0] == '/'
+            && !callbackPath.StartsWith("//", StringComparison.Ordinal)
+            && !callbackPath.Contains('?')
+            && !callbackPath.Contains('#');
+
+    private static bool IsValidGitHubCallbackPath(string? callbackPath)
         => !string.IsNullOrWhiteSpace(callbackPath)
             && callbackPath[0] == '/'
             && !callbackPath.StartsWith("//", StringComparison.Ordinal)
@@ -272,6 +349,20 @@ public static class OidcStarterBffServiceCollectionExtensions
 
         pictureUrl = url.GetString();
         return !string.IsNullOrWhiteSpace(pictureUrl);
+    }
+
+    private static bool TryGetGitHubString(JsonElement userInfo, string propertyName, out string? value)
+    {
+        value = null;
+
+        if (!userInfo.TryGetProperty(propertyName, out var property)
+            || property.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        value = property.GetString();
+        return !string.IsNullOrWhiteSpace(value);
     }
 
     private static void ConfigureForwardedHeaders(IServiceCollection services, OidcStarterBffOptions bffSettings)

@@ -113,6 +113,23 @@ public sealed class AuthControllerTests
             result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
     }
 
+    [Theory]
+    [InlineData("github")]
+    [InlineData("GITHUB")]
+    public void Login_for_github_challenges_the_internal_github_scheme_with_a_canonical_marker(string provider)
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGitHubRegistry("oidc"));
+
+        var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
+
+        Assert.Contains(OidcStarterGitHubDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.Equal(
+            "github",
+            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+    }
+
     [Fact]
     public void Login_challenges_google_when_google_is_the_configured_default()
     {
@@ -212,6 +229,26 @@ public sealed class AuthControllerTests
         Assert.Equal("Facebook", facebook.DisplayName);
         Assert.True(facebook.IsDefault);
         Assert.Equal("/api/auth/login/facebook", facebook.LoginUrl);
+        Assert.DoesNotContain(
+            typeof(LoginProviderResponse).GetProperties(),
+            property => property.Name == "AuthenticationScheme");
+    }
+
+    [Fact]
+    public void Providers_includes_github_metadata_without_exposing_its_scheme()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGitHubRegistry("github"));
+
+        var result = controller.Providers();
+
+        var providers = Assert.IsAssignableFrom<IReadOnlyList<LoginProviderResponse>>(
+            Assert.IsType<OkObjectResult>(result.Result).Value);
+        var github = Assert.Single(providers.Where(provider => provider.Id == "github"));
+        Assert.Equal("GitHub", github.DisplayName);
+        Assert.True(github.IsDefault);
+        Assert.Equal("/api/auth/login/github", github.LoginUrl);
         Assert.DoesNotContain(
             typeof(LoginProviderResponse).GetProperties(),
             property => property.Name == "AuthenticationScheme");
@@ -349,6 +386,24 @@ public sealed class AuthControllerTests
         Assert.Equal("facebook", response.ExternalIdentity?.ProviderId);
         Assert.Null(response.ExternalIdentity?.EmailVerified);
         Assert.Equal("https://example.test/facebook-picture.jpg", response.ExternalIdentity?.PictureUrl);
+    }
+
+    [Fact]
+    public async Task Me_projects_normalized_picture_claims_for_a_github_provider_ticket()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            currentUserService: CreateAuthenticatedCurrentUserService(),
+            configureOptions: options => options.LoginProviders = CreateGitHubRegistry("github"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("github"));
+        controller.HttpContext.User = CreateCookieTicketPrincipal(
+            new Claim(ExternalIdentityClaimTypes.PictureUrl, "https://example.test/github-picture.jpg"));
+
+        var response = GetCurrentUserResponse(await controller.Me());
+
+        Assert.Equal("github", response.ExternalIdentity?.ProviderId);
+        Assert.Null(response.ExternalIdentity?.EmailVerified);
+        Assert.Equal("https://example.test/github-picture.jpg", response.ExternalIdentity?.PictureUrl);
     }
 
     [Theory]
@@ -647,6 +702,22 @@ public sealed class AuthControllerTests
     }
 
     [Fact]
+    public void Logout_signs_out_only_the_cookie_for_a_github_provider_session()
+    {
+        var controller = CreateController(
+            new FakeAntiforgery(),
+            configureOptions: options => options.LoginProviders = CreateGitHubRegistry("github"),
+            cookieAuthenticationProperties: CreateCookieAuthenticationProperties("github"));
+        controller.HttpContext.Request.Headers.Origin = "http://localhost:4200";
+
+        var result = Assert.IsType<SignOutResult>(controller.Logout());
+
+        Assert.Equal([CookieAuthenticationDefaults.AuthenticationScheme], result.AuthenticationSchemes);
+        Assert.DoesNotContain(OidcStarterGitHubDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+        Assert.DoesNotContain(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
+    }
+
+    [Fact]
     public void Logout_preserves_oidc_remote_sign_out_for_legacy_sessions_without_a_provider_marker()
     {
         var controller = CreateController(
@@ -782,6 +853,21 @@ public sealed class AuthControllerTests
                 OidcStarterFacebookDefaults.ProviderId,
                 OidcStarterFacebookDefaults.DisplayName,
                 OidcStarterFacebookDefaults.AuthenticationScheme)
+        ],
+        defaultProviderId);
+
+    private static LoginProviderRegistry CreateGitHubRegistry(string defaultProviderId)
+        => new(
+        [
+            new LoginProviderDescriptor(
+                "oidc",
+                "OpenID Connect",
+                OpenIdConnectDefaults.AuthenticationScheme,
+                true),
+            new LoginProviderDescriptor(
+                OidcStarterGitHubDefaults.ProviderId,
+                OidcStarterGitHubDefaults.DisplayName,
+                OidcStarterGitHubDefaults.AuthenticationScheme)
         ],
         defaultProviderId);
 
