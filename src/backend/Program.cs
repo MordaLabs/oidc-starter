@@ -23,6 +23,12 @@ if (facebookSection.GetValue<bool>("Enabled"))
     builder.Services.AddOidcStarterFacebook(facebookSection.GetSection("Options"));
 }
 
+var githubSection = builder.Configuration.GetSection("ExternalLogin:GitHub");
+if (githubSection.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterGitHub(githubSection.GetSection("Options"));
+}
+
 var app = builder.Build();
 
 app.UseOidcStarterBff();
