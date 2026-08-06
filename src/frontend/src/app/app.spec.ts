@@ -66,6 +66,10 @@ describe('App', () => {
     expect(compiled.querySelector('footer a[href="https://github.com/jszyduk/oidc-starter"]')).not.toBeNull();
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Primary navigation"] a')).map((link) => link.getAttribute('href')))
       .toEqual(['#overview', '#providers', '#demo', '#security']);
+    expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
+      .toEqual(['overview', 'providers', 'demo', 'security']);
+    expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
+      .toEqual(['#overview', '#providers', '#demo', '#security', 'https://github.com/jszyduk/oidc-starter']);
   });
 
   it('does not request BFF providers when the demo is running in SPA mode', () => {
@@ -96,6 +100,8 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const headerSignIn = compiled.querySelector<HTMLButtonElement>('.site-header .header-button');
     expect(headerSignIn?.disabled).toBeTrue();
+    expect(compiled.querySelector('.unauthenticated-sign-in')).toBeNull();
+    expect(authenticatedCardHeadings(compiled)).toEqual([]);
 
     flushBffCurrentUserIfRendered();
     fixture.detectChanges();
@@ -105,6 +111,8 @@ describe('App', () => {
     fixture.detectChanges();
 
     expect(headerSignIn?.disabled).toBeFalse();
+    expect(compiled.querySelector('.unauthenticated-state')?.textContent).toContain('No active session');
+    expect(authenticatedCardHeadings(compiled)).toEqual([]);
     headerSignIn?.click();
     fixture.detectChanges();
 
@@ -115,10 +123,12 @@ describe('App', () => {
     dialog?.querySelector<HTMLButtonElement>('.dialog-close')?.click();
 
     expect(document.activeElement).toBe(headerSignIn);
-    compiled.querySelector<HTMLButtonElement>('.sign-in-button')?.click();
+    const demoSignIn = compiled.querySelector<HTMLButtonElement>('.unauthenticated-sign-in');
+    demoSignIn?.click();
     fixture.detectChanges();
     expect(dialog?.open).toBeTrue();
     dialog?.querySelector<HTMLButtonElement>('.dialog-close')?.click();
+    expect(document.activeElement).toBe(demoSignIn);
     expect(httpTestingController.match(`${environment.apiOrigin.replace(/\/$/, '')}/api/auth/providers`)).toHaveSize(0);
   });
 
@@ -146,6 +156,10 @@ describe('App', () => {
     expect(sessionLink?.textContent).toContain('View session');
     expect(sessionLink?.getAttribute('href')).toBe('#demo');
     expect(compiled.querySelector('.site-header button.header-button')).toBeNull();
+    expect(compiled.querySelector('.unauthenticated-state')).toBeNull();
+    expect(authenticatedCardHeadings(compiled)).toEqual(['Login', 'User info']);
+    expect(compiled.textContent).toContain('subject-123');
+    expect(compiled.querySelector('.button-secondary')?.textContent).toContain('Logout');
     expect(httpTestingController.match(`${apiOrigin}/api/auth/providers`)).toHaveSize(0);
   });
 
@@ -184,5 +198,11 @@ describe('App', () => {
     for (const request of requests) {
       request.flush([]);
     }
+  }
+
+  function authenticatedCardHeadings(compiled: HTMLElement): string[] {
+    return Array.from(compiled.querySelectorAll<HTMLElement>('.authenticated-card h2')).map(
+      (heading) => heading.textContent?.trim() ?? '',
+    );
   }
 });

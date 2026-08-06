@@ -1,36 +1,73 @@
-<section class="card">
-  <div class="card-header">
-    <h2>Login</h2>
+@if (service.isLoading()) {
+  <section class="unauthenticated-state" aria-labelledby="session-state-title">
+    <p class="eyebrow">BFF session</p>
+    <h2 id="session-state-title">Checking backend session...</h2>
+    <p>Loading the current backend session.</p>
+  </section>
+} @else if (service.isLoggingOut()) {
+  <section class="unauthenticated-state" aria-labelledby="session-state-title">
+    <p class="eyebrow">BFF session</p>
+    <h2 id="session-state-title">Signing out...</h2>
+    <p>Closing the current backend session.</p>
+  </section>
+} @else if (service.authenticated()) {
+  <section class="card authenticated-card">
+    <div class="card-header">
+      <h2>Login</h2>
+      <button type="button" class="button button-secondary" (click)="service.logout()">Logout</button>
+    </div>
 
-    @if (service.authenticated() || service.isLoggingOut()) {
-      <button
-        type="button"
-        class="button button-secondary"
-        [disabled]="service.isLoggingOut()"
-        (click)="service.logout()"
-      >
-        Logout
-      </button>
-    } @else {
-      @if (service.isLoading()) {
-        <button type="button" class="button" disabled>Loading login options...</button>
-      } @else {
-        <button #signInButton type="button" class="button sign-in-button" (click)="openSignInDialog(signInButton)">Sign in</button>
-      }
+    <dl class="details">
+      <div>
+        <dt>Mode</dt>
+        <dd>{{ service.mode }}</dd>
+      </div>
+      <div>
+        <dt>Status</dt>
+        <dd>{{ service.statusMessage() }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="card authenticated-card">
+    <h2>User info</h2>
+
+    @if (service.currentUser(); as user) {
+      <dl class="details">
+        <div>
+          <dt>Subject</dt>
+          <dd>{{ user.sub || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Name</dt>
+          <dd>{{ user.name || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Username</dt>
+          <dd>{{ user.username || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user.email || 'n/a' }}</dd>
+        </div>
+      </dl>
     }
-  </div>
-
-  <dl class="details">
-    <div>
-      <dt>Mode</dt>
-      <dd>{{ service.mode }}</dd>
-    </div>
-    <div>
-      <dt>Status</dt>
-      <dd>{{ service.isLoading() ? 'Checking backend session...' : service.statusMessage() }}</dd>
-    </div>
-  </dl>
-</section>
+  </section>
+} @else {
+  <section class="unauthenticated-state" aria-labelledby="session-state-title">
+    <p class="eyebrow">BFF session</p>
+    <h2 id="session-state-title">No active session</h2>
+    <p>Sign in to inspect the authenticated BFF session and normalized user identity.</p>
+    <button
+      #signInButton
+      type="button"
+      class="button unauthenticated-sign-in"
+      (click)="openSignInDialog(signInButton)"
+    >
+      Sign in
+    </button>
+  </section>
+}
 
 @if (!service.authenticated() && !service.isLoggingOut()) {
   <dialog
@@ -106,34 +143,3 @@
     </div>
   </dialog>
 }
-
-<section class="card">
-  <h2>User info</h2>
-
-  @if (service.currentUser(); as user) {
-    <dl class="details">
-      <div>
-        <dt>Subject</dt>
-        <dd>{{ user.sub || 'n/a' }}</dd>
-      </div>
-      <div>
-        <dt>Name</dt>
-        <dd>{{ user.name || 'n/a' }}</dd>
-      </div>
-      <div>
-        <dt>Username</dt>
-        <dd>{{ user.username || 'n/a' }}</dd>
-      </div>
-      <div>
-        <dt>Email</dt>
-        <dd>{{ user.email || 'n/a' }}</dd>
-      </div>
-    </dl>
-  } @else if (service.isLoading()) {
-    <p class="status">Loading backend session...</p>
-  } @else if (service.isLoggingOut()) {
-    <p class="status">Logging out...</p>
-  } @else {
-    <p class="status">{{ service.loggedOutMessage }}</p>
-  }
-</section>

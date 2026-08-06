@@ -1,10 +1,11 @@
 :host {
-  display: contents;
+  display: block;
+  width: 100%;
 }
 
 .card {
-  max-width: 48rem;
-  margin: 0 auto 1.5rem;
+  width: 100%;
+  margin: 0 0 1.5rem;
   padding: 1.5rem;
   border: 1px solid rgba(23, 32, 51, 0.08);
   border-radius: 1rem;
@@ -87,6 +88,40 @@ dd {
 
 .status {
   color: #41506b;
+}
+
+.unauthenticated-state {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 2.25rem 1.5rem;
+  border: 1px solid rgba(23, 32, 51, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.unauthenticated-state h2 {
+  margin-bottom: 0.75rem;
+}
+
+.unauthenticated-state p:not(.eyebrow) {
+  max-width: 38rem;
+  margin: 0 auto;
+  color: #41506b;
+  line-height: 1.6;
+}
+
+.unauthenticated-state .eyebrow {
+  margin-bottom: 0.5rem;
+  color: var(--accent-hover, #216b57);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.unauthenticated-sign-in {
+  margin-top: 1.5rem;
 }
 
 .sign-in-dialog {

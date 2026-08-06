@@ -39,29 +39,30 @@ describe('BffAuthViewComponent', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('renders one sign-in action after the session check and keeps provider actions out of the card', async () => {
+  it('renders one unauthenticated sign-in action after the session check without technical cards', async () => {
     await createComponent();
 
     const rendered = fixture.nativeElement as HTMLElement;
 
     expect(signInButton()).not.toBeNull();
-    expect(rendered.querySelectorAll('button.sign-in-button')).toHaveSize(1);
+    expect(rendered.querySelectorAll('button.unauthenticated-sign-in')).toHaveSize(1);
+    expect(rendered.querySelector('.unauthenticated-state')?.textContent).toContain('No active session');
+    expect(cardHeadings()).toEqual([]);
     expect(dialog().open).toBeFalse();
     expect(providerActions()).toHaveSize(0);
     expect(rendered.querySelector('.card .provider-action')).toBeNull();
     expect(auth.login).not.toHaveBeenCalled();
   });
 
-  it('keeps sign-in disabled during the initial backend session check without discovering or invoking login', async () => {
+  it('shows a neutral loading state during the initial backend session check without discovering or invoking login', async () => {
     auth.isLoading.set(true);
     await createComponent();
 
-    const loadingButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button:disabled');
-    loadingButton?.click();
+    const rendered = fixture.nativeElement as HTMLElement;
 
-    expect(loadingButton?.textContent).toContain('Loading login options...');
-    expect(loadingButton?.disabled).toBeTrue();
+    expect(rendered.querySelector('.unauthenticated-state')?.textContent).toContain('Checking backend session...');
     expect(signInButton()).toBeNull();
+    expect(cardHeadings()).toEqual([]);
     expect(dialog().open).toBeFalse();
     expect(auth.getLoginProviders).not.toHaveBeenCalled();
     expect(auth.login).not.toHaveBeenCalled();
@@ -182,6 +183,8 @@ describe('BffAuthViewComponent', () => {
     await createComponent();
 
     expect(signInButton()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.unauthenticated-state')).toBeNull();
+    expect(cardHeadings()).toEqual(['Login', 'User info']);
     expect((fixture.nativeElement as HTMLElement).querySelector('.sign-in-dialog')).toBeNull();
     expect(auth.getLoginProviders).not.toHaveBeenCalled();
 
@@ -197,7 +200,13 @@ describe('BffAuthViewComponent', () => {
   }
 
   function signInButton(): HTMLButtonElement {
-    return (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button.sign-in-button')!;
+    return (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button.unauthenticated-sign-in')!;
+  }
+
+  function cardHeadings(): string[] {
+    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.authenticated-card h2')).map(
+      (heading) => heading.textContent?.trim() ?? '',
+    );
   }
 
   function dialog(): HTMLDialogElement {
