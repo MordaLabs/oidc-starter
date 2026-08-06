@@ -17,22 +17,47 @@
       <button type="button" class="button button-secondary" (click)="service.logout()">Logout</button>
     </div>
 
-    <dl class="details">
+    <dl class="details session-details">
+      <div>
+        <dt>Session</dt>
+        <dd>Active</dd>
+      </div>
       <div>
         <dt>Mode</dt>
-        <dd>{{ service.mode }}</dd>
+        <dd>Backend-for-Frontend</dd>
       </div>
       <div>
-        <dt>Status</dt>
-        <dd>{{ service.statusMessage() }}</dd>
+        <dt>Signed in with</dt>
+        <dd>{{ providerDisplayName(service.currentUser()?.externalIdentity?.providerId) }}</dd>
       </div>
     </dl>
+    <p class="session-note">Authentication is represented by the backend session; provider tokens are not included in this current-user response.</p>
   </section>
 
   <section class="card authenticated-card">
     <h2>User info</h2>
 
     @if (service.currentUser(); as user) {
+      <div class="identity-summary">
+        @if (pictureUrl(user.externalIdentity?.pictureUrl); as avatarUrl) {
+          <img
+            class="identity-avatar"
+            [src]="avatarUrl"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+          />
+        } @else {
+          <div class="identity-avatar identity-avatar-fallback" aria-hidden="true">ID</div>
+        }
+
+        <div class="identity-summary-copy">
+          <p class="identity-name">{{ user.name || user.username || user.email || user.sub || 'Unknown user' }}</p>
+          <span class="provider-badge">{{ providerDisplayName(user.externalIdentity?.providerId, 'Provider not reported') }}</span>
+        </div>
+      </div>
+
       <dl class="details">
         <div>
           <dt>Subject</dt>
@@ -50,7 +75,36 @@
           <dt>Email</dt>
           <dd>{{ user.email || 'n/a' }}</dd>
         </div>
+        <div>
+          <dt>Email verification</dt>
+          <dd><span class="status-badge">{{ emailVerificationStatus(user.externalIdentity?.emailVerified) }}</span></dd>
+        </div>
+        <div class="roles-detail">
+          <dt>Application roles</dt>
+          <dd>
+            @if (user.roles?.length) {
+              <ul class="role-list" aria-label="Application roles">
+                @for (role of user.roles; track $index) {
+                  <li>{{ role }}</li>
+                }
+              </ul>
+            } @else {
+              No application roles
+            }
+          </dd>
+        </div>
       </dl>
+
+      <details class="current-user-inspector">
+        <summary>View current-user JSON</summary>
+        <div class="inspector-actions">
+          <button type="button" class="button inspector-copy-button" (click)="copyCurrentUserJson(user)">Copy JSON</button>
+          @if (copyStatus(); as status) {
+            <p class="copy-status" role="status">{{ status }}</p>
+          }
+        </div>
+        <pre><code>{{ currentUserJson(user) }}</code></pre>
+      </details>
     }
   </section>
 } @else {

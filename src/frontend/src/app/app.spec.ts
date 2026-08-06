@@ -63,6 +63,8 @@ describe('App', () => {
     expect(compiled.querySelector('app-spa-auth-view, app-bff-auth-view')).not.toBeNull();
     expect(compiled.querySelector('#runtime-title')?.textContent).toContain('Runtime status');
     expect(compiled.textContent).toContain('OIDC Starter API');
+    expect(Array.from(compiled.querySelectorAll('.runtime-details dd')).map((value) => value.textContent?.trim()))
+      .toContain('No');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Primary navigation"] a')).map((link) => link.getAttribute('href')))
       .toEqual(['#overview', '#providers', '#demo', '#security', '#github']);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
@@ -85,6 +87,44 @@ describe('App', () => {
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
       .toEqual(['#overview', '#providers', '#demo', '#security']);
+  });
+
+  it('formats the ping timestamp as UTC while preserving the backend value', () => {
+    const fixture = TestBed.createComponent(App);
+    const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
+    const timestampUtc = '2026-08-06T11:31:19.0631303+00:00';
+
+    httpTestingController.expectOne(`${apiOrigin}/api/public/ping`).flush({
+      status: 'ok',
+      applicationName: 'OIDC Starter API',
+      timestampUtc,
+      oidcConfigured: true,
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const timestamp = compiled.querySelector<HTMLTimeElement>('.runtime-details time');
+    expect(Array.from(compiled.querySelectorAll('.runtime-details dt')).map((label) => label.textContent?.trim()))
+      .toContain('Last checked');
+    expect(timestamp?.getAttribute('datetime')).toBe(timestampUtc);
+    expect(timestamp?.textContent?.trim()).toBe('6 Aug 2026, 11:31 UTC');
+    expect(timestamp?.textContent).not.toContain(timestampUtc);
+    expect(compiled.querySelector('.runtime-details')?.textContent).toContain('Yes');
+  });
+
+  it('retains the runtime loading and error states for the unchanged ping endpoint', () => {
+    const fixture = TestBed.createComponent(App);
+    const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Loading public ping endpoint...');
+    httpTestingController.expectOne(`${apiOrigin}/api/public/ping`).flush(null, {
+      status: 0,
+      statusText: 'Unavailable',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Backend API not reachable yet.');
   });
 
   it('does not request BFF providers when the demo is running in SPA mode', () => {

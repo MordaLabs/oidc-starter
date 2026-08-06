@@ -36,11 +36,13 @@ h2 {
 
 .details {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
 .details div {
   display: grid;
+  min-width: 0;
   gap: 0.25rem;
 }
 
@@ -55,6 +57,135 @@ dd {
   font-size: 1rem;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.session-details {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.session-note {
+  margin-top: 1rem;
+  color: #41506b;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.identity-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.identity-avatar {
+  display: block;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 3.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #dfe6f0;
+}
+
+.identity-avatar-fallback {
+  display: grid;
+  place-items: center;
+  color: #41506b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.identity-summary-copy {
+  min-width: 0;
+}
+
+.identity-name {
+  overflow-wrap: anywhere;
+  color: #172033;
+  font-weight: 700;
+}
+
+.provider-badge,
+.status-badge,
+.role-list li {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #cfd8e6;
+  border-radius: 999px;
+  color: #41506b;
+  background: #f4f7fb;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.provider-badge {
+  margin-top: 0.4rem;
+}
+
+.roles-detail {
+  grid-column: 1 / -1;
+}
+
+.role-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.role-list li {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.current-user-inspector {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(23, 32, 51, 0.12);
+}
+
+.current-user-inspector summary {
+  color: #172033;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.inspector-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.inspector-copy-button {
+  padding: 0.55rem 0.85rem;
+}
+
+.copy-status {
+  color: #41506b;
+  font-size: 0.9rem;
+}
+
+.current-user-inspector pre {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 1rem 0 0;
+  padding: 1rem;
+  overflow: auto;
+  border: 1px solid #cfd8e6;
+  border-radius: 0.5rem;
+  background: #f4f7fb;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .button {
@@ -226,7 +357,8 @@ dd {
 
 .button:focus-visible,
 .provider-action:focus-visible,
-.dialog-close:focus-visible {
+.dialog-close:focus-visible,
+.current-user-inspector summary:focus-visible {
   outline: 3px solid #5b8dee;
   outline-offset: 2px;
 }
@@ -237,6 +369,20 @@ dd {
   }
 
   .card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .details,
+  .session-details {
+    grid-template-columns: 1fr;
+  }
+
+  .roles-detail {
+    grid-column: auto;
+  }
+
+  .inspector-actions {
     align-items: flex-start;
     flex-direction: column;
   }

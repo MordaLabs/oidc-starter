@@ -1,14 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { BffAuthService, type BffLoginProvider } from '@flying-bee/oidc-starter-auth';
+import { BffAuthService, type BffCurrentUser, type BffLoginProvider } from '@flying-bee/oidc-starter-auth';
+import { BFF_CLIPBOARD_WRITER } from './bff-clipboard-writer';
 import { BffAuthViewComponent } from './bff-auth-view.component';
 
 type BffAuthServiceStub = {
   isLoading: WritableSignal<boolean>;
   isLoggingOut: WritableSignal<boolean>;
   authenticated: WritableSignal<boolean>;
-  currentUser: WritableSignal<null>;
+  currentUser: WritableSignal<BffCurrentUser | null>;
   getLoginProviders: jasmine.Spy;
   login: jasmine.Spy;
   logout: jasmine.Spy;
@@ -18,9 +19,11 @@ describe('BffAuthViewComponent', () => {
   let fixture: ComponentFixture<BffAuthViewComponent>;
   let auth: BffAuthServiceStub;
   let providerResponses: Subject<readonly BffLoginProvider[]>;
+  let clipboardWriter: jasmine.Spy;
 
   beforeEach(async () => {
     providerResponses = new Subject<readonly BffLoginProvider[]>();
+    clipboardWriter = jasmine.createSpy('clipboardWriter').and.resolveTo();
     auth = {
       isLoading: signal(false),
       isLoggingOut: signal(false),
@@ -33,7 +36,10 @@ describe('BffAuthViewComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [BffAuthViewComponent],
-      providers: [{ provide: BffAuthService, useValue: auth }],
+      providers: [
+        { provide: BffAuthService, useValue: auth },
+        { provide: BFF_CLIPBOARD_WRITER, useValue: clipboardWriter },
+      ],
     }).compileComponents();
   });
 
@@ -48,6 +54,7 @@ describe('BffAuthViewComponent', () => {
     expect(rendered.querySelectorAll('button.unauthenticated-sign-in')).toHaveSize(1);
     expect(rendered.querySelector('.unauthenticated-state')?.textContent).toContain('No active session');
     expect(cardHeadings()).toEqual([]);
+    expect(rendered.querySelector('.current-user-inspector')).toBeNull();
     expect(dialog().open).toBeFalse();
     expect(providerActions()).toHaveSize(0);
     expect(rendered.querySelector('.card .provider-action')).toBeNull();
@@ -192,6 +199,119 @@ describe('BffAuthViewComponent', () => {
     expect(auth.logout).toHaveBeenCalledTimes(1);
   });
 
+  it('renders authenticated session diagnostics, identity fields, avatar, and roles without provider discovery', async () => {
+    setAuthenticatedUser({
+      sub: 'subject-123',
+      name: 'Test User',
+      username: 'testuser',
+      email: 'test@example.com',
+      roles: ['Administrator', 'Reader'],
+      externalIdentity: {
+        providerId: 'google',
+        emailVerified: true,
+        pictureUrl: 'https://images.example.test/profile.png',
+      },
+    });
+    await createComponent();
+
+    const rendered = fixture.nativeElement as HTMLElement;
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Active');
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Backend-for-Frontend');
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Google');
+    expect(rendered.querySelector('.session-note')?.textContent)
+      .toContain('provider tokens are not included in this current-user response');
+    expect(rendered.querySelector('.identity-name')?.textContent).toContain('Test User');
+    expect(rendered.querySelector('.provider-badge')?.textContent).toContain('Google');
+    expect(rendered.querySelector('.details')?.textContent).toContain('subject-123');
+    expect(rendered.querySelector('.details')?.textContent).toContain('testuser');
+    expect(rendered.querySelector('.details')?.textContent).toContain('test@example.com');
+    expect(rendered.querySelector('.status-badge')?.textContent).toContain('Verified');
+    expect(roleLabels()).toEqual(['Administrator', 'Reader']);
+
+    const avatar = rendered.querySelector<HTMLImageElement>('.identity-avatar');
+    expect(avatar?.src).toBe('https://images.example.test/profile.png');
+    expect(avatar?.getAttribute('alt')).toBe('');
+    expect(avatar?.getAttribute('loading')).toBe('lazy');
+    expect(avatar?.getAttribute('decoding')).toBe('async');
+    expect(avatar?.getAttribute('referrerpolicy')).toBe('no-referrer');
+    expect(auth.getLoginProviders).not.toHaveBeenCalled();
+  });
+
+  it('preserves unknown providers and reports missing provider provenance', async () => {
+    setAuthenticatedUser({ externalIdentity: { providerId: 'Custom-ID', emailVerified: null, pictureUrl: null } });
+    await createComponent();
+
+    const rendered = fixture.nativeElement as HTMLElement;
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Custom-ID');
+    expect(rendered.querySelector('.provider-badge')?.textContent).toContain('Custom-ID');
+
+    auth.currentUser.set({ ...auth.currentUser()!, externalIdentity: null });
+    fixture.detectChanges();
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Not reported');
+    expect(rendered.querySelector('.provider-badge')?.textContent).toContain('Provider not reported');
+  });
+
+  it('uses the local fallback avatar and distinguishes email verification and empty roles', async () => {
+    setAuthenticatedUser({ externalIdentity: { providerId: 'github', emailVerified: false, pictureUrl: null }, roles: [] });
+    await createComponent();
+
+    const rendered = fixture.nativeElement as HTMLElement;
+    expect(rendered.querySelector('img.identity-avatar')).toBeNull();
+    expect(rendered.querySelector('.identity-avatar-fallback')).not.toBeNull();
+    expect(rendered.querySelector('.status-badge')?.textContent).toContain('Not verified');
+    expect(rendered.querySelector('.roles-detail')?.textContent).toContain('No application roles');
+
+    auth.currentUser.set({ ...auth.currentUser()!, externalIdentity: { providerId: 'github', emailVerified: null, pictureUrl: null } });
+    fixture.detectChanges();
+    expect(rendered.querySelector('.status-badge')?.textContent).toContain('Not reported');
+
+    auth.currentUser.set({ ...auth.currentUser()!, externalIdentity: { providerId: 'github', pictureUrl: null }, roles: undefined });
+    fixture.detectChanges();
+    expect(rendered.querySelector('.status-badge')?.textContent).toContain('Not reported');
+    expect(rendered.querySelector('.roles-detail')?.textContent).toContain('No application roles');
+  });
+
+  it('shows exact current-user JSON only when authenticated and copies that JSON on request', async () => {
+    setAuthenticatedUser({
+      roles: ['Reader'],
+      externalIdentity: { providerId: 'google', emailVerified: null, pictureUrl: null },
+    });
+    await createComponent();
+
+    const rendered = fixture.nativeElement as HTMLElement;
+    const inspector = rendered.querySelector<HTMLDetailsElement>('.current-user-inspector');
+    const json = rendered.querySelector('.current-user-inspector pre code')?.textContent ?? '';
+    expect(inspector).not.toBeNull();
+    expect(inspector?.open).toBeFalse();
+    expect(json).toBe(JSON.stringify(auth.currentUser(), null, 2));
+    expect(json).toContain('"providerId": "google"');
+    expect(json).not.toContain('"providerId": "Google"');
+    expect(json).not.toContain('token');
+    expect(json).not.toContain('cookie');
+
+    rendered.querySelector<HTMLButtonElement>('.inspector-copy-button')?.click();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(clipboardWriter).toHaveBeenCalledWith(json);
+    expect(rendered.querySelector('.copy-status')?.textContent).toContain('Copied');
+  });
+
+  it('keeps the JSON selectable and reports when copying is unavailable', async () => {
+    clipboardWriter.and.returnValue(Promise.reject(new Error('Clipboard unavailable')));
+    setAuthenticatedUser();
+    await createComponent();
+
+    const rendered = fixture.nativeElement as HTMLElement;
+    const json = rendered.querySelector('.current-user-inspector pre code')?.textContent ?? '';
+    rendered.querySelector<HTMLButtonElement>('.inspector-copy-button')?.click();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(rendered.querySelector('.copy-status')?.textContent).toContain('Copy unavailable');
+    expect(rendered.querySelector('.current-user-inspector pre code')?.textContent).toBe(json);
+  });
+
   async function createComponent(): Promise<void> {
     fixture = TestBed.createComponent(BffAuthViewComponent);
     fixture.detectChanges();
@@ -225,5 +345,25 @@ describe('BffAuthViewComponent', () => {
 
   function fallbackAction(): HTMLButtonElement {
     return dialog().querySelector<HTMLButtonElement>('.provider-action')!;
+  }
+
+  function roleLabels(): string[] {
+    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.role-list li')).map(
+      (role) => role.textContent?.trim() ?? '',
+    );
+  }
+
+  function setAuthenticatedUser(overrides: Partial<BffCurrentUser> = {}): void {
+    auth.authenticated.set(true);
+    auth.currentUser.set({
+      isAuthenticated: true,
+      sub: 'subject-123',
+      name: 'Test User',
+      username: 'testuser',
+      email: 'test@example.com',
+      roles: [],
+      externalIdentity: null,
+      ...overrides,
+    });
   }
 });

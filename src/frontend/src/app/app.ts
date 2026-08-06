@@ -46,6 +46,23 @@ export class App {
     return this.bffAuthView()?.isSessionAuthenticated() ?? false;
   }
 
+  protected formatUtcTimestamp(timestamp: string | null | undefined): string {
+    const date = new Date(timestamp ?? '');
+
+    if (Number.isNaN(date.getTime())) {
+      return 'Not available';
+    }
+
+    const month = new Intl.DateTimeFormat('en-GB', {
+      month: 'short',
+      timeZone: 'UTC',
+    }).format(date);
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+
+    return `${date.getUTCDate()} ${month} ${date.getUTCFullYear()}, ${hours}:${minutes} UTC`;
+  }
+
   private loadPing(): void {
     const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
 

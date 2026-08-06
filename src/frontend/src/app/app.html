@@ -103,11 +103,13 @@
             </div>
             <div>
               <dt>OIDC configured</dt>
-              <dd>{{ ping.oidcConfigured ? 'yes' : 'no' }}</dd>
+              <dd>{{ ping.oidcConfigured ? 'Yes' : 'No' }}</dd>
             </div>
             <div>
-              <dt>Timestamp (UTC)</dt>
-              <dd>{{ ping.timestampUtc }}</dd>
+              <dt>Last checked</dt>
+              <dd>
+                <time [attr.datetime]="ping.timestampUtc">{{ formatUtcTimestamp(ping.timestampUtc) }}</time>
+              </dd>
             </div>
           </dl>
         } @else if (errorMessage()) {

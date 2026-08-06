@@ -1,4 +1,6 @@
 import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import type { BffCurrentUser } from '@flying-bee/oidc-starter-auth';
+import { BFF_CLIPBOARD_WRITER } from './bff-clipboard-writer';
 import { BffAuthViewService } from './bff-auth-view.service';
 
 @Component({
@@ -9,6 +11,8 @@ import { BffAuthViewService } from './bff-auth-view.service';
 export class BffAuthViewComponent {
   protected readonly service = inject(BffAuthViewService);
   protected readonly isSignInDialogOpen = signal(false);
+  protected readonly copyStatus = signal<string | null>(null);
+  private readonly clipboardWriter = inject(BFF_CLIPBOARD_WRITER);
 
   @ViewChild('providerDialog')
   private providerDialog?: ElementRef<HTMLDialogElement>;
@@ -17,6 +21,7 @@ export class BffAuthViewComponent {
   private signInButton?: ElementRef<HTMLButtonElement>;
 
   private focusReturnTarget?: HTMLElement;
+  private copyAttempt = 0;
 
   public isSessionLoading(): boolean {
     return this.service.isLoading();
@@ -82,5 +87,65 @@ export class BffAuthViewComponent {
       default:
         return 'generic';
     }
+  }
+
+  protected providerDisplayName(providerId: string | null | undefined, missingLabel = 'Not reported'): string {
+    if (!providerId?.trim()) {
+      return missingLabel;
+    }
+
+    switch (providerId.trim().toLowerCase()) {
+      case 'google':
+        return 'Google';
+      case 'facebook':
+        return 'Facebook';
+      case 'github':
+        return 'GitHub';
+      case 'oidc':
+        return 'OpenID Connect';
+      default:
+        return providerId;
+    }
+  }
+
+  protected emailVerificationStatus(emailVerified: boolean | null | undefined): string {
+    if (emailVerified === true) {
+      return 'Verified';
+    }
+
+    if (emailVerified === false) {
+      return 'Not verified';
+    }
+
+    return 'Not reported';
+  }
+
+  protected pictureUrl(pictureUrl: string | null | undefined): string | null {
+    const normalizedPictureUrl = pictureUrl?.trim();
+
+    return normalizedPictureUrl || null;
+  }
+
+  protected currentUserJson(user: BffCurrentUser): string {
+    return JSON.stringify(user, null, 2);
+  }
+
+  protected copyCurrentUserJson(user: BffCurrentUser): void {
+    const attempt = ++this.copyAttempt;
+    const json = this.currentUserJson(user);
+    this.copyStatus.set(null);
+
+    void this.clipboardWriter(json).then(
+      () => {
+        if (attempt === this.copyAttempt) {
+          this.copyStatus.set('Copied');
+        }
+      },
+      () => {
+        if (attempt === this.copyAttempt) {
+          this.copyStatus.set('Copy unavailable');
+        }
+      },
+    );
   }
 }
