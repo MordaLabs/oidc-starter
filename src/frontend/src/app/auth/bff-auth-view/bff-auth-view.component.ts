@@ -16,13 +16,28 @@ export class BffAuthViewComponent {
   @ViewChild('signInButton')
   private signInButton?: ElementRef<HTMLButtonElement>;
 
-  protected openSignInDialog(): void {
+  private focusReturnTarget?: HTMLElement;
+
+  public isSessionLoading(): boolean {
+    return this.service.isLoading();
+  }
+
+  public isSessionAuthenticated(): boolean {
+    return this.service.authenticated();
+  }
+
+  public isSessionLoggingOut(): boolean {
+    return this.service.isLoggingOut();
+  }
+
+  public openSignInDialog(focusReturnTarget?: HTMLElement): void {
     if (this.service.isLoading() || this.service.isLoggingOut() || this.service.authenticated()) {
       return;
     }
 
     const dialog = this.providerDialog?.nativeElement;
     if (dialog && !dialog.open) {
+      this.focusReturnTarget = focusReturnTarget ?? this.signInButton?.nativeElement;
       dialog.showModal();
       this.isSignInDialogOpen.set(true);
     }
@@ -49,7 +64,9 @@ export class BffAuthViewComponent {
 
   protected restoreSignInFocus(): void {
     this.isSignInDialogOpen.set(false);
-    this.signInButton?.nativeElement.focus();
+    const focusReturnTarget = this.focusReturnTarget ?? this.signInButton?.nativeElement;
+    this.focusReturnTarget = undefined;
+    focusReturnTarget?.focus();
   }
 
   protected providerIcon(providerId: string): 'google' | 'facebook' | 'github' | 'oidc' | 'generic' {

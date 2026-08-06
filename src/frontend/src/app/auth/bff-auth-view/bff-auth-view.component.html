@@ -15,7 +15,7 @@
       @if (service.isLoading()) {
         <button type="button" class="button" disabled>Loading login options...</button>
       } @else {
-        <button #signInButton type="button" class="button sign-in-button" (click)="openSignInDialog()">Sign in</button>
+        <button #signInButton type="button" class="button sign-in-button" (click)="openSignInDialog(signInButton)">Sign in</button>
       }
     }
   </div>

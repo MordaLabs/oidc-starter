@@ -1,51 +1,160 @@
-<main class="shell" [class.shell-spa]="authMode === 'spa'" [class.shell-bff]="authMode === 'bff'">
-  <section class="hero">
-    <p class="eyebrow">Angular starter</p>
-    <h1>{{ appName }}</h1>
-    <p class="lead">
-      @if (authMode === 'spa') {
-        Minimal Angular OIDC wiring against the local Keycloak realm using Authorization Code
-        Flow with PKCE.
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<header class="site-header">
+  <div class="page-container header-content">
+    <a class="brand" href="#overview" aria-label="OIDC Starter overview">OIDC Starter</a>
+
+    <nav aria-label="Primary navigation">
+      <a href="#overview">Overview</a>
+      <a href="#providers">Providers</a>
+      <a href="#demo">Live demo</a>
+      <a href="#security">Security</a>
+    </nav>
+
+    <div class="header-action">
+      @if (authMode === 'bff') {
+        @if (isBffAuthenticated()) {
+          <a class="header-button header-button-session" href="#demo">View session</a>
+        } @else {
+          <button
+            #headerSignIn
+            type="button"
+            class="header-button"
+            [disabled]="isBffHeaderSignInDisabled()"
+            (click)="openBffSignIn(headerSignIn)"
+          >
+            Sign in
+          </button>
+        }
       } @else {
-        Minimal Angular shell using a backend-for-frontend session authentication flow.
+        <a class="header-button" href="#demo">Sign in</a>
       }
-    </p>
+    </div>
+  </div>
+</header>
+
+<main id="main-content" class="page-shell" [class.page-shell-spa]="authMode === 'spa'" [class.page-shell-bff]="authMode === 'bff'">
+  <section id="overview" class="hero-section" aria-labelledby="hero-title">
+    <div class="page-container hero-content">
+      <p class="eyebrow">Angular + ASP.NET Core authentication</p>
+      <h1 id="hero-title">One sign-in flow. Every provider your app needs.</h1>
+      <p class="hero-copy">
+        @if (authMode === 'spa') {
+          A browser-based OpenID Connect starter using Authorization Code Flow with PKCE for the local Keycloak demo.
+        } @else {
+          A provider-neutral starter for session-based authentication with OpenID Connect, Google, Facebook, and GitHub.
+        }
+      </p>
+      <div class="hero-actions">
+        <a class="primary-link" href="#demo">Explore live demo</a>
+        <a class="text-link" href="#providers">See provider support</a>
+      </div>
+    </div>
   </section>
 
-  <div class="auth-layout">
-    @if (authMode === 'spa') {
-      <app-spa-auth-view />
-    } @else {
-      <app-bff-auth-view />
-    }
-  </div>
+  <section id="providers" class="provider-section" aria-labelledby="providers-title">
+    <div class="page-container section-content">
+      <div class="section-heading">
+        <p class="eyebrow">Provider-neutral by design</p>
+        <h2 id="providers-title">Bring the providers your users already know</h2>
+        <p>The BFF sample discovers configured providers at runtime and keeps provider selection behind one consistent Angular API.</p>
+      </div>
+      <ul class="provider-list" aria-label="Supported provider examples">
+        <li>OpenID Connect</li>
+        <li>Google</li>
+        <li>Facebook</li>
+        <li>GitHub</li>
+      </ul>
+    </div>
+  </section>
 
-  <section class="card">
-    <h2>Backend ping</h2>
+  <section id="security" class="capability-section" aria-labelledby="security-title">
+    <div class="page-container section-content">
+      <div class="section-heading">
+        <p class="eyebrow">Practical boundaries</p>
+        <h2 id="security-title">Authentication that stays legible</h2>
+      </div>
+      <div class="capability-list">
+        <article class="capability">
+          <h3>Provider-neutral flow</h3>
+          <p>One login surface for OIDC, Google, Facebook, GitHub, and future registered providers.</p>
+        </article>
+        <article class="capability">
+          <h3>BFF session</h3>
+          <p>The Angular application works with the backend session instead of exposing provider tokens in the current-user response.</p>
+        </article>
+        <article class="capability">
+          <h3>Provider-aware identity</h3>
+          <p>The current-user contract includes provider provenance and normalized profile metadata while application roles remain application-owned.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
-    @if (pingResult(); as ping) {
-      <dl class="details">
+  <section id="demo" class="demo-section" aria-labelledby="demo-title">
+    <div class="page-container section-content">
+      <div class="section-heading">
+        <p class="eyebrow">Live sample</p>
+        <h2 id="demo-title">Try the authentication flow</h2>
+        <p>Inspect the active mode, open the sign-in dialog, and review the resulting session identity.</p>
+      </div>
+
+      <div class="auth-layout">
+        @if (authMode === 'spa') {
+          <app-spa-auth-view />
+        } @else {
+          <app-bff-auth-view />
+        }
+      </div>
+
+      <section class="runtime-status" aria-labelledby="runtime-title">
         <div>
-          <dt>Status</dt>
-          <dd>{{ ping.status }}</dd>
+          <p class="eyebrow">Public endpoint</p>
+          <h2 id="runtime-title">Runtime status</h2>
         </div>
-        <div>
-          <dt>Application</dt>
-          <dd>{{ ping.applicationName }}</dd>
-        </div>
-        <div>
-          <dt>OIDC configured</dt>
-          <dd>{{ ping.oidcConfigured ? 'yes' : 'no' }}</dd>
-        </div>
-        <div>
-          <dt>Timestamp (UTC)</dt>
-          <dd>{{ ping.timestampUtc }}</dd>
-        </div>
-      </dl>
-    } @else if (errorMessage()) {
-      <p class="status error">{{ errorMessage() }}</p>
-    } @else {
-      <p class="status">Loading public ping endpoint...</p>
-    }
+
+        @if (pingResult(); as ping) {
+          <dl class="runtime-details">
+            <div>
+              <dt>Status</dt>
+              <dd>{{ ping.status }}</dd>
+            </div>
+            <div>
+              <dt>Application</dt>
+              <dd>{{ ping.applicationName }}</dd>
+            </div>
+            <div>
+              <dt>OIDC configured</dt>
+              <dd>{{ ping.oidcConfigured ? 'yes' : 'no' }}</dd>
+            </div>
+            <div>
+              <dt>Timestamp (UTC)</dt>
+              <dd>{{ ping.timestampUtc }}</dd>
+            </div>
+          </dl>
+        } @else if (errorMessage()) {
+          <p class="status error">{{ errorMessage() }}</p>
+        } @else {
+          <p class="status">Loading public ping endpoint...</p>
+        }
+      </section>
+    </div>
   </section>
 </main>
+
+<footer class="site-footer">
+  <div class="page-container footer-content">
+    <div>
+      <a class="brand" href="#overview">OIDC Starter</a>
+      <p>A compact reference for Angular and ASP.NET Core authentication flows.</p>
+      <small>Angular + ASP.NET Core BFF sample</small>
+    </div>
+    <nav aria-label="Footer navigation">
+      <a href="#overview">Overview</a>
+      <a href="#providers">Providers</a>
+      <a href="#demo">Live demo</a>
+      <a href="#security">Security</a>
+      <a href="https://github.com/jszyduk/oidc-starter" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+  </div>
+</footer>
