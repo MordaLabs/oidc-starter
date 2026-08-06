@@ -72,10 +72,13 @@ describe('App', () => {
     expect(compiled.textContent).toContain('OIDC Starter API');
     expect(Array.from(compiled.querySelectorAll('.runtime-details dd')).map((value) => value.textContent?.trim()))
       .toContain('No');
-    expect(Array.from(compiled.querySelectorAll('nav[aria-label="Primary navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#demo', '#security', '#get-started', '#github']);
+    const primaryNavigationLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Primary navigation"] a'));
+    expect(primaryNavigationLinks.map((link) => link.getAttribute('href')))
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#github']);
+    expect(primaryNavigationLinks.map((link) => link.textContent?.trim()))
+      .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'GitHub']);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
-      .toEqual(['overview', 'providers', 'demo', 'security', 'get-started']);
+      .toEqual(['overview', 'providers', 'how-it-works', 'demo', 'security', 'get-started']);
     expect(compiled.querySelector('main #github')).toBeNull();
 
     const getStarted = compiled.querySelector<HTMLElement>('#get-started');
@@ -129,6 +132,88 @@ describe('App', () => {
     expect(providersSection?.textContent).toContain('frontend renders its own provider-selection experience');
     expect(providersSection?.textContent).toContain('OpenID Connect remains the standards-based core');
     expect(providersSection?.textContent).not.toContain('Facebook and GitHub are OIDC providers');
+    expect(providersSection?.querySelectorAll('button')).toHaveSize(0);
+
+    const securitySection = compiled.querySelector<HTMLElement>('#security');
+    expect(Array.from(securitySection?.querySelectorAll<HTMLElement>('.capability h3') ?? []).map((heading) => heading.textContent?.trim()))
+      .toEqual(['Server-side session', 'Provider-aware identity', 'Application-owned authorization']);
+    const securityText = securitySection?.textContent ?? '';
+    expect(securityText).toContain('backend session instead of receiving provider tokens through the current-user response');
+    expect(securityText).toContain('HTTP-only, secure');
+    expect(securityText).toContain('__Host-');
+    expect(securityText).toContain('return 401');
+    expect(securityText).toContain('without turning external profile data into authorization');
+    expect(securityText).toContain('business authorization decisions');
+
+    const endpointProtectionPanel = securitySection?.querySelector<HTMLElement>('.endpoint-protection-panel');
+    expect(securitySection?.querySelectorAll('.endpoint-protection-panel')).toHaveSize(1);
+    expect(endpointProtectionPanel?.querySelector('#endpoint-protection-title')?.textContent)
+      .toContain('Public entry points, protected session data, and guarded state changes');
+    expect(Array.from(endpointProtectionPanel?.querySelectorAll<HTMLElement>('.endpoint-boundary-group dt') ?? []).map((heading) => heading.textContent?.trim()))
+      .toEqual(['Public entry points', 'Authenticated session identity', 'Guarded state change']);
+    expect(endpointProtectionPanel?.textContent).toContain('GET /api/auth/providers');
+    expect(endpointProtectionPanel?.textContent).toContain('GET /api/auth/login');
+    expect(endpointProtectionPanel?.textContent).toContain('GET /api/auth/login/{provider}');
+    expect(endpointProtectionPanel?.textContent).toContain('GET /api/auth/csrf');
+    expect(endpointProtectionPanel?.textContent).toContain('GET /api/auth/me');
+    expect(endpointProtectionPanel?.textContent).toContain('POST /api/auth/logout');
+    expect(endpointProtectionPanel?.textContent).toContain('401 Unauthorized');
+    expect(endpointProtectionPanel?.textContent).toContain('antiforgery');
+    expect(endpointProtectionPanel?.textContent).toContain('Origin');
+    expect(endpointProtectionPanel?.textContent).toContain('Referer');
+    expect(endpointProtectionPanel?.textContent).toContain('providers registered by the server application');
+    expect(endpointProtectionPanel?.textContent).toContain('unknown provider IDs are rejected');
+    expect(endpointProtectionPanel?.textContent).toContain('antiforgery validation is the primary CSRF protection');
+    expect(endpointProtectionPanel?.textContent).toContain('origin check is defense in depth');
+    expect(endpointProtectionPanel?.textContent).toContain('HTTPS');
+    expect(endpointProtectionPanel?.textContent).toContain('trusted frontend origins');
+    expect(endpointProtectionPanel?.textContent).toContain('reverse proxies');
+    expect(endpointProtectionPanel?.textContent).toContain('secret storage');
+    expect(endpointProtectionPanel?.textContent).toContain('application-specific authorization');
+    expect(endpointProtectionPanel?.textContent).toContain('POST, PUT, PATCH, and DELETE');
+    expect(securityText).not.toContain('unhackable');
+    expect(securityText).not.toContain('enterprise-grade');
+    expect(securityText).not.toContain('fully secure');
+    expect(securityText).not.toContain('credentials');
+    expect(securityText).not.toContain('session=');
+    expect(securityText).not.toContain('access-token');
+    expect(securityText).not.toContain('refresh-token');
+
+    const howItWorks = compiled.querySelector<HTMLElement>('main > #how-it-works');
+    expect(compiled.querySelectorAll('#how-it-works')).toHaveSize(1);
+    expect(providersSection?.querySelector('#how-it-works')).toBeNull();
+    expect(howItWorks).not.toBeNull();
+    expect(howItWorks?.querySelector('#how-it-works-title')?.textContent)
+      .toContain('From configured provider to application session');
+    expect(howItWorks?.querySelectorAll('ol')).toHaveSize(1);
+    expect(Array.from(howItWorks?.querySelectorAll<HTMLElement>('.flow-step h3') ?? []).map((heading) => heading.textContent?.trim()))
+      .toEqual([
+        'Discover providers',
+        'Render your chooser',
+        'Authenticate',
+        'Use the session',
+      ]);
+
+    const flowText = howItWorks?.textContent ?? '';
+    expect(Array.from(howItWorks?.querySelectorAll('.flow-step') ?? [])).toHaveSize(4);
+    expect(Array.from(howItWorks?.querySelectorAll('.flow-description') ?? [])).toHaveSize(4);
+    expect(Array.from(howItWorks?.querySelectorAll('.flow-technical') ?? [])).toHaveSize(4);
+    for (const step of Array.from(howItWorks?.querySelectorAll<HTMLElement>('.flow-step') ?? [])) {
+      expect(step.querySelectorAll('.flow-description')).toHaveSize(1);
+      expect(step.querySelectorAll('.flow-technical')).toHaveSize(1);
+      expect(step.querySelectorAll('.flow-technical code')).toHaveSize(1);
+    }
+    expect(flowText).toContain('/api/auth/providers');
+    expect(flowText).toContain('provider.id');
+    expect(flowText).toContain('login(provider.id)');
+    expect(flowText).toContain('/api/auth/me');
+    expect(flowText).not.toContain('provider.loginUrl');
+    expect(flowText).not.toContain('ClientId');
+    expect(flowText).not.toContain('ClientSecret');
+    expect(flowText).not.toContain('headless');
+    expect(flowText).not.toContain('No chooser required');
+    expect(flowText).not.toContain('Provider tokens are not included');
+    expect(howItWorks?.querySelector('.ownership-boundaries')).toBeNull();
 
     for (const selector of ['.package-link-nuget', '.package-link-npm', '.get-started-guide']) {
       const links = Array.from(getStarted?.querySelectorAll<HTMLAnchorElement>(selector) ?? []);
@@ -166,7 +251,7 @@ describe('App', () => {
     expect(repositoryLinks[0].target).toBe('_blank');
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#demo', '#security', '#get-started']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started']);
   });
 
   it('formats the ping timestamp as UTC while preserving the backend value', () => {

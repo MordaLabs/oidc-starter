@@ -15,7 +15,22 @@ body {
 }
 
 html {
+  --site-header-height: 4.5rem;
+  scroll-padding-block-start: var(--site-header-height);
+  scroll-snap-type: y proximity;
   scroll-behavior: smooth;
+}
+
+@media (max-width: 760px) {
+  html {
+    --site-header-height: 8.5rem;
+  }
+}
+
+@media (max-width: 440px) {
+  html {
+    --site-header-height: 11rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

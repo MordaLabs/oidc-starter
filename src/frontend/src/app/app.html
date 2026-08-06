@@ -7,6 +7,7 @@
     <nav aria-label="Primary navigation">
       <a href="#overview">Overview</a>
       <a href="#providers">Providers</a>
+      <a href="#how-it-works">How it works</a>
       <a href="#demo">Live demo</a>
       <a href="#security">Security</a>
       <a href="#get-started">Get started</a>
@@ -68,6 +69,44 @@
         <li>Facebook</li>
         <li>GitHub</li>
       </ul>
+
+    </div>
+  </section>
+
+  <section id="how-it-works" class="how-it-works" aria-labelledby="how-it-works-title">
+    <div class="page-container section-content">
+      <div class="section-heading">
+        <p class="eyebrow">How it works</p>
+        <h2 id="how-it-works-title">From configured provider to application session</h2>
+        <p>Your application owns the sign-in experience. OIDC Starter handles the selected provider flow and establishes the backend session.</p>
+      </div>
+
+      <ol class="how-it-works-flow">
+        <li class="flow-step">
+          <span class="flow-number" aria-hidden="true">1</span>
+          <h3>Discover providers</h3>
+          <p class="flow-description">The server exposes only the login providers registered by your application.</p>
+          <p class="flow-technical"><code>/api/auth/providers</code></p>
+        </li>
+        <li class="flow-step">
+          <span class="flow-number" aria-hidden="true">2</span>
+          <h3>Render your chooser</h3>
+          <p class="flow-description">Your frontend renders the returned providers using its own components and design system.</p>
+          <p class="flow-technical"><code>provider.id</code></p>
+        </li>
+        <li class="flow-step">
+          <span class="flow-number" aria-hidden="true">3</span>
+          <h3>Authenticate</h3>
+          <p class="flow-description">OIDC Starter challenges the selected provider and handles the callback on the server.</p>
+          <p class="flow-technical"><code>login(provider.id)</code></p>
+        </li>
+        <li class="flow-step">
+          <span class="flow-number" aria-hidden="true">4</span>
+          <h3>Use the session</h3>
+          <p class="flow-description">The frontend reads normalized user information from the application session.</p>
+          <p class="flow-technical"><code>/api/auth/me</code></p>
+        </li>
+      </ol>
     </div>
   </section>
 
@@ -131,18 +170,69 @@
       </div>
       <div class="capability-list">
         <article class="capability">
-          <h3>Provider-neutral flow</h3>
-          <p>One authentication surface for OpenID Connect, Google, Facebook, GitHub, and future registered providers.</p>
-        </article>
-        <article class="capability">
-          <h3>BFF session</h3>
-          <p>The Angular application works with the backend session instead of exposing provider tokens in the current-user response.</p>
+          <h3>Server-side session</h3>
+          <p>The browser uses the backend session instead of receiving provider tokens through the current-user response.</p>
+          <p class="capability-supporting">The package defaults to an HTTP-only, secure <code>__Host-</code> session cookie.</p>
         </article>
         <article class="capability">
           <h3>Provider-aware identity</h3>
-          <p>The current-user contract includes provider provenance and normalized profile metadata while application roles remain application-owned.</p>
+          <p>The current-user contract includes provider provenance and normalized profile metadata without turning external profile data into authorization.</p>
+          <p class="capability-supporting">Unauthenticated current-user requests return <code>401</code>.</p>
+        </article>
+        <article class="capability">
+          <h3>Application-owned authorization</h3>
+          <p>OIDC Starter provides authenticated-session policies, claim and scope helpers, and role-mapping foundations.</p>
+          <p class="capability-supporting">Your application still owns roles, tenant access, resource ownership, and business authorization decisions.</p>
         </article>
       </div>
+
+      <section class="endpoint-protection-panel" aria-labelledby="endpoint-protection-title">
+        <div class="endpoint-protection-heading">
+          <p class="eyebrow">Auth endpoint boundaries</p>
+          <h3 id="endpoint-protection-title">Public entry points, protected session data, and guarded state changes</h3>
+          <p>The BFF exposes only the entry points needed to start authentication, read the application session, and safely end it.</p>
+        </div>
+
+        <dl class="endpoint-boundary-list">
+          <div class="endpoint-boundary-group">
+            <dt>Public entry points</dt>
+            <dd>
+              <ul class="endpoint-list">
+                <li><code>GET /api/auth/providers</code></li>
+                <li><code>GET /api/auth/login</code></li>
+                <li><code>GET /api/auth/login/&#123;provider&#125;</code></li>
+                <li><code>GET /api/auth/csrf</code></li>
+              </ul>
+              <p>These endpoints intentionally start discovery, login, or antiforgery initialization. Provider-specific login accepts only providers registered by the server application; unknown provider IDs are rejected.</p>
+            </dd>
+          </div>
+          <div class="endpoint-boundary-group">
+            <dt>Authenticated session identity</dt>
+            <dd>
+              <ul class="endpoint-list">
+                <li><code>GET /api/auth/me</code></li>
+              </ul>
+              <p>The endpoint returns the normalized current-user contract for an authenticated backend session and otherwise responds with <code>401 Unauthorized</code>.</p>
+            </dd>
+          </div>
+          <div class="endpoint-boundary-group">
+            <dt>Guarded state change</dt>
+            <dd>
+              <ul class="endpoint-list">
+                <li><code>POST /api/auth/logout</code></li>
+              </ul>
+              <p>The package validates the ASP.NET Core antiforgery token and also checks <code>Origin</code> or <code>Referer</code> against trusted origins before completing logout.</p>
+              <p>The origin check is defense in depth; antiforgery validation is the primary CSRF protection.</p>
+            </dd>
+          </div>
+        </dl>
+
+        <aside class="production-responsibility" aria-labelledby="production-responsibility-title">
+          <h4 id="production-responsibility-title">Production responsibility</h4>
+          <p>Production deployments still configure HTTPS, trusted frontend origins and reverse proxies, secret storage, cookie policy, and application-specific authorization.</p>
+          <p>Custom cookie-authenticated POST, PUT, PATCH, and DELETE endpoints should follow the same antiforgery contract.</p>
+        </aside>
+      </section>
     </div>
   </section>
 
@@ -284,6 +374,7 @@ login(providerId: string): void &#123;
       <nav aria-label="Footer navigation">
         <a href="#overview">Overview</a>
         <a href="#providers">Providers</a>
+        <a href="#how-it-works">How it works</a>
         <a href="#demo">Live demo</a>
         <a href="#security">Security</a>
         <a href="#get-started">Get started</a>
