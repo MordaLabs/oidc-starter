@@ -93,7 +93,8 @@ nav a:hover,
 }
 
 .header-button,
-.primary-link {
+.primary-link,
+.footer-repository-cta {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
@@ -110,7 +111,8 @@ nav a:hover,
 }
 
 .header-button:hover,
-.primary-link:hover {
+.primary-link:hover,
+.footer-repository-cta:hover {
   border-color: var(--accent-hover);
   background: var(--accent-hover);
 }
@@ -195,7 +197,7 @@ h3 {
 .hero-copy,
 .section-heading > p:not(.eyebrow),
 .capability p,
-.footer-content p,
+.footer-repository-copy > p:not(.eyebrow),
 .runtime-status .status {
   color: var(--muted);
   line-height: 1.65;
@@ -324,19 +326,36 @@ dd {
 }
 
 .site-footer {
+  scroll-margin-top: calc(var(--sticky-header-offset) + 0.75rem);
   border-top: 1px solid var(--border);
   background: #e5ebe4;
 }
 
-.footer-content {
-  align-items: flex-start;
-  padding: 2.75rem 0;
+.footer-repository {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2rem;
+  padding: 3.5rem 0 2.5rem;
 }
 
-.footer-content p {
-  max-width: 22rem;
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
+.footer-repository-copy {
+  max-width: 48rem;
+}
+
+.footer-repository-copy > p:not(.eyebrow) {
+  max-width: 44rem;
+  margin-top: 1rem;
+}
+
+.footer-supporting-copy {
+  font-size: 0.95rem;
+}
+
+.footer-content {
+  align-items: flex-start;
+  padding: 1.75rem 0 2.25rem;
+  border-top: 1px solid var(--border);
 }
 
 .footer-content small {
@@ -369,7 +388,8 @@ dd {
   .header-content nav {
     order: 3;
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 0.75rem;
   }
 
@@ -402,16 +422,22 @@ dd {
     flex-direction: column;
   }
 
+  .footer-repository {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+    padding: 2.75rem 0 2rem;
+  }
+
+  .footer-repository-cta {
+    justify-self: start;
+  }
+
   .footer-content nav {
     flex-wrap: wrap;
   }
 }
 
 @media (max-width: 440px) {
-  .header-content nav a:not(:first-child) {
-    display: none;
-  }
-
   .hero-actions {
     align-items: stretch;
     flex-direction: column;

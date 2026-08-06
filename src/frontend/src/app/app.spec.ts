@@ -43,7 +43,7 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the landing page shell, live demo, runtime status, and footer', () => {
+  it('renders the landing page shell, live demo, runtime status, and GitHub footer destination', () => {
     const fixture = TestBed.createComponent(App);
 
     flushPing();
@@ -63,13 +63,28 @@ describe('App', () => {
     expect(compiled.querySelector('app-spa-auth-view, app-bff-auth-view')).not.toBeNull();
     expect(compiled.querySelector('#runtime-title')?.textContent).toContain('Runtime status');
     expect(compiled.textContent).toContain('OIDC Starter API');
-    expect(compiled.querySelector('footer a[href="https://github.com/jszyduk/oidc-starter"]')).not.toBeNull();
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Primary navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#demo', '#security']);
+      .toEqual(['#overview', '#providers', '#demo', '#security', '#github']);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
       .toEqual(['overview', 'providers', 'demo', 'security']);
+    expect(compiled.querySelector('main #github')).toBeNull();
+
+    const footer = compiled.querySelector<HTMLElement>('footer#github');
+    expect(footer).not.toBeNull();
+    expect(footer?.querySelector('#github-footer-title')?.textContent)
+      .toContain('Build the sign-in flow once. Keep the rest of your app yours.');
+    expect(footer?.textContent?.replace(/\s+/g, ' '))
+      .toContain('OIDC Starter is a focused Angular + ASP.NET Core reference for provider-neutral login, BFF session authentication, runtime provider discovery, and application-owned authorization.');
+    expect(footer?.textContent)
+      .toContain('Explore the source, run the sample, and adapt only the pieces your product needs.');
+
+    const repositoryLinks = Array.from(footer?.querySelectorAll<HTMLAnchorElement>('a[href="https://github.com/jszyduk/oidc-starter"]') ?? []);
+    expect(repositoryLinks).toHaveSize(1);
+    expect(repositoryLinks[0].textContent?.trim()).toBe('View on GitHub');
+    expect(repositoryLinks[0].target).toBe('_blank');
+    expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#demo', '#security', 'https://github.com/jszyduk/oidc-starter']);
+      .toEqual(['#overview', '#providers', '#demo', '#security']);
   });
 
   it('does not request BFF providers when the demo is running in SPA mode', () => {
