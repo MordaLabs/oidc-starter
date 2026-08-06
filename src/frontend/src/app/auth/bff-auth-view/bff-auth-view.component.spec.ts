@@ -222,9 +222,9 @@ describe('BffAuthViewComponent', () => {
       .toContain('provider tokens are not included in this current-user response');
     expect(rendered.querySelector('.identity-name')?.textContent).toContain('Test User');
     expect(rendered.querySelector('.provider-badge')?.textContent).toContain('Google');
-    expect(rendered.querySelector('.details')?.textContent).toContain('subject-123');
-    expect(rendered.querySelector('.details')?.textContent).toContain('testuser');
-    expect(rendered.querySelector('.details')?.textContent).toContain('test@example.com');
+    expect(rendered.querySelector('.user-details')?.textContent).toContain('subject-123');
+    expect(rendered.querySelector('.user-details')?.textContent).toContain('testuser');
+    expect(rendered.querySelector('.user-details')?.textContent).toContain('test@example.com');
     expect(rendered.querySelector('.status-badge')?.textContent).toContain('Verified');
     expect(roleLabels()).toEqual(['Administrator', 'Reader']);
 
