@@ -43,7 +43,7 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the landing page shell, live demo, runtime status, and GitHub footer destination', () => {
+  it('renders the landing page shell, package onboarding, runtime status, and GitHub footer destination', () => {
     const fixture = TestBed.createComponent(App);
 
     flushPing();
@@ -56,6 +56,13 @@ describe('App', () => {
     expect(compiled.querySelector('.brand')?.textContent).toContain('OIDC Starter');
     expect(compiled.querySelectorAll('h1')).toHaveSize(1);
     expect(compiled.querySelector('h1')?.textContent).toContain('One sign-in flow.');
+    expect(compiled.querySelector('#overview .eyebrow')?.textContent).toContain('Provider-neutral BFF authentication');
+    if (environment.authMode === 'bff') {
+      expect(compiled.querySelector('#overview .hero-copy')?.textContent).toContain('OpenID Connect');
+      expect(compiled.querySelector('#overview .hero-copy')?.textContent).toContain('social login');
+      expect(compiled.querySelector('#overview .hero-copy')?.textContent).toContain('Angular + ASP.NET Core');
+      expect(compiled.querySelector('#overview .hero-copy')?.textContent).toContain('server-side session');
+    }
     expect(compiled.querySelector('#overview')).not.toBeNull();
     expect(compiled.querySelector('#providers')).not.toBeNull();
     expect(compiled.querySelector('#security')).not.toBeNull();
@@ -66,17 +73,90 @@ describe('App', () => {
     expect(Array.from(compiled.querySelectorAll('.runtime-details dd')).map((value) => value.textContent?.trim()))
       .toContain('No');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Primary navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#demo', '#security', '#github']);
+      .toEqual(['#overview', '#providers', '#demo', '#security', '#get-started', '#github']);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
-      .toEqual(['overview', 'providers', 'demo', 'security']);
+      .toEqual(['overview', 'providers', 'demo', 'security', 'get-started']);
     expect(compiled.querySelector('main #github')).toBeNull();
+
+    const getStarted = compiled.querySelector<HTMLElement>('#get-started');
+    expect(getStarted?.querySelector('#get-started-title')?.textContent)
+      .toContain('Add OIDC Starter to your Angular + ASP.NET Core app');
+    expect(getStarted?.textContent).toContain('optionally add the headless auth client');
+    expect(getStarted?.textContent).toContain('without imposing a user interface');
+    expect(getStarted?.textContent).toContain('OpenID Connect and registered social login providers');
+
+    const backendCard = getStarted?.querySelector<HTMLElement>('.package-card-backend');
+    const backendSample = backendCard?.querySelector('.backend-provider-sample')?.textContent ?? '';
+    expect(backendCard?.querySelector('.package-label')?.textContent).toContain('Core server package');
+    expect(backendCard?.textContent).toContain('OidcStarter.AspNetCore.Bff');
+    expect(backendCard?.querySelector('pre code')?.textContent?.trim()).toBe('dotnet add package OidcStarter.AspNetCore.Bff');
+    expect(backendSample).toContain('AddOidcStarterBff');
+    expect(backendSample).toContain('AddOidcStarterFacebook');
+    expect(backendSample).toContain('AddOidcStarterGitHub');
+    expect(backendSample).toContain('AddOidcStarterGoogle');
+    expect(backendSample).toContain('ExternalLogin:Facebook');
+    expect(backendSample).toContain('ExternalLogin:GitHub');
+    expect(backendSample).toContain('ExternalLogin:Google');
+    expect(backendSample).toContain('Enabled');
+    expect(backendSample).toContain('Options');
+    expect(backendSample).not.toContain('ClientId');
+    expect(backendSample).not.toContain('ClientSecret');
+    expect(backendCard?.textContent).toContain('UseOidcStarterBff');
+    expect(backendCard?.textContent).toContain('MapControllers');
+
+    const frontendCard = getStarted?.querySelector<HTMLElement>('.package-card-frontend');
+    const frontendSample = frontendCard?.querySelector('.frontend-provider-sample')?.textContent ?? '';
+    expect(frontendCard?.querySelector('.package-label')?.textContent).toContain('Optional headless Angular client');
+    expect(frontendCard?.textContent).toContain('@flying-bee/oidc-starter-auth');
+    expect(frontendCard?.textContent).toContain('Your application owns the buttons, modal, icons, layout, and styling.');
+    expect(frontendCard?.querySelector('pre code')?.textContent?.trim()).toBe('npm install @flying-bee/oidc-starter-auth');
+    expect(frontendSample).toContain('BffAuthService');
+    expect(frontendSample).toContain('getLoginProviders()');
+    expect(frontendSample).toContain('login(providerId)');
+    expect(frontendSample).toContain('provider.id');
+    expect(frontendSample).toContain('provider.displayName');
+    expect(frontendSample).not.toContain('provider.loginUrl');
+    expect(frontendSample).not.toContain('Google');
+    expect(frontendSample).not.toContain('Facebook');
+    expect(frontendSample).not.toContain('GitHub');
+    expect(frontendSample).not.toContain('OIDC');
+    expect(frontendCard?.textContent).toContain('Call auth.login() to use the backend\'s default provider.');
+    expect(Array.from(getStarted?.querySelectorAll('pre code') ?? [])).not.toHaveSize(0);
+
+    const providersSection = compiled.querySelector<HTMLElement>('#providers');
+    expect(providersSection?.textContent).toContain('Register the login providers your application needs.');
+    expect(providersSection?.textContent).toContain('configured list at runtime');
+    expect(providersSection?.textContent).toContain('frontend renders its own provider-selection experience');
+    expect(providersSection?.textContent).toContain('OpenID Connect remains the standards-based core');
+    expect(providersSection?.textContent).not.toContain('Facebook and GitHub are OIDC providers');
+
+    for (const selector of ['.package-link-nuget', '.package-link-npm', '.get-started-guide']) {
+      const links = Array.from(getStarted?.querySelectorAll<HTMLAnchorElement>(selector) ?? []);
+      expect(links).toHaveSize(1);
+      expect(links[0].target).toBe('_blank');
+      expect(links[0].rel).toContain('noopener');
+      expect(links[0].rel).toContain('noreferrer');
+    }
+    expect(getStarted?.querySelector('.package-link-nuget')?.getAttribute('href'))
+      .toBe('https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff');
+    expect(getStarted?.querySelector('.package-link-npm')?.getAttribute('href'))
+      .toBe('https://www.npmjs.com/package/@flying-bee/oidc-starter-auth');
+    expect(getStarted?.querySelector('.get-started-guide')?.getAttribute('href'))
+      .toBe('https://github.com/jszyduk/oidc-starter');
+    expect(getStarted?.querySelector('.get-started-next')?.textContent)
+      .toContain('provider-selection modal is a reference UI built by the sample application');
+    expect(getStarted?.querySelector('.get-started-clarification')?.textContent)
+      .toContain('in-repository projects for local development');
+    expect(httpTestingController.match(() => true)).toHaveSize(0);
 
     const footer = compiled.querySelector<HTMLElement>('footer#github');
     expect(footer).not.toBeNull();
     expect(footer?.querySelector('#github-footer-title')?.textContent)
       .toContain('Build the sign-in flow once. Keep the rest of your app yours.');
     expect(footer?.textContent?.replace(/\s+/g, ' '))
-      .toContain('OIDC Starter is a focused Angular + ASP.NET Core reference for provider-neutral login, BFF session authentication, runtime provider discovery, and application-owned authorization.');
+      .toContain('OIDC Starter is an ASP.NET Core BFF toolkit for OpenID Connect and social login, with runtime provider discovery, application-owned authorization, and an optional headless Angular client.');
+    expect(footer?.querySelector('small')?.textContent)
+      .toContain('Provider-neutral BFF authentication for Angular + ASP.NET Core');
     expect(footer?.textContent)
       .toContain('Explore the source, run the sample, and adapt only the pieces your product needs.');
 
@@ -86,7 +166,7 @@ describe('App', () => {
     expect(repositoryLinks[0].target).toBe('_blank');
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#demo', '#security']);
+      .toEqual(['#overview', '#providers', '#demo', '#security', '#get-started']);
   });
 
   it('formats the ping timestamp as UTC while preserving the backend value', () => {

@@ -134,7 +134,8 @@ nav a:hover,
 .hero-section,
 .provider-section,
 .capability-section,
-.demo-section {
+.demo-section,
+.get-started-section {
   display: grid;
   min-block-size: calc(100svh - var(--sticky-header-offset));
   align-items: center;
@@ -281,6 +282,160 @@ h3 {
   background: #edf4ef;
 }
 
+.get-started-section {
+  border-top: 1px solid var(--border);
+  background: #eef3ed;
+}
+
+.get-started-content {
+  padding: 5.5rem 0;
+}
+
+.package-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.package-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.package-label,
+.package-name {
+  color: var(--accent-hover);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.package-card h3 {
+  margin-top: 0.75rem;
+}
+
+.package-card > p:not(.package-label):not(.package-name):not(.package-sample-label),
+.get-started-next p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.package-card > p:not(.package-label):not(.package-name):not(.package-sample-label) {
+  margin-top: 0.75rem;
+}
+
+.package-name {
+  margin-top: 1.25rem;
+  color: var(--ink);
+  font-family: Consolas, 'Courier New', monospace;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.package-sample-label {
+  margin-top: 1.25rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.package-clarification,
+.package-note {
+  padding-left: 0.875rem;
+  border-left: 3px solid var(--accent);
+}
+
+.package-note {
+  font-size: 0.9rem;
+}
+
+.package-note code {
+  overflow-wrap: anywhere;
+  font-family: Consolas, 'Courier New', monospace;
+}
+
+.package-card pre {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0.85rem 1rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: #f7faf6;
+  color: var(--ink);
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.frontend-provider-sample {
+  min-width: 0;
+}
+
+.package-link,
+.get-started-guide {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--dark-cta);
+  border-radius: 0.375rem;
+  color: var(--dark-cta);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.package-link {
+  margin-top: 1.5rem;
+}
+
+.package-link:hover,
+.get-started-guide:hover {
+  border-color: var(--accent-hover);
+  color: #ffffff;
+  background: var(--accent-hover);
+}
+
+.get-started-next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.get-started-next h3 {
+  margin-bottom: 0.5rem;
+}
+
+.get-started-clarification {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.get-started-guide {
+  margin-top: 0;
+  color: #ffffff;
+  background: var(--dark-cta);
+}
+
 .auth-layout {
   margin-top: 2rem;
 }
@@ -410,7 +565,9 @@ dd {
   }
 
   .capability-list,
-  .runtime-status {
+  .runtime-status,
+  .package-grid,
+  .get-started-next {
     grid-template-columns: 1fr;
   }
 
@@ -420,6 +577,10 @@ dd {
 
   .footer-content {
     flex-direction: column;
+  }
+
+  .get-started-guide {
+    justify-self: start;
   }
 
   .footer-repository {

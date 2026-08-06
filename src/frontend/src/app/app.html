@@ -9,6 +9,7 @@
       <a href="#providers">Providers</a>
       <a href="#demo">Live demo</a>
       <a href="#security">Security</a>
+      <a href="#get-started">Get started</a>
       <a href="#github">GitHub</a>
     </nav>
 
@@ -37,13 +38,13 @@
 <main id="main-content" class="page-shell" [class.page-shell-spa]="authMode === 'spa'" [class.page-shell-bff]="authMode === 'bff'">
   <section id="overview" class="hero-section" aria-labelledby="hero-title">
     <div class="page-container hero-content">
-      <p class="eyebrow">Angular + ASP.NET Core authentication</p>
+      <p class="eyebrow">Provider-neutral BFF authentication</p>
       <h1 id="hero-title">One sign-in flow. Every provider your app needs.</h1>
       <p class="hero-copy">
         @if (authMode === 'spa') {
           A browser-based OpenID Connect starter using Authorization Code Flow with PKCE for the local Keycloak demo.
         } @else {
-          A provider-neutral starter for session-based authentication with OpenID Connect, Google, Facebook, and GitHub.
+          OpenID Connect and social login for Angular + ASP.NET Core, backed by a server-side session and runtime provider discovery.
         }
       </p>
       <div class="hero-actions">
@@ -58,9 +59,10 @@
       <div class="section-heading">
         <p class="eyebrow">Provider-neutral by design</p>
         <h2 id="providers-title">Bring the providers your users already know</h2>
-        <p>The BFF sample discovers configured providers at runtime and keeps provider selection behind one consistent Angular API.</p>
+        <p>Register the login providers your application needs. The BFF exposes the configured list at runtime, while the frontend renders its own provider-selection experience.</p>
+        <p>OpenID Connect remains the standards-based core; Google, Facebook, GitHub, and custom registrations participate through the same provider-neutral BFF flow.</p>
       </div>
-      <ul class="provider-list" aria-label="Supported provider examples">
+      <ul class="provider-list" aria-label="Login provider examples">
         <li>OpenID Connect</li>
         <li>Google</li>
         <li>Facebook</li>
@@ -130,7 +132,7 @@
       <div class="capability-list">
         <article class="capability">
           <h3>Provider-neutral flow</h3>
-          <p>One login surface for OIDC, Google, Facebook, GitHub, and future registered providers.</p>
+          <p>One authentication surface for OpenID Connect, Google, Facebook, GitHub, and future registered providers.</p>
         </article>
         <article class="capability">
           <h3>BFF session</h3>
@@ -143,6 +145,113 @@
       </div>
     </div>
   </section>
+
+  <section id="get-started" class="get-started-section" aria-labelledby="get-started-title">
+    <div class="page-container section-content get-started-content">
+      <div class="section-heading">
+        <p class="eyebrow">Get started</p>
+        <h2 id="get-started-title">Add OIDC Starter to your Angular + ASP.NET Core app</h2>
+        <p>Start with the core ASP.NET Core BFF package. For Angular applications, optionally add the headless auth client to reduce integration code without imposing a user interface.</p>
+        <p>OIDC Starter provides one BFF integration surface for OpenID Connect and registered social login providers.</p>
+      </div>
+
+      <div class="package-grid">
+        <article class="package-card package-card-backend">
+          <p class="package-label">Core server package</p>
+          <h3>ASP.NET Core BFF</h3>
+          <p>The core OIDC Starter package provides the backend session, authentication endpoints, antiforgery integration, provider discovery, and authorization foundations.</p>
+          <p>Register only the login providers your application needs. Providers that are not registered are not offered by the runtime discovery endpoint.</p>
+          <p class="package-name">OidcStarter.AspNetCore.Bff</p>
+          <p class="package-sample-label">Installation</p>
+          <pre><code>dotnet add package OidcStarter.AspNetCore.Bff</code></pre>
+          <p class="package-sample-label">Provider registration</p>
+          <pre class="backend-provider-sample"><code>builder.Services.AddOidcStarterBff(builder.Configuration);
+
+var facebookSection = builder.Configuration.GetSection("ExternalLogin:Facebook");
+if (facebookSection.GetValue&lt;bool&gt;("Enabled"))
+&#123;
+  builder.Services.AddOidcStarterFacebook(facebookSection.GetSection("Options"));
+&#125;
+
+var githubSection = builder.Configuration.GetSection("ExternalLogin:GitHub");
+if (githubSection.GetValue&lt;bool&gt;("Enabled"))
+&#123;
+  builder.Services.AddOidcStarterGitHub(githubSection.GetSection("Options"));
+&#125;
+
+var googleSection = builder.Configuration.GetSection("ExternalLogin:Google");
+if (googleSection.GetValue&lt;bool&gt;("Enabled"))
+&#123;
+  builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
+&#125;</code></pre>
+          <p class="package-sample-label">Pipeline</p>
+          <pre><code>app.UseOidcStarterBff();
+app.MapControllers();</code></pre>
+          <p class="package-note">Enable only the providers your application uses. Credentials belong in deployment configuration or local User Secrets, not in this source snippet. The configured provider list is exposed through <code>/api/auth/providers</code>.</p>
+          <a
+            class="package-link package-link-nuget"
+            href="https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View on NuGet
+          </a>
+        </article>
+
+        <article class="package-card package-card-frontend">
+          <p class="package-label">Optional headless Angular client</p>
+          <h3>Angular BFF integration</h3>
+          <p>Optional Angular services and typed contracts for applications using the OIDC Starter BFF. The package handles current-user loading, provider discovery, login redirects, logout, and antiforgery initialization without rendering a user interface.</p>
+          <p class="package-clarification">Your application owns the buttons, modal, icons, layout, and styling.</p>
+          <p class="package-name">@flying-bee/oidc-starter-auth</p>
+          <p class="package-sample-label">Installation</p>
+          <pre><code>npm install @flying-bee/oidc-starter-auth</code></pre>
+          <p class="package-sample-label">Registration</p>
+          <pre><code>provideHttpClient(),
+provideBffAuth(&#123; apiOrigin: '' &#125;),</code></pre>
+          <div class="frontend-provider-sample">
+            <p class="package-sample-label">Provider selection</p>
+            <pre><code>readonly auth = inject(BffAuthService);
+readonly providers$ = this.auth.getLoginProviders();
+
+login(providerId: string): void &#123;
+  this.auth.login(providerId);
+&#125;</code></pre>
+            <pre><code>{{ '@' }}for (provider of providers$ | async; track provider.id) &#123;
+  &lt;button type="button" (click)="login(provider.id)"&gt;
+    Continue with {{ '{' }}{{ '{' }} provider.displayName {{ '}' }}{{ '}' }}
+  &lt;/button&gt;
+&#125;</code></pre>
+          </div>
+          <p class="package-note">Do not need a chooser? Call <code>auth.login()</code> to use the backend's default provider.</p>
+          <a
+            class="package-link package-link-npm"
+            href="https://www.npmjs.com/package/@flying-bee/oidc-starter-auth"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View on npm
+          </a>
+        </article>
+      </div>
+
+      <aside class="get-started-next" aria-labelledby="get-started-next-title">
+        <div>
+          <h3 id="get-started-next-title">Continue with the sample</h3>
+          <p>The repository sample combines the core BFF package with the optional headless Angular client. Its provider-selection modal is a reference UI built by the sample application, not a component rendered by the npm package.</p>
+          <p class="get-started-clarification">The repository sample consumes the in-repository projects for local development. The commands above are for applications consuming the published packages.</p>
+        </div>
+        <a
+          class="get-started-guide"
+          href="https://github.com/jszyduk/oidc-starter"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read the setup guide
+        </a>
+      </aside>
+    </div>
+  </section>
 </main>
 
 <footer id="github" class="site-footer" aria-labelledby="github-footer-title">
@@ -152,8 +261,8 @@
         <p class="eyebrow">Open-source authentication starter</p>
         <h2 id="github-footer-title">Build the sign-in flow once. Keep the rest of your app yours.</h2>
         <p>
-          OIDC Starter is a focused Angular + ASP.NET Core reference for provider-neutral login, BFF session authentication,
-          runtime provider discovery, and application-owned authorization.
+          OIDC Starter is an ASP.NET Core BFF toolkit for OpenID Connect and social login, with runtime provider discovery,
+          application-owned authorization, and an optional headless Angular client.
         </p>
         <p class="footer-supporting-copy">Explore the source, run the sample, and adapt only the pieces your product needs.</p>
       </div>
@@ -170,13 +279,14 @@
     <div class="footer-content">
       <div>
         <a class="brand" href="#overview">OIDC Starter</a>
-        <small>Angular + ASP.NET Core BFF sample</small>
+        <small>Provider-neutral BFF authentication for Angular + ASP.NET Core</small>
       </div>
       <nav aria-label="Footer navigation">
         <a href="#overview">Overview</a>
         <a href="#providers">Providers</a>
         <a href="#demo">Live demo</a>
         <a href="#security">Security</a>
+        <a href="#get-started">Get started</a>
       </nav>
     </div>
   </div>
