@@ -80,6 +80,12 @@ Do not reopen these areas unless the current task explicitly targets them or new
 - the root README positions the repository as a public reference implementation and reusable starter,
 - package release documentation exists in `docs/package-release.md`.
 
+## Licensing
+
+- Licensing clarified: current public core packages remain MIT.
+- Root MIT `LICENSE` added.
+- Next phase: Public Demo Readiness.
+
 ## Current Release Discipline
 
 Do not assume every feature, compatibility, security, or maintenance change should immediately trigger a new package release.

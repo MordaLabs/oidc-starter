@@ -136,6 +136,11 @@ The reusable package sources live in this repository and are also published for 
 The local sample apps still consume the in-repository projects so the package sources remain easy to
 develop and verify alongside the sample.
 
+## License
+
+OIDC Starter core packages and repository content are licensed under the MIT License. See
+[LICENSE](LICENSE).
+
 ## Backend Package Coverage
 
 The backend package has focused automated tests for its core reusable behavior:
