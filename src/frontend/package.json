@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:public-demo": "ng build frontend --configuration public-demo",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "validate": "npx ng test frontend --watch=false --browsers=ChromeHeadless && npx ng build frontend --configuration production"
