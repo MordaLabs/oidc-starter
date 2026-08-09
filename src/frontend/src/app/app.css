@@ -645,6 +645,79 @@ dd {
   background: #e5ebe4;
 }
 
+.support-section {
+  padding: 3.5rem 0 2.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.support-heading {
+  max-width: 44rem;
+}
+
+.support-heading > p:not(.eyebrow),
+.support-action p,
+.support-security p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.support-heading > p:not(.eyebrow) {
+  margin-top: 1rem;
+}
+
+.support-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.support-action {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.support-action p {
+  margin-top: 0.75rem;
+}
+
+.support-link {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--dark-cta);
+  border-radius: 0.375rem;
+  color: var(--dark-cta);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.support-link:hover {
+  border-color: var(--accent-hover);
+  color: #ffffff;
+  background: var(--accent-hover);
+}
+
+.support-security {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-left: 3px solid var(--accent);
+  background: #fbfcfa;
+}
+
+.support-security p {
+  margin-top: 0.75rem;
+}
+
 .footer-repository {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -717,6 +790,7 @@ dd {
 
   .capability-list,
   .endpoint-boundary-list,
+  .support-actions,
   .runtime-status,
   .package-grid,
   .get-started-next,

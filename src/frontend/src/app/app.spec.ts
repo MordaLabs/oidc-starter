@@ -234,6 +234,22 @@ describe('App', () => {
       .toContain('in-repository projects for local development');
     expect(httpTestingController.match(() => true)).toHaveSize(0);
 
+    const supportSection = compiled.querySelector<HTMLElement>('#contact');
+    expect(supportSection?.querySelector('#support-title')?.textContent)
+      .toContain('Questions, feedback, or found an issue?');
+    expect(Array.from(supportSection?.querySelectorAll<HTMLElement>('.support-action h3') ?? []).map((heading) => heading.textContent?.trim()))
+      .toEqual(['Explore the project', 'Report a bug', 'Request a feature']);
+    const supportLinks = Array.from(supportSection?.querySelectorAll<HTMLAnchorElement>('.support-link') ?? []);
+    expect(supportLinks.map((link) => link.href))
+      .toEqual([
+        'https://github.com/jszyduk/oidc-starter',
+        'https://github.com/jszyduk/oidc-starter/issues',
+        'https://github.com/jszyduk/oidc-starter/issues',
+      ]);
+    expect(supportLinks.map((link) => link.target)).toEqual(['_blank', '_blank', '_blank']);
+    expect(supportLinks.map((link) => link.rel)).toEqual(['noopener noreferrer', 'noopener noreferrer', 'noopener noreferrer']);
+    expect(supportSection?.textContent).toContain("Please don't open a public issue.");
+
     const footer = compiled.querySelector<HTMLElement>('footer#github');
     expect(footer).not.toBeNull();
     expect(footer?.querySelector('#github-footer-title')?.textContent)
@@ -251,7 +267,7 @@ describe('App', () => {
     expect(repositoryLinks[0].target).toBe('_blank');
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact']);
   });
 
   it('formats the ping timestamp as UTC while preserving the backend value', () => {
