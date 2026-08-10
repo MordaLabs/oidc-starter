@@ -245,10 +245,16 @@ describe('App', () => {
         'https://github.com/jszyduk/oidc-starter',
         'https://github.com/jszyduk/oidc-starter/issues',
         'https://github.com/jszyduk/oidc-starter/issues',
+        'https://github.com/jszyduk/oidc-starter/security/advisories/new',
       ]);
-    expect(supportLinks.map((link) => link.target)).toEqual(['_blank', '_blank', '_blank']);
-    expect(supportLinks.map((link) => link.rel)).toEqual(['noopener noreferrer', 'noopener noreferrer', 'noopener noreferrer']);
+    expect(supportLinks.map((link) => link.target)).toEqual(['_blank', '_blank', '_blank', '_blank']);
+    expect(supportLinks.map((link) => link.rel))
+      .toEqual(['noopener noreferrer', 'noopener noreferrer', 'noopener noreferrer', 'noopener noreferrer']);
     expect(supportSection?.textContent).toContain("Please don't open a public issue.");
+    const privateSecurityReport = supportSection?.querySelector<HTMLAnchorElement>('.support-security .support-link');
+    expect(privateSecurityReport?.textContent).toContain('Report privately');
+    expect(privateSecurityReport?.href).toBe('https://github.com/jszyduk/oidc-starter/security/advisories/new');
+    expect(privateSecurityReport?.href).not.toBe('https://github.com/jszyduk/oidc-starter/issues');
 
     const footer = compiled.querySelector<HTMLElement>('footer#github');
     expect(footer).not.toBeNull();
@@ -261,7 +267,7 @@ describe('App', () => {
     expect(footer?.textContent)
       .toContain('Explore the source, run the sample, and adapt only the pieces your product needs.');
 
-    const repositoryLinks = Array.from(footer?.querySelectorAll<HTMLAnchorElement>('a[href="https://github.com/jszyduk/oidc-starter"]') ?? []);
+    const repositoryLinks = Array.from(footer?.querySelectorAll<HTMLAnchorElement>('.footer-repository a[href="https://github.com/jszyduk/oidc-starter"]') ?? []);
     expect(repositoryLinks).toHaveSize(1);
     expect(repositoryLinks[0].textContent?.trim()).toBe('View on GitHub');
     expect(repositoryLinks[0].target).toBe('_blank');
