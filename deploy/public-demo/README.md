@@ -22,7 +22,7 @@ sudo docker compose --env-file .env build
 sudo docker compose --env-file .env up -d
 ```
 
-The frontend binds to `127.0.0.1:8082` and the backend to `127.0.0.1:8081` with the example values. Keycloak remains external to this stack on `127.0.0.1:8080`. Adjust the oidc-starter loopback port values in `.env` only if those host ports are occupied.
+The frontend binds to `127.0.0.1:8082` and the backend to `127.0.0.1:8081` with the example values. Adjust the oidc-starter loopback port values in `.env` only if those host ports conflict with other host services.
 
 ## Host Caddy
 
