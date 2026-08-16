@@ -6,7 +6,7 @@ This package is published to npm as `@flying-bee/oidc-starter-auth`. The sample 
 
 ## Angular Compatibility
 
-Version `0.1.1` is human-verified for Angular 20.3+, Angular 21, and Angular 22. npm publication remains pending.
+Version `0.1.1` is human-verified for Angular 20.3+, Angular 21, and Angular 22.
 
 ## Install
 

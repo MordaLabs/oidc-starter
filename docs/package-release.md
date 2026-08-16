@@ -24,8 +24,8 @@ dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNe
 ## npm: @flying-bee/oidc-starter-auth
 
 Angular compatibility release `0.1.1` has been human-verified for Angular 20.3+, Angular 21, and
-Angular 22. It is ready for commit and committed-diff review; npm publication remains pending, and
-no tag or release has been created.
+Angular 22. Commit and committed-diff review are complete, and the release is ready for npm
+publication. npm publication remains pending; no tag or release has been created.
 
 From `src/frontend`:
 
