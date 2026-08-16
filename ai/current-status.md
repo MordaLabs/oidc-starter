@@ -31,6 +31,10 @@ Current work in this repository is focused on:
 
 The current goal is not broad redesign. The current goal is to evolve the starter incrementally while preserving package stability and the security guarantees validated in the `v1.0.1` hardening checkpoint.
 
+### Angular Package Compatibility Closeout
+
+The `@flying-bee/oidc-starter-auth` `0.1.1` Angular 20.3+/21/22 compatibility release has been human-verified and is ready for commit plus committed-diff review. npm publication remains pending; no tag or release has been created. Offer Case remains blocked until the stable package is published and its published artifact is checked.
+
 ## Stable Assumptions
 
 Treat the following as established project assumptions:
