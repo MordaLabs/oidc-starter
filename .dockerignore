@@ -1,0 +1,11 @@
+.git
+.vs
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+**/.env
+**/.env.*
+src/backend/appsettings.Development.json
+src/backend/*.user
