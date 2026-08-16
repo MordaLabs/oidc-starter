@@ -4,6 +4,10 @@ Reusable Angular auth building blocks for OIDC Starter.
 
 This package is published to npm as `@flying-bee/oidc-starter-auth`. The sample frontend in this repository consumes the in-repository Angular library through the workspace path alias `@flying-bee/oidc-starter-auth` so changes can be developed and verified locally.
 
+## Angular Compatibility
+
+Version `0.1.1` is human-verified for Angular 20.3+, Angular 21, and Angular 22.
+
 ## Install
 
 ```powershell

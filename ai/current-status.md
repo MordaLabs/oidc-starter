@@ -31,6 +31,10 @@ Current work in this repository is focused on:
 
 The current goal is not broad redesign. The current goal is to evolve the starter incrementally while preserving package stability and the security guarantees validated in the `v1.0.1` hardening checkpoint.
 
+### Angular Package Compatibility Closeout
+
+The `@flying-bee/oidc-starter-auth` `0.1.1` Angular 20.3+/21/22 compatibility release is complete and published to npm. The `latest` dist-tag points to `0.1.1`, and the published artifact metadata has been verified. No further compatibility implementation is required. The compatibility branch still needs to be merged to `master`; after it is cleanly merged or closed, Offer Case can resume frontend auth integration. No tag or release has been created.
+
 ## Stable Assumptions
 
 Treat the following as established project assumptions:
