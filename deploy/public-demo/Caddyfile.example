@@ -24,6 +24,8 @@ demo.example.com {
     }
 
     handle {
-        reverse_proxy 127.0.0.1:8082
+        reverse_proxy 127.0.0.1:8082 {
+            header_up -Cookie
+        }
     }
 }
