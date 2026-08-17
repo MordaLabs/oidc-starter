@@ -88,6 +88,14 @@ https://demo.example.com/signout-callback-oidc
 OIDC is the built-in BFF provider and supports remote sign-out through its
 configured handler.
 
+`deploy/public-demo/Caddyfile.example` contains explicit backend routes for the
+repository's default callback paths. Every configured OIDC callback or
+sign-out callback, including external-provider `CallbackPath` overrides, that
+differs from those defaults must have a matching explicit Caddy route to the
+backend. Callback routes must not fall through to the static frontend catch-all:
+that route strips `Cookie`, while backend callback routes retain authentication
+and session cookies.
+
 ## Optional social providers
 
 Google, Facebook, and GitHub are opt-in. Enable a provider only when its

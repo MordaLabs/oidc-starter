@@ -7,4 +7,3 @@ internal static class OidcStarterGoogleDefaults
     public const string DisplayName = "Google";
     public const string DefaultCallbackPath = "/signin-google";
 }
-

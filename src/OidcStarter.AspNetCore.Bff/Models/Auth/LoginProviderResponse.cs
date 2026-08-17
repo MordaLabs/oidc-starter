@@ -5,4 +5,3 @@ public sealed record LoginProviderResponse(
     string DisplayName,
     bool IsDefault,
     string LoginUrl);
-

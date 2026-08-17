@@ -26,4 +26,3 @@ internal sealed class OidcStarterGoogleOptionsPostConfigure(
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
     }
 }
-
