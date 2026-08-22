@@ -1,13 +1,16 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, EMPTY, finalize, of } from 'rxjs';
+import { catchError, EMPTY, finalize, Observable, of } from 'rxjs';
+import { BFF_AUTH_NAVIGATOR } from './internal/bff-auth-navigator';
 import { BFF_AUTH_CONFIG } from './internal/bff-auth-token';
 import type { BffCurrentUser } from './bff-current-user';
+import type { BffLoginProvider } from './bff-login-provider';
 
 @Injectable({ providedIn: 'root' })
 export class BffAuthService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(BFF_AUTH_CONFIG);
+  private readonly navigator = inject(BFF_AUTH_NAVIGATOR);
   private readonly authBaseUrl = this.getAuthBaseUrl();
   private readonly antiforgeryCookieName = this.config.antiforgeryCookieName ?? 'XSRF-TOKEN';
   private readonly antiforgeryFormFieldName =
@@ -23,9 +26,18 @@ export class BffAuthService {
     this.loadCurrentUser();
   }
 
-  login(): void {
+  login(): void;
+  login(providerId: string): void;
+  login(providerId?: string): void {
+    const loginUrl = this.getLoginUrl(providerId);
     this.isLoading.set(true);
-    window.location.href = `${this.authBaseUrl}/login`;
+    this.navigator.navigate(loginUrl);
+  }
+
+  getLoginProviders(): Observable<readonly BffLoginProvider[]> {
+    return this.http.get<readonly BffLoginProvider[]>(`${this.authBaseUrl}/providers`, {
+      withCredentials: true,
+    });
   }
 
   logout(): void {
@@ -113,8 +125,21 @@ export class BffAuthService {
   private getAuthBaseUrl(): string {
     const apiOrigin = this.config.apiOrigin?.replace(/\/$/, '') ?? '';
     const authPath = this.config.authPath ?? '/api/auth';
+    const normalizedAuthPath = authPath.replace(/^\/+|\/+$/g, '');
 
-    return `${apiOrigin}${authPath.startsWith('/') ? authPath : `/${authPath}`}`;
+    return `${apiOrigin}${normalizedAuthPath ? `/${normalizedAuthPath}` : ''}`;
+  }
+
+  private getLoginUrl(providerId: string | undefined): string {
+    if (providerId === undefined) {
+      return `${this.authBaseUrl}/login`;
+    }
+
+    if (!providerId.trim()) {
+      throw new Error('Provider ID must not be empty.');
+    }
+
+    return `${this.authBaseUrl}/login/${encodeURIComponent(providerId)}`;
   }
 
   private getCookieValue(name: string): string | null {

@@ -126,6 +126,12 @@ Frontend auth settings live in:
 `authMode` selects `spa` or `bff`. `apiOrigin` is normally empty in development so calls use the
 Angular dev-server proxy.
 
+## Public Demo Deployment
+
+For the public HTTPS demo topology, public-demo frontend build, backend configuration, provider
+callbacks, and minimum availability check, see
+[Public Demo Deployment](docs/public-demo-deployment.md).
+
 ## Published Packages
 
 The reusable package sources live in this repository and are also published for external use:
@@ -135,6 +141,11 @@ The reusable package sources live in this repository and are also published for 
 
 The local sample apps still consume the in-repository projects so the package sources remain easy to
 develop and verify alongside the sample.
+
+## License
+
+OIDC Starter core packages and repository content are licensed under the MIT License. See
+[LICENSE](LICENSE).
 
 ## Backend Package Coverage
 

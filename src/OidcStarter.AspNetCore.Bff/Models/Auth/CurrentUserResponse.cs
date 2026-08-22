@@ -8,4 +8,6 @@ public sealed record CurrentUserResponse(
     string? Email)
 {
     public IReadOnlyCollection<string> Roles { get; init; } = [];
+
+    public ExternalIdentityResponse? ExternalIdentity { get; init; }
 }

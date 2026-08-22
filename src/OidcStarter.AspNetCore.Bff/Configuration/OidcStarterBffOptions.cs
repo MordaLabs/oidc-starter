@@ -1,6 +1,7 @@
 namespace OidcStarter.AspNetCore.Bff.Configuration;
 
 using Microsoft.AspNetCore.Http;
+using OidcStarter.AspNetCore.Bff.Services.Auth;
 using System.Security.Claims;
 
 public sealed class OidcStarterBffOptions
@@ -47,4 +48,11 @@ public sealed class OidcStarterBffOptions
     public string[] RequiredScopes { get; set; } = [];
 
     public RequiredClaimOptions[] RequiredClaims { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the canonical id of the login provider used by <c>GET /api/auth/login</c>.
+    /// </summary>
+    public string DefaultLoginProvider { get; set; } = "oidc";
+
+    internal LoginProviderRegistry LoginProviders { get; set; } = LoginProviderRegistry.CreateDefault();
 }

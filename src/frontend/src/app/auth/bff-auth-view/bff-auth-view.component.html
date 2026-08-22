@@ -1,60 +1,199 @@
-<section class="card">
-  <div class="card-header">
-    <h2>Login</h2>
-
-    @if (service.authenticated() || service.isLoggingOut()) {
-      <button
-        type="button"
-        class="button button-secondary"
-        [disabled]="service.isLoggingOut()"
-        (click)="service.logout()"
-      >
-        Logout
-      </button>
-    } @else {
-      <button type="button" class="button" [disabled]="service.isLoading()" (click)="service.login()">Login</button>
-    }
-  </div>
-
-  <dl class="details">
-    <div>
-      <dt>Mode</dt>
-      <dd>{{ service.mode }}</dd>
+@if (service.isLoading()) {
+  <section class="unauthenticated-state" aria-labelledby="session-state-title">
+    <p class="eyebrow">BFF session</p>
+    <h2 id="session-state-title">Checking backend session...</h2>
+    <p>Loading the current backend session.</p>
+  </section>
+} @else if (service.isLoggingOut()) {
+  <section class="unauthenticated-state" aria-labelledby="session-state-title">
+    <p class="eyebrow">BFF session</p>
+    <h2 id="session-state-title">Signing out...</h2>
+    <p>Closing the current backend session.</p>
+  </section>
+} @else if (service.authenticated()) {
+  <section class="card authenticated-card">
+    <div class="card-header">
+      <h2>Login</h2>
+      <button type="button" class="button button-secondary" (click)="service.logout()">Logout</button>
     </div>
-    <div>
-      <dt>Status</dt>
-      <dd>{{ service.isLoading() ? 'Checking backend session...' : service.statusMessage() }}</dd>
-    </div>
-  </dl>
-</section>
 
-<section class="card">
-  <h2>User info</h2>
-
-  @if (service.currentUser(); as user) {
-    <dl class="details">
+    <dl class="details session-details">
       <div>
-        <dt>Subject</dt>
-        <dd>{{ user.sub || 'n/a' }}</dd>
+        <dt>Session</dt>
+        <dd>Active</dd>
       </div>
       <div>
-        <dt>Name</dt>
-        <dd>{{ user.name || 'n/a' }}</dd>
+        <dt>Mode</dt>
+        <dd>Backend-for-Frontend</dd>
       </div>
       <div>
-        <dt>Username</dt>
-        <dd>{{ user.username || 'n/a' }}</dd>
-      </div>
-      <div>
-        <dt>Email</dt>
-        <dd>{{ user.email || 'n/a' }}</dd>
+        <dt>Signed in with</dt>
+        <dd>{{ providerDisplayName(service.currentUser()?.externalIdentity?.providerId) }}</dd>
       </div>
     </dl>
-  } @else if (service.isLoading()) {
-    <p class="status">Loading backend session...</p>
-  } @else if (service.isLoggingOut()) {
-    <p class="status">Logging out...</p>
-  } @else {
-    <p class="status">{{ service.loggedOutMessage }}</p>
-  }
-</section>
+    <p class="session-note">Authentication is represented by the backend session; provider tokens are not included in this current-user response.</p>
+  </section>
+
+  <section class="card authenticated-card">
+    <h2>User info</h2>
+
+    @if (service.currentUser(); as user) {
+      <div class="identity-summary">
+        @if (pictureUrl(user.externalIdentity?.pictureUrl); as avatarUrl) {
+          <img
+            class="identity-avatar"
+            [src]="avatarUrl"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+          />
+        } @else {
+          <div class="identity-avatar identity-avatar-fallback" aria-hidden="true">ID</div>
+        }
+
+        <div class="identity-summary-copy">
+          <p class="identity-name">{{ user.name || user.username || user.email || user.sub || 'Unknown user' }}</p>
+          <span class="provider-badge">{{ providerDisplayName(user.externalIdentity?.providerId, 'Provider not reported') }}</span>
+        </div>
+      </div>
+
+      <dl class="details user-details">
+        <div>
+          <dt>Subject</dt>
+          <dd>{{ user.sub || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Name</dt>
+          <dd>{{ user.name || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Username</dt>
+          <dd>{{ user.username || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user.email || 'n/a' }}</dd>
+        </div>
+        <div>
+          <dt>Email verification</dt>
+          <dd><span class="status-badge">{{ emailVerificationStatus(user.externalIdentity?.emailVerified) }}</span></dd>
+        </div>
+        <div class="roles-detail">
+          <dt>Application roles</dt>
+          <dd>
+            @if (user.roles?.length) {
+              <ul class="role-list" aria-label="Application roles">
+                @for (role of user.roles; track $index) {
+                  <li>{{ role }}</li>
+                }
+              </ul>
+            } @else {
+              No application roles
+            }
+          </dd>
+        </div>
+      </dl>
+
+      <details class="current-user-inspector">
+        <summary>View current-user JSON</summary>
+        <div class="inspector-actions">
+          <button type="button" class="button inspector-copy-button" (click)="copyCurrentUserJson(user)">Copy JSON</button>
+          @if (copyStatus(); as status) {
+            <p class="copy-status" role="status">{{ status }}</p>
+          }
+        </div>
+        <pre><code>{{ currentUserJson(user) }}</code></pre>
+      </details>
+    }
+  </section>
+} @else {
+  <section class="unauthenticated-state" aria-labelledby="session-state-title">
+    <p class="eyebrow">BFF session</p>
+    <h2 id="session-state-title">No active session</h2>
+    <p>Sign in to inspect the authenticated BFF session and normalized user identity.</p>
+    <button
+      #signInButton
+      type="button"
+      class="button unauthenticated-sign-in"
+      (click)="openSignInDialog(signInButton)"
+    >
+      Sign in
+    </button>
+  </section>
+}
+
+@if (!service.authenticated() && !service.isLoggingOut()) {
+  <dialog
+    #providerDialog
+    class="sign-in-dialog"
+    aria-labelledby="sign-in-dialog-title"
+    aria-describedby="sign-in-dialog-description"
+    (cancel)="closeDialogOnCancel($event)"
+    (close)="restoreSignInFocus()"
+    (click)="closeDialogOnBackdropClick($event)"
+  >
+    <div class="sign-in-dialog-content">
+      <button
+        type="button"
+        class="dialog-close"
+        aria-label="Close sign-in dialog"
+        (click)="closeSignInDialog()"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+
+      <h2 id="sign-in-dialog-title">Welcome back</h2>
+      <p id="sign-in-dialog-description">Choose a provider to continue</p>
+
+      <div class="dialog-actions">
+        @if (isSignInDialogOpen() && (service.isDiscoveringLoginProviders() || service.loginProviders() === null && !service.providerDiscoveryError())) {
+          <p class="dialog-status" role="status">Loading sign-in options...</p>
+        } @else if (isSignInDialogOpen() && service.providerDiscoveryError()) {
+          <p class="dialog-status" role="alert">We couldn't load sign-in options. Use the default sign-in.</p>
+          <button type="button" class="provider-action" (click)="service.login()">
+            <span class="provider-icon" data-provider-icon="generic" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 4.5 6v5.7c0 4.5 3.1 7.8 7.5 9.3 4.4-1.5 7.5-4.8 7.5-9.3V6L12 3Zm0 4.2a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6Zm3.8 8.4H8.2v-.7c0-1.5 1.7-2.3 3.8-2.3s3.8.8 3.8 2.3v.7Z" /></svg>
+            </span>
+            <span>Continue with default sign-in</span>
+          </button>
+        } @else if (isSignInDialogOpen() && service.loginProviders(); as providers) {
+          @if (providers.length) {
+            @for (provider of providers; track provider.id) {
+              <button type="button" class="provider-action" (click)="service.login(provider.id)">
+                <span class="provider-icon" [attr.data-provider-icon]="providerIcon(provider.id)" aria-hidden="true">
+                  @switch (providerIcon(provider.id)) {
+                    @case ('google') {
+                      <svg viewBox="0 0 24 24" focusable="false"><path fill="#4285f4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.8 3-4.4 3-7.3Z" /><path fill="#34a853" d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.8-5.6-4.2H3.1v2.6A10 10 0 0 0 12 22Z" /><path fill="#fbbc05" d="M6.4 13.7A6 6 0 0 1 6 12c0-.6.1-1.2.4-1.7V7.7H3.1A10 10 0 0 0 2 12c0 1.6.4 3.1 1.1 4.3l3.3-2.6Z" /><path fill="#ea4335" d="M12 6.1c1.5 0 2.9.5 3.9 1.5l2.9-2.8A10 10 0 0 0 3.1 7.7l3.3 2.6C7.2 7.9 9.4 6.1 12 6.1Z" /></svg>
+                    }
+                    @case ('facebook') {
+                      <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="10" fill="#1877f2" /><path fill="#fff" d="M13.4 19v-6h2l.3-2.3h-2.3V9.3c0-.7.2-1.2 1.2-1.2h1.3V6.1c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3v1.4H8.7V13h2.1v6h2.6Z" /></svg>
+                    }
+                    @case ('github') {
+                      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2.5a9.5 9.5 0 0 0-3 18.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.5-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.9.1-.6.4-1.1.7-1.4-2.3-.3-4.7-1.1-4.7-5 0-1.1.4-2 1-2.7-.1-.2-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.7 9.7 0 0 1 5.1 0c2-1.3 2.8-1 2.8-1 .5 1.4.2 2.5.1 2.7.7.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.7 5 .4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A9.5 9.5 0 0 0 12 2.5Z" /></svg>
+                    }
+                    @case ('oidc') {
+                      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2.5a5 5 0 0 0-2.5 9.3v2.1H7.8v2h1.7v2H7.8v2h4.7v-8.1a5 5 0 0 0-.5-9.3Zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm2.5 9.4v6h2v-2h1.7v-2h-1.7v-2h-2Z" /></svg>
+                    }
+                    @default {
+                      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 4.5 6v5.7c0 4.5 3.1 7.8 7.5 9.3 4.4-1.5 7.5-4.8 7.5-9.3V6L12 3Zm0 4.2a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6Zm3.8 8.4H8.2v-.7c0-1.5 1.7-2.3 3.8-2.3s3.8.8 3.8 2.3v.7Z" /></svg>
+                    }
+                  }
+                </span>
+                <span>Continue with {{ provider.displayName }}</span>
+              </button>
+            }
+          } @else {
+            <p class="dialog-status">No additional providers are available.</p>
+            <button type="button" class="provider-action" (click)="service.login()">
+              <span class="provider-icon" data-provider-icon="generic" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 4.5 6v5.7c0 4.5 3.1 7.8 7.5 9.3 4.4-1.5 7.5-4.8 7.5-9.3V6L12 3Zm0 4.2a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6Zm3.8 8.4H8.2v-.7c0-1.5 1.7-2.3 3.8-2.3s3.8.8 3.8 2.3v.7Z" /></svg>
+              </span>
+              <span>Continue with default sign-in</span>
+            </button>
+          }
+        }
+      </div>
+    </div>
+  </dialog>
+}

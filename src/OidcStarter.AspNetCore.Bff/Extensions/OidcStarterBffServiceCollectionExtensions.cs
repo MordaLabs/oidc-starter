@@ -1,14 +1,20 @@
+using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.IdentityModel.Tokens;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
@@ -20,6 +26,194 @@ namespace OidcStarter.AspNetCore.Bff.Extensions;
 
 public static class OidcStarterBffServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds opt-in GitHub authentication using the supplied GitHub handler configuration section.
+    /// </summary>
+    /// <remarks>
+    /// The GitHub handler uses the common BFF cookie session and local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterGitHub(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+        ValidateGitHubCallbackPath(configurationSection["CallbackPath"]);
+
+        services.AddAuthentication()
+            .AddGitHub(OidcStarterGitHubDefaults.AuthenticationScheme, options =>
+            {
+                configurationSection.Bind(options);
+                options.Scope.Clear();
+                options.Scope.Add("user:email");
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    "preferred_username",
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetGitHubString(userInfo, "login", out var login)
+                        ? login
+                        : null));
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    "name",
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetGitHubString(userInfo, "name", out var name)
+                        ? name
+                        : null));
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    ExternalIdentityClaimTypes.PictureUrl,
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetGitHubString(userInfo, "avatar_url", out var pictureUrl)
+                        ? pictureUrl
+                        : null));
+            });
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<GitHubAuthenticationOptions>, OidcStarterGitHubOptionsPostConfigure>());
+        services.AddOptions<GitHubAuthenticationOptions>(OidcStarterGitHubDefaults.AuthenticationScheme)
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientId),
+                "GitHub ClientId is required.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientSecret),
+                "GitHub ClientSecret is required.")
+            .Validate(
+                static options => IsValidGitHubCallbackPath(options.CallbackPath.Value),
+                "GitHub CallbackPath must be a local absolute path.")
+            .ValidateOnStart();
+        services.AddOidcStarterLoginProvider(
+            OidcStarterGitHubDefaults.ProviderId,
+            OidcStarterGitHubDefaults.DisplayName,
+            OidcStarterGitHubDefaults.AuthenticationScheme);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds opt-in Facebook authentication using the supplied Facebook handler configuration section.
+    /// </summary>
+    /// <remarks>
+    /// The Facebook handler uses the common BFF cookie session and local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterFacebook(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+        ValidateFacebookCallbackPath(configurationSection["CallbackPath"]);
+
+        services.AddAuthentication()
+            .AddFacebook(OidcStarterFacebookDefaults.AuthenticationScheme, options =>
+            {
+                options.AuthorizationEndpoint = OidcStarterFacebookDefaults.AuthorizationEndpoint;
+                options.TokenEndpoint = OidcStarterFacebookDefaults.TokenEndpoint;
+                options.UserInformationEndpoint = OidcStarterFacebookDefaults.UserInformationEndpoint;
+                configurationSection.Bind(options);
+                options.Fields.Add("picture");
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    ExternalIdentityClaimTypes.PictureUrl,
+                    ClaimValueTypes.String,
+                    static userInfo => TryGetFacebookPictureUrl(userInfo, out var pictureUrl)
+                        ? pictureUrl
+                        : null));
+            });
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<FacebookOptions>, OidcStarterFacebookOptionsPostConfigure>());
+        services.AddOptions<FacebookOptions>(OidcStarterFacebookDefaults.AuthenticationScheme)
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.AppId),
+                "Facebook AppId is required.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.AppSecret),
+                "Facebook AppSecret is required.")
+            .Validate(
+                static options => IsValidFacebookEndpoint(options.AuthorizationEndpoint),
+                "Facebook AuthorizationEndpoint must be an absolute URI.")
+            .Validate(
+                static options => IsValidFacebookEndpoint(options.TokenEndpoint),
+                "Facebook TokenEndpoint must be an absolute URI.")
+            .Validate(
+                static options => IsValidFacebookEndpoint(options.UserInformationEndpoint),
+                "Facebook UserInformationEndpoint must be an absolute URI.")
+            .Validate(
+                static options => IsValidFacebookCallbackPath(options.CallbackPath.Value),
+                "Facebook CallbackPath must be a local absolute path.")
+            .ValidateOnStart();
+        services.AddOidcStarterLoginProvider(
+            OidcStarterFacebookDefaults.ProviderId,
+            OidcStarterFacebookDefaults.DisplayName,
+            OidcStarterFacebookDefaults.AuthenticationScheme);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds opt-in Google authentication using the supplied Google handler configuration section.
+    /// </summary>
+    /// <remarks>
+    /// The Google handler uses the common BFF cookie session and local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterGoogle(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+        ValidateGoogleCallbackPath(configurationSection["CallbackPath"]);
+
+        services.AddAuthentication()
+            .AddGoogle(OidcStarterGoogleDefaults.AuthenticationScheme, options =>
+            {
+                configurationSection.Bind(options);
+                options.ClaimActions.Add(new CustomJsonClaimAction(
+                    ExternalIdentityClaimTypes.EmailVerified,
+                    ClaimValueTypes.Boolean,
+                    static userInfo => userInfo.TryGetProperty("verified_email", out var verifiedEmail)
+                        && (verifiedEmail.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        ? verifiedEmail.GetBoolean().ToString()
+                        : null));
+                options.ClaimActions.MapJsonKey(
+                    ExternalIdentityClaimTypes.PictureUrl,
+                    "picture");
+            });
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<GoogleOptions>, OidcStarterGoogleOptionsPostConfigure>());
+        services.AddOptions<GoogleOptions>(OidcStarterGoogleDefaults.AuthenticationScheme)
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientId),
+                "Google ClientId is required.")
+            .Validate(
+                static options => !string.IsNullOrWhiteSpace(options.ClientSecret),
+                "Google ClientSecret is required.")
+            .Validate(
+                static options => IsValidGoogleCallbackPath(options.CallbackPath.Value),
+                "Google CallbackPath must be a local absolute path.")
+            .ValidateOnStart();
+        services.AddOidcStarterLoginProvider(
+            OidcStarterGoogleDefaults.ProviderId,
+            OidcStarterGoogleDefaults.DisplayName,
+            OidcStarterGoogleDefaults.AuthenticationScheme);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers metadata for an existing authentication scheme as an opt-in login provider.
+    /// </summary>
+    /// <remarks>
+    /// Register the referenced authentication scheme separately before the provider is challenged.
+    /// This method does not add or configure an authentication handler.
+    /// Generic provider registrations use local-session-only logout behavior.
+    /// </remarks>
+    public static IServiceCollection AddOidcStarterLoginProvider(
+        this IServiceCollection services,
+        string providerId,
+        string displayName,
+        string authenticationScheme)
+    {
+        return AddLoginProvider(
+            services,
+            providerId,
+            displayName,
+            authenticationScheme,
+            supportsRemoteSignOut: false);
+    }
+
     public static IServiceCollection AddOidcStarterRoleMapper<TMapper>(this IServiceCollection services)
         where TMapper : class, IOidcStarterRoleMapper
     {
@@ -39,6 +233,14 @@ public static class OidcStarterBffServiceCollectionExtensions
             configuration.GetSection(OidcStarterBffOptions.SectionName));
         services.Configure<OidcOptions>(
             configuration.GetSection(OidcOptions.SectionName));
+        AddLoginProvider(
+            services,
+            "oidc",
+            "OpenID Connect",
+            OpenIdConnectDefaults.AuthenticationScheme,
+            supportsRemoteSignOut: true);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<OidcStarterBffOptions>, LoginProviderRegistryOptionsPostConfigure>());
+        services.AddOptions<OidcStarterBffOptions>().ValidateOnStart();
 
         var bffSettings = configuration
             .GetSection(OidcStarterBffOptions.SectionName)
@@ -56,6 +258,111 @@ public static class OidcStarterBffServiceCollectionExtensions
         services.AddSingleton<CsrfOriginValidator>();
 
         return services;
+    }
+
+    internal static IServiceCollection AddLoginProvider(
+        IServiceCollection services,
+        string providerId,
+        string displayName,
+        string authenticationScheme,
+        bool supportsRemoteSignOut)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        LoginProviderRegistration.Validate(providerId, displayName, authenticationScheme);
+
+        services.AddSingleton(new LoginProviderDescriptor(
+            providerId,
+            displayName,
+            authenticationScheme,
+            supportsRemoteSignOut));
+
+        return services;
+    }
+
+    private static void ValidateGoogleCallbackPath(string? callbackPath)
+    {
+        if (callbackPath is not null && !IsValidGoogleCallbackPath(callbackPath))
+        {
+            throw new ArgumentException(
+                "Google CallbackPath must be a local absolute path.",
+                nameof(callbackPath));
+        }
+    }
+
+    private static void ValidateGitHubCallbackPath(string? callbackPath)
+    {
+        if (callbackPath is not null && !IsValidGitHubCallbackPath(callbackPath))
+        {
+            throw new ArgumentException(
+                "GitHub CallbackPath must be a local absolute path.",
+                nameof(callbackPath));
+        }
+    }
+
+    private static void ValidateFacebookCallbackPath(string? callbackPath)
+    {
+        if (callbackPath is not null && !IsValidFacebookCallbackPath(callbackPath))
+        {
+            throw new ArgumentException(
+                "Facebook CallbackPath must be a local absolute path.",
+                nameof(callbackPath));
+        }
+    }
+
+    private static bool IsValidGoogleCallbackPath(string? callbackPath)
+        => !string.IsNullOrWhiteSpace(callbackPath)
+            && callbackPath[0] == '/'
+            && !callbackPath.StartsWith("//", StringComparison.Ordinal)
+            && !callbackPath.Contains('?')
+            && !callbackPath.Contains('#');
+
+    private static bool IsValidGitHubCallbackPath(string? callbackPath)
+        => !string.IsNullOrWhiteSpace(callbackPath)
+            && callbackPath[0] == '/'
+            && !callbackPath.StartsWith("//", StringComparison.Ordinal)
+            && !callbackPath.Contains('?')
+            && !callbackPath.Contains('#');
+
+    private static bool IsValidFacebookCallbackPath(string? callbackPath)
+        => !string.IsNullOrWhiteSpace(callbackPath)
+            && callbackPath[0] == '/'
+            && !callbackPath.StartsWith("//", StringComparison.Ordinal)
+            && !callbackPath.Contains('?')
+            && !callbackPath.Contains('#');
+
+    private static bool IsValidFacebookEndpoint(string? endpoint)
+        => Uri.TryCreate(endpoint, UriKind.Absolute, out _);
+
+    private static bool TryGetFacebookPictureUrl(JsonElement userInfo, out string? pictureUrl)
+    {
+        pictureUrl = null;
+
+        if (!userInfo.TryGetProperty("picture", out var picture)
+            || picture.ValueKind != JsonValueKind.Object
+            || !picture.TryGetProperty("data", out var data)
+            || data.ValueKind != JsonValueKind.Object
+            || !data.TryGetProperty("url", out var url)
+            || url.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        pictureUrl = url.GetString();
+        return !string.IsNullOrWhiteSpace(pictureUrl);
+    }
+
+    private static bool TryGetGitHubString(JsonElement userInfo, string propertyName, out string? value)
+    {
+        value = null;
+
+        if (!userInfo.TryGetProperty(propertyName, out var property)
+            || property.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        value = property.GetString();
+        return !string.IsNullOrWhiteSpace(value);
     }
 
     private static void ConfigureForwardedHeaders(IServiceCollection services, OidcStarterBffOptions bffSettings)

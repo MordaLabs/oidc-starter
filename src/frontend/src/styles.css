@@ -2,6 +2,8 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  color: #1c2823;
+  background: #f7f5f0;
 }
 
 body {
@@ -10,4 +12,29 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  --site-header-height: 4.5rem;
+  scroll-padding-block-start: var(--site-header-height);
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 760px) {
+  html {
+    --site-header-height: 8.5rem;
+  }
+}
+
+@media (max-width: 440px) {
+  html {
+    --site-header-height: 11rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

@@ -11,6 +11,24 @@ builder.Services.Configure<StarterOptions>(
 builder.Services.AddOidcStarterRoleMapper<KeycloakRoleMapper>();
 builder.Services.AddOidcStarterBff(builder.Configuration);
 
+var googleSection = builder.Configuration.GetSection("ExternalLogin:Google");
+if (googleSection.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
+}
+
+var facebookSection = builder.Configuration.GetSection("ExternalLogin:Facebook");
+if (facebookSection.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterFacebook(facebookSection.GetSection("Options"));
+}
+
+var githubSection = builder.Configuration.GetSection("ExternalLogin:GitHub");
+if (githubSection.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterGitHub(githubSection.GetSection("Options"));
+}
+
 var app = builder.Build();
 
 app.UseOidcStarterBff();

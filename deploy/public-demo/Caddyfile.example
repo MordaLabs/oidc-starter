@@ -1,0 +1,31 @@
+demo.example.com {
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    handle /signin-oidc {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    handle /signout-callback-oidc {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    handle /signin-google {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    handle /signin-facebook {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    handle /signin-github {
+        reverse_proxy 127.0.0.1:8081
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:8082 {
+            header_up -Cookie
+        }
+    }
+}

@@ -24,6 +24,7 @@ Thumbs.db
 # Environment/local secrets if ever added later
 .env
 .env.*
+!deploy/public-demo/.env.example
 
 # Build/test artifacts
 TestResults/
