@@ -227,7 +227,7 @@ describe('App', () => {
     expect(getStarted?.querySelector('.package-link-npm')?.getAttribute('href'))
       .toBe('https://www.npmjs.com/package/@flying-bee/oidc-starter-auth');
     expect(getStarted?.querySelector('.get-started-guide')?.getAttribute('href'))
-      .toBe('https://github.com/jszyduk/oidc-starter');
+      .toBe('https://github.com/MordaLabs/oidc-starter');
     expect(getStarted?.querySelector('.get-started-next')?.textContent)
       .toContain('provider-selection modal is a reference UI built by the sample application');
     expect(getStarted?.querySelector('.get-started-clarification')?.textContent)
@@ -237,15 +237,17 @@ describe('App', () => {
     const supportSection = compiled.querySelector<HTMLElement>('#contact');
     expect(supportSection?.querySelector('#support-title')?.textContent)
       .toContain('Questions, feedback, or found an issue?');
+    const contactEmail = supportSection?.querySelector<HTMLAnchorElement>('a[href="mailto:contact@mordalabs.com"]');
+    expect(contactEmail?.textContent).toContain('contact@mordalabs.com');
     expect(Array.from(supportSection?.querySelectorAll<HTMLElement>('.support-action h3') ?? []).map((heading) => heading.textContent?.trim()))
       .toEqual(['Explore the project', 'Report a bug', 'Request a feature']);
     const supportLinks = Array.from(supportSection?.querySelectorAll<HTMLAnchorElement>('.support-link') ?? []);
     expect(supportLinks.map((link) => link.href))
       .toEqual([
-        'https://github.com/jszyduk/oidc-starter',
-        'https://github.com/jszyduk/oidc-starter/issues',
-        'https://github.com/jszyduk/oidc-starter/issues',
-        'https://github.com/jszyduk/oidc-starter/security/advisories/new',
+        'https://github.com/MordaLabs/oidc-starter',
+        'https://github.com/MordaLabs/oidc-starter/issues',
+        'https://github.com/MordaLabs/oidc-starter/issues',
+        'https://github.com/MordaLabs/oidc-starter/security/advisories/new',
       ]);
     expect(supportLinks.map((link) => link.target)).toEqual(['_blank', '_blank', '_blank', '_blank']);
     expect(supportLinks.map((link) => link.rel))
@@ -253,8 +255,8 @@ describe('App', () => {
     expect(supportSection?.textContent).toContain("Please don't open a public issue.");
     const privateSecurityReport = supportSection?.querySelector<HTMLAnchorElement>('.support-security .support-link');
     expect(privateSecurityReport?.textContent).toContain('Report privately');
-    expect(privateSecurityReport?.href).toBe('https://github.com/jszyduk/oidc-starter/security/advisories/new');
-    expect(privateSecurityReport?.href).not.toBe('https://github.com/jszyduk/oidc-starter/issues');
+    expect(privateSecurityReport?.href).toBe('https://github.com/MordaLabs/oidc-starter/security/advisories/new');
+    expect(privateSecurityReport?.href).not.toBe('https://github.com/MordaLabs/oidc-starter/issues');
 
     const footer = compiled.querySelector<HTMLElement>('footer#github');
     expect(footer).not.toBeNull();
@@ -267,7 +269,7 @@ describe('App', () => {
     expect(footer?.textContent)
       .toContain('Explore the source, run the sample, and adapt only the pieces your product needs.');
 
-    const repositoryLinks = Array.from(footer?.querySelectorAll<HTMLAnchorElement>('.footer-repository a[href="https://github.com/jszyduk/oidc-starter"]') ?? []);
+    const repositoryLinks = Array.from(footer?.querySelectorAll<HTMLAnchorElement>('.footer-repository a[href="https://github.com/MordaLabs/oidc-starter"]') ?? []);
     expect(repositoryLinks).toHaveSize(1);
     expect(repositoryLinks[0].textContent?.trim()).toBe('View on GitHub');
     expect(repositoryLinks[0].target).toBe('_blank');
