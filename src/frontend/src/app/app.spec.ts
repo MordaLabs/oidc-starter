@@ -127,10 +127,14 @@ describe('App', () => {
     expect(Array.from(getStarted?.querySelectorAll('pre code') ?? [])).not.toHaveSize(0);
 
     const providersSection = compiled.querySelector<HTMLElement>('#providers');
-    expect(providersSection?.textContent).toContain('Register the login providers your application needs.');
-    expect(providersSection?.textContent).toContain('configured list at runtime');
-    expect(providersSection?.textContent).toContain('frontend renders its own provider-selection experience');
-    expect(providersSection?.textContent).toContain('OpenID Connect remains the standards-based core');
+    expect(providersSection?.querySelector('.eyebrow')?.textContent).toContain('External Login Providers');
+    expect(providersSection?.querySelector('#providers-title')?.textContent)
+      .toContain('OIDC at the core. More ways to sign in.');
+    expect(providersSection?.textContent).toContain('OpenID Connect remains the built-in BFF default.');
+    expect(providersSection?.textContent).toContain('Add Google, GitHub, Facebook, or a custom provider registration');
+    expect(providersSection?.textContent).toContain('only configured providers at runtime');
+    expect(Array.from(providersSection?.querySelectorAll('.provider-list li') ?? []).map((provider) => provider.textContent?.trim()))
+      .toEqual(['OpenID Connect', 'Google', 'GitHub', 'Facebook', 'Custom provider registration']);
     expect(providersSection?.textContent).not.toContain('Facebook and GitHub are OIDC providers');
     expect(providersSection?.querySelectorAll('button')).toHaveSize(0);
 
@@ -266,6 +270,7 @@ describe('App', () => {
       .toContain('OIDC Starter is an ASP.NET Core BFF toolkit for OpenID Connect and social login, with runtime provider discovery, application-owned authorization, and an optional headless Angular client.');
     expect(footer?.querySelector('small')?.textContent)
       .toContain('Provider-neutral BFF authentication for Angular + ASP.NET Core');
+    expect(footer?.textContent).toContain('Morda Labs · open-source authentication starter');
     expect(footer?.textContent)
       .toContain('Explore the source, run the sample, and adapt only the pieces your product needs.');
 

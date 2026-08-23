@@ -58,16 +58,17 @@
   <section id="providers" class="provider-section" aria-labelledby="providers-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">Provider-neutral by design</p>
-        <h2 id="providers-title">Bring the providers your users already know</h2>
-        <p>Register the login providers your application needs. The BFF exposes the configured list at runtime, while the frontend renders its own provider-selection experience.</p>
-        <p>OpenID Connect remains the standards-based core; Google, Facebook, GitHub, and custom registrations participate through the same provider-neutral BFF flow.</p>
+        <p class="eyebrow">External Login Providers</p>
+        <h2 id="providers-title">OIDC at the core. More ways to sign in.</h2>
+        <p>OpenID Connect remains the built-in BFF default. Add Google, GitHub, Facebook, or a custom provider registration when your application needs them.</p>
+        <p>The BFF exposes only configured providers at runtime, so the chooser reflects the sign-in options actually available to your users.</p>
       </div>
-      <ul class="provider-list" aria-label="Login provider examples">
+      <ul class="provider-list" aria-label="Built-in and extensible login provider support">
         <li>OpenID Connect</li>
         <li>Google</li>
-        <li>Facebook</li>
         <li>GitHub</li>
+        <li>Facebook</li>
+        <li>Custom provider registration</li>
       </ul>
 
     </div>
@@ -408,7 +409,7 @@ login(providerId: string): void &#123;
 
     <div class="footer-repository">
       <div class="footer-repository-copy">
-        <p class="eyebrow">Open-source authentication starter</p>
+        <p class="eyebrow">Morda Labs · open-source authentication starter</p>
         <h2 id="github-footer-title">Build the sign-in flow once. Keep the rest of your app yours.</h2>
         <p>
           OIDC Starter is an ASP.NET Core BFF toolkit for OpenID Connect and social login, with runtime provider discovery,
@@ -429,7 +430,7 @@ login(providerId: string): void &#123;
     <div class="footer-content">
       <div>
         <a class="brand" href="#overview">OIDC Starter</a>
-        <small>Provider-neutral BFF authentication for Angular + ASP.NET Core</small>
+        <small>Provider-neutral BFF authentication for Angular + ASP.NET Core <i>by Morda Labs</i></small>
       </div>
       <nav aria-label="Footer navigation">
         <a href="#overview">Overview</a>
