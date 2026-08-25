@@ -15,6 +15,8 @@ services:
     build:
       context: ../..
       dockerfile: deploy/public-demo/backend.Dockerfile
+    volumes:
+      - backend-data-protection-keys:/root/.aspnet/DataProtection-Keys
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -48,3 +50,6 @@ networks:
       config:
         - subnet: ${PUBLIC_DEMO_DOCKER_SUBNET}
           gateway: ${FORWARDED_PROXY_IP}
+
+volumes:
+  backend-data-protection-keys:
