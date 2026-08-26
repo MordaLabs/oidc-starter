@@ -280,7 +280,7 @@ describe('App', () => {
     expect(repositoryLinks[0].target).toBe('_blank');
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact', '/privacy.html', '/terms.html']);
   });
 
   it('formats the ping timestamp as UTC while preserving the backend value', () => {
