@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Privacy Policy for the OIDC Starter public demo by Morda Labs." />
+    <title>Privacy Policy | OIDC Starter</title>
+    <style>
+      :root { color: #1c2823; background: #f7f5f0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      a { color: #155d4d; }
+      a:focus-visible { outline: 3px solid #236bff; outline-offset: 3px; }
+      .site-header { border-bottom: 1px solid #cbd5ca; background: rgba(247, 245, 240, 0.96); }
+      .page-container { width: min(48rem, calc(100% - 2rem)); margin: 0 auto; }
+      .header-content { display: flex; min-height: 4.5rem; align-items: center; justify-content: space-between; gap: 1rem; }
+      .brand { color: #1c2823; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; }
+      main { padding: 4rem 0; }
+      .eyebrow { margin: 0; color: #155d4d; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+      h1, h2 { color: #172033; }
+      h1 { margin: 0.75rem 0 0; font-size: clamp(2.25rem, 7vw, 3.5rem); letter-spacing: -0.04em; }
+      h2 { margin-top: 2.5rem; font-size: 1.35rem; }
+      p { color: #41506b; line-height: 1.7; }
+      .effective-date { margin-top: 1.25rem; font-weight: 700; }
+      .notice { margin-top: 2rem; padding: 1.25rem; border-left: 3px solid #155d4d; background: #ffffff; }
+      footer { border-top: 1px solid #cbd5ca; padding: 1.5rem 0 2.25rem; background: #e5ebe4; }
+      footer p { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-container header-content">
+        <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
+        <a href="/">Back to demo</a>
+      </div>
+    </header>
+
+    <main>
+      <article class="page-container">
+        <p class="eyebrow">Morda Labs public demo</p>
+        <h1>Privacy Policy</h1>
+        <p class="effective-date">Effective date: 2026-08-26</p>
+
+        <p>OIDC Starter is a public demonstration of an open-source authentication starter operated by Morda Labs. This policy describes information handled when you use this live demo.</p>
+
+        <h2>Authentication and profile information</h2>
+        <p>You can sign in only through authentication providers configured for the demo. These may include an OpenID Connect provider and, when enabled, Google, GitHub, or Facebook. The provider may send identity and profile information needed for sign-in, such as a subject identifier, name, username, email address, role claims, and provider metadata such as email-verification status or a profile picture URL.</p>
+        <p>The demo can display the current authenticated user's normalized profile and provider information in the browser. It does not include an application database or separate user-profile store in this demonstration.</p>
+
+        <h2>Google user data</h2>
+        <p>When Google login is used, Google may provide basic identity and profile information available under the configured sign-in scopes, such as a subject or account identifier, name, email address, email-verification information, and profile picture URL.</p>
+        <p>The demo uses this information to establish the authenticated session and show the normalized current-user profile. Google access and refresh tokens are not exposed to browser JavaScript, and the Google authentication handler does not save provider tokens.</p>
+        <p>The public demo has no separate application database or dedicated user-profile store for this profile information. The OIDC Starter demo does not implement functionality that sends the normalized Google profile to unrelated third-party services.</p>
+        <h2>Sessions, cookies, and tokens</h2>
+        <p>The demo uses an ASP.NET Core BFF session. Essential technical cookies establish and protect the authenticated session, support the sign-in flow, and provide antiforgery protection for logout. The main session cookie is configured as HTTP-only and secure, so browser JavaScript cannot read it.</p>
+        <p>The current-user endpoint returns normalized identity and profile information; it does not return provider access tokens or refresh tokens to the browser. For the built-in OpenID Connect flow, authentication tokens are retained in the protected authentication ticket. The starter's Google, GitHub, and Facebook handlers do not save provider tokens.</p>
+
+        <h2>Third-party providers</h2>
+        <p>When you choose an external identity provider, that provider processes your authentication according to its own privacy policy and terms. Morda Labs does not control those providers' practices.</p>
+
+        <h2>Questions and security reports</h2>
+        <p>For privacy questions or other contact about this demo, email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. To report a security issue with the demo, email <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
+
+        <aside class="notice">
+          <strong>Updates to this policy.</strong>
+          <p>We may update this page as the public demo changes. The effective date above shows when it was last updated.</p>
+        </aside>
+      </article>
+    </main>
+
+    <footer>
+      <div class="page-container">
+        <p>OIDC Starter · Morda Labs · <a href="/terms.html">Terms of Use</a> · <a href="https://github.com/MordaLabs/oidc-starter">View the source</a></p>
+      </div>
+    </footer>
+  </body>
+</html>
