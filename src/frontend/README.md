@@ -1,59 +1,25 @@
-# Frontend
+# OIDC Starter sample frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.5.
+This Angular application is the repository sample and public-demo UI for OIDC Starter. It demonstrates the reusable `@flying-bee/oidc-starter-auth` package against the sample ASP.NET Core backend; it is not a standalone authentication product.
 
-## Development server
+## Authentication modes
 
-To start a local development server, run:
+- **BFF mode** is the default production-oriented sample path. The browser uses a BFF session and the UI loads the normalized current user from `/api/auth/me`.
+- **SPA mode** remains a supported reference flow for direct browser OIDC with PKCE.
 
-```bash
-ng serve
-```
+The active mode and development settings are in `src/environments`. BFF mode normally leaves `apiOrigin` empty so the Angular development proxy forwards relative `/api` requests to the local backend.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## External Login Providers in the sample
 
-## Code scaffolding
+In BFF mode, the sample asks `@flying-bee/oidc-starter-auth` for `GET /api/auth/providers` after it determines that no session is active. It renders the configured runtime provider choices and starts the chosen login through `login(provider.id)`. The backend configuration, not the frontend, determines which providers appear.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+The sample keeps a default-login path for the existing single OpenID Connect flow. Google, GitHub, Facebook, and custom providers appear only when the backend has registered and enabled them.
 
-```bash
-ng generate component component-name
-```
+## Run locally
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+1. Start the local identity provider described in the [Keycloak guide](../../infra/keycloak/README.md).
+2. Start the sample backend with its HTTPS launch profile.
+3. From this directory, run `npm install` and `npm start`.
+4. Open `http://localhost:4200`.
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+For the repository overview and BFF setup, see the [root README](../../README.md). For the reusable Angular API, see the [frontend package README](projects/oidc-starter-auth/README.md). The BFF and SPA boundaries are described in the [architecture note](../../docs/architecture.md).

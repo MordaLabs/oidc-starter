@@ -42,6 +42,7 @@ appropriate secret-management mechanism. The important existing settings are:
 | Setting | Public-demo purpose |
 | --- | --- |
 | `Starter:FrontendOrigin` | Trusted frontend origin for CORS and BFF login/logout return redirects, for example `https://demo.example.com`. |
+| `Starter:DefaultLoginProvider` | Registered provider used by `GET /api/auth/login`; defaults to `oidc`. |
 | `Starter:AllowedForwardedHosts` | Accepted public hosts supplied through `X-Forwarded-Host`. |
 | `Starter:KnownForwardedProxies` | Trusted reverse-proxy IP addresses. |
 | `Starter:KnownForwardedNetworks` | Trusted reverse-proxy CIDR ranges when IP addresses are not the right fit. |
@@ -56,7 +57,8 @@ appropriate secret-management mechanism. The important existing settings are:
 
 The BFF session cookie is HTTP-only and always secure. Configure
 `Starter:CookieSameSite` for the actual provider redirect and hosting topology;
-the default is `None`.
+the default is `None`. The generic Compose template leaves
+`Starter:DefaultLoginProvider` at its package default of `oidc`; operators that expose another default must supply a registered provider id through their own backend configuration plumbing.
 
 ## HTTPS and reverse proxies
 
@@ -113,7 +115,13 @@ callback overrides use `ExternalLogin:Google:Options:CallbackPath`,
 `ExternalLogin:Facebook:Options:CallbackPath`, or
 `ExternalLogin:GitHub:Options:CallbackPath`; each must be a local absolute path.
 Social-provider logout clears the local BFF session; it does not request remote
-sign-out from the social provider.
+sign-out from the social provider. By contrast, the built-in OIDC provider uses
+its configured remote sign-out handler when the session originated from that provider.
+
+Provider discovery is the deployment-health check for runtime login choices:
+`GET /api/auth/providers` must list only providers whose handlers are registered and enabled in the running backend. Configure staging and production independently; a provider enabled for staging verification need not be enabled for the public production demo.
+
+Morda Labs currently exposes OpenID Connect, Google, and GitHub in its public production demo. Facebook is an implemented opt-in package capability and has been validated in staging, but is intentionally not enabled publicly while Meta Business Verification is pending. This operational limitation does not affect generic deployment templates or package support.
 
 ## Secrets boundary
 
