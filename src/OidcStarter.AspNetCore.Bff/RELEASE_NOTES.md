@@ -1,5 +1,25 @@
 # OidcStarter.AspNetCore.Bff Release Notes
 
+## v1.1.0
+
+Backward-compatible feature release for external login providers and provider-aware BFF flows.
+
+### Highlights
+
+- Added opt-in registration for Google (`AddOidcStarterGoogle(...)`), GitHub (`AddOidcStarterGitHub(...)`), and Facebook (`AddOidcStarterFacebook(...)`) authentication.
+- Added `AddOidcStarterLoginProvider(...)` for registering a generic/custom authentication scheme as a login provider.
+- Added runtime provider discovery through `GET /api/auth/providers` and provider-targeted login through `GET /api/auth/login/{provider}`.
+- Added `Starter:DefaultLoginProvider` to select the provider used by the existing `GET /api/auth/login` endpoint; OpenID Connect remains the default when no override is configured.
+- Added provider-aware logout behavior. Built-in OpenID Connect continues to use configured remote sign-out; external and custom login providers end the local application session without attempting provider-side sign-out.
+- Extended `GET /api/auth/me` with optional, additive `externalIdentity` metadata for the authenticated provider and available profile details.
+
+### Compatibility and upgrade notes
+
+- Existing single-OpenID-Connect consumers can continue using their current configuration and `GET /api/auth/login` flow.
+- External login providers are opt-in; applications enable and configure only the providers they use.
+- `externalIdentity` is additive to the existing current-user response and does not replace existing fields.
+- No known breaking public API or configuration migration is required for existing 1.0.1 consumers.
+
 ## v1.0.1
 
 Hardening validation patch release.
