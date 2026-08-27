@@ -1,217 +1,121 @@
 # OIDC Starter
 
-OIDC Starter is a public reference implementation and reusable starter for OpenID Connect with
-Angular, ASP.NET Core, and Keycloak. It demonstrates both direct browser OIDC and a
-cookie-backed backend-for-frontend (BFF) pattern, with reusable package sources kept alongside a
-working sample app.
+**Provider-neutral authentication building blocks for Angular and ASP.NET Core.**
 
-The BFF path is the primary production-oriented direction. It already includes practical foundations
-for server-side OIDC sign-in, HTTP-only cookie sessions, antiforgery protection, authorization
-policies, role mapping, local Keycloak provisioning, and package-level tests. The reusable backend
-package has a stable `1.0.x` contract; the `1.0.1` backend package release is a hardening validation
-patch with no runtime behavior changes, no public API changes, and no breaking changes.
+OIDC Starter helps teams add a reusable, understandable authentication foundation without making the browser responsible for provider tokens. Its primary path is an ASP.NET Core backend-for-frontend (BFF): Angular talks to the BFF, the BFF coordinates sign-in with an identity provider, and the browser uses a protected application session.
 
-The repository contains:
+> ## [Try the live demo →](https://oidc-starter.mordalabs.com)
 
-- `src/OidcStarter.AspNetCore.Bff`: reusable ASP.NET Core BFF NuGet package source
-- `src/frontend/projects/oidc-starter-auth`: reusable Angular auth npm package source
-- `src/backend`: sample ASP.NET Core host that consumes the BFF package
-- `src/frontend`: sample Angular app that consumes the Angular auth package
-- `src/OidcStarter.AspNetCore.Bff.Tests`: automated tests for the reusable backend package
-- `infra/keycloak`: local Keycloak Docker Compose setup with automated realm import
-- `docs`: architecture and package release notes
+Try built-in OpenID Connect with **`demo` / `demo`**, or use your own Google or GitHub account. The demo also lets you inspect the normalized BFF session and current-user response.
 
-## Package Vs Sample Responsibilities
+| Backend package | Frontend package |
+| --- | --- |
+| [NuGet: `OidcStarter.AspNetCore.Bff`](https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/) | [npm: `@flying-bee/oidc-starter-auth`](https://www.npmjs.com/package/@flying-bee/oidc-starter-auth) |
 
-The reusable backend package owns generic BFF infrastructure: cookie/OIDC authentication,
-antiforgery endpoints, current-user projection, authorization policy helpers, configurable claim
-handling, and provider-agnostic role mapping extension points.
+## Why OIDC Starter
 
-The sample backend owns local app concerns: public/demo endpoints, development configuration, and the
-Keycloak-specific role mapper that reads roles from Keycloak access tokens. That provider-specific
-mapper is intentionally not built into the reusable package.
+- **BFF-first:** keep provider interaction behind an ASP.NET Core application session instead of exposing provider tokens through the browser current-user contract.
+- **Provider-neutral:** use the built-in OpenID Connect flow, add supported social providers when needed, or register a custom login provider.
+- **Designed for real hosting:** includes forwarded-header support for reverse-proxy deployments, secure cookie defaults, and antiforgery protection for package-provided state-changing BFF endpoints.
+- **Reusable on both sides:** pair the ASP.NET Core BFF package with optional Angular helpers for login, logout, current-user loading, provider discovery, and antiforgery initialization.
 
-The reusable Angular package owns frontend auth helpers for the sample flows. The sample Angular app
-owns presentation, environment selection, and local development wiring.
+## How the BFF flow fits together
 
-## Supported Auth Modes
+```text
+Browser / Angular frontend
+          │
+          │  /api/auth/*
+          ▼
+ASP.NET Core BFF ─────────────► OpenID Connect or social provider
+          │                              │
+          └──── protected application ◄──┘
+                 session cookie
+```
 
-| Mode | Status | Description |
+The frontend discovers the providers enabled by the server, starts the selected login flow, and reads normalized session information from `GET /api/auth/me`. The package supports provider-aware login and logout while leaving application authorization, tenant access, and business rules with the consuming application.
+
+## External login providers
+
+OpenID Connect is the built-in, default-compatible BFF flow. Google, GitHub, and Facebook registrations are opt-in. Applications can also register another provider through the generic login-provider extension point; runtime provider discovery keeps the frontend chooser aligned with the options actually configured by the server.
+
+| Provider | Package capability | Production live demo |
 | --- | --- | --- |
-| `spa` | Reference mode | The Angular app signs in directly with Keycloak using Authorization Code Flow with PKCE. |
-| `bff` | Primary starter path | The Angular app delegates login/logout/user lookup to the ASP.NET Core backend, which keeps OIDC tokens server-side behind a cookie session. |
+| OpenID Connect | Built-in BFF flow | Available — use `demo` / `demo` |
+| Google | Opt-in registration | Available — use your Google account |
+| GitHub | Opt-in registration | Available — use your GitHub account |
+| Facebook | Opt-in registration | Implemented, but not enabled on the public production demo while Meta Business Verification is pending |
+| Custom provider | Generic registration extension point | Application-defined |
 
-The development frontend currently defaults to `bff` mode in
-`src/frontend/src/environments/environment.development.ts`.
+The production demo intentionally reflects its runtime configuration; it is not a complete list of every provider the packages support.
 
-## Prerequisites
+## Packages
 
-- .NET SDK 9
-- Node.js and npm
-- Docker Desktop or another Docker Compose compatible runtime
-- Local Keycloak for development
+### ASP.NET Core BFF
 
-Detailed local Keycloak setup is documented in
-[`infra/keycloak/README.md`](infra/keycloak/README.md), including
-the imported realm, clients, test user, sample role, and local development credentials.
-
-## Run Keycloak
-
-From the repository root:
+Install the backend package:
 
 ```powershell
-cd .\infra\keycloak
-docker compose up -d
+dotnet add package OidcStarter.AspNetCore.Bff
 ```
 
-Keycloak runs at `http://localhost:8080` and imports the local development realm automatically on a
-fresh start. The import creates the SPA and BFF clients, `testuser`, and the sample realm role
-`my-test-role`.
+Register the BFF services and middleware in an ASP.NET Core host:
 
-For reset/reimport steps, see [`infra/keycloak/README.md`](infra/keycloak/README.md).
+```csharp
+builder.Services.AddOidcStarterBff(builder.Configuration);
 
-Stop Keycloak with:
+var app = builder.Build();
+app.UseOidcStarterBff();
+app.MapControllers();
+```
+
+The package provides cookie/OIDC configuration, BFF endpoints, authorization foundations, current-user projection, role-mapping extension points, antiforgery support, and forwarded-header configuration. See the [backend package guide](src/OidcStarter.AspNetCore.Bff/README.md) for configuration, security, and hosting details.
+
+### Angular integration
+
+Install the optional Angular package:
 
 ```powershell
-docker compose down
+npm install @flying-bee/oidc-starter-auth
 ```
 
-## Run Backend
+Use `provideBffAuth(...)` and `BffAuthService` for BFF current-user loading, login redirects, provider discovery, logout, and antiforgery setup. The package also retains an SPA/reference wrapper for the sample's direct OIDC flow. See the [Angular package guide](src/frontend/projects/oidc-starter-auth/README.md) for setup details.
 
-From the repository root:
+## Quick start with the sample
 
-```powershell
-dotnet restore
-dotnet run --project .\src\backend\Backend.csproj --launch-profile https
-```
+The repository includes a sample ASP.NET Core backend, Angular frontend, and local Keycloak environment.
 
-Development URLs:
+1. Start the local identity provider using the [Keycloak setup guide](infra/keycloak/README.md).
+2. Run `src/backend` with the HTTPS launch profile.
+3. From `src/frontend`, run `npm install` and `npm start`.
+4. Open `http://localhost:4200` and use the sample sign-in flow.
 
-- HTTPS: `https://localhost:7233`
-- HTTP: `http://localhost:5184`
+For the BFF and SPA reference modes, configuration, and security boundaries, see the [architecture overview](docs/architecture.md). The public demo deployment model is documented in [Public Demo Deployment](docs/public-demo-deployment.md).
 
-Useful endpoint:
+## Security and hosting notes
 
-- `GET https://localhost:7233/api/public/ping`
+OIDC Starter configures an HTTP-only, secure application cookie and antiforgery support for package-provided logout. Custom cookie-authenticated endpoints that change state should follow the same antiforgery contract. The BFF pipeline also applies forwarded-header handling so reverse-proxy deployments can establish the correct external request context.
 
-Backend OIDC settings live in:
+These are starter building blocks, not a substitute for application-specific authorization, secret storage, provider configuration, HTTPS, or production operations decisions.
 
-- `src/backend/appsettings.json`
-- `src/backend/appsettings.Development.json`
+## Repository map
 
-`Starter:FrontendOrigin` controls the allowed frontend origin for CORS and the redirect target
-after BFF login/logout.
+| Path | Purpose |
+| --- | --- |
+| `src/OidcStarter.AspNetCore.Bff` | Reusable ASP.NET Core BFF package |
+| `src/frontend/projects/oidc-starter-auth` | Reusable Angular authentication package |
+| `src/backend` | Sample BFF host |
+| `src/frontend` | Sample Angular application and public demo UI |
+| `infra/keycloak` | Local development identity-provider setup |
 
-## Run Frontend
+## Support and project links
 
-From the repository root:
-
-```powershell
-cd .\src\frontend
-npm install
-npm start
-```
-
-The frontend runs at `http://localhost:4200`.
-
-During local development, Angular uses `proxy.conf.json` to forward `/api` calls to
-`https://localhost:7233`.
-
-Frontend auth settings live in:
-
-- `src/frontend/src/environments/environment.development.ts`
-- `src/frontend/src/environments/environment.ts`
-- `src/frontend/src/environments/environment.production.ts`
-
-`authMode` selects `spa` or `bff`. `apiOrigin` is normally empty in development so calls use the
-Angular dev-server proxy.
-
-## Public Demo Deployment
-
-For the public HTTPS demo topology, public-demo frontend build, backend configuration, provider
-callbacks, and minimum availability check, see
-[Public Demo Deployment](docs/public-demo-deployment.md).
-
-## Published Packages
-
-The reusable package sources live in this repository and are also published for external use:
-
-- NuGet: [`OidcStarter.AspNetCore.Bff`](https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/)
-- npm: [`@flying-bee/oidc-starter-auth`](https://www.npmjs.com/package/@flying-bee/oidc-starter-auth)
-
-The local sample apps still consume the in-repository projects so the package sources remain easy to
-develop and verify alongside the sample.
+- [Live demo](https://oidc-starter.mordalabs.com)
+- [Source repository](https://github.com/MordaLabs/oidc-starter)
+- [Issues](https://github.com/MordaLabs/oidc-starter/issues)
+- [Security policy](SECURITY.md) and [private security reporting](mailto:security@mordalabs.com)
+- [Privacy Policy](https://oidc-starter.mordalabs.com/privacy.html) · [Terms of Use](https://oidc-starter.mordalabs.com/terms.html) · [Data Deletion](https://oidc-starter.mordalabs.com/data-deletion.html)
+- Contact Morda Labs: [contact@mordalabs.com](mailto:contact@mordalabs.com)
 
 ## License
 
-OIDC Starter core packages and repository content are licensed under the MIT License. See
-[LICENSE](LICENSE).
-
-## Backend Package Coverage
-
-The backend package has focused automated tests for its core reusable behavior:
-
-- default flat role mapping
-- custom role mapper composition and role claims transformation
-- current-user role projection
-- login/logout/current-user/session-state behavior
-- CSRF origin validation
-- antiforgery token issuing, request validation, and unsafe endpoint protection
-- unauthorized and forbidden API behavior
-- package/sample build compatibility evidence
-- package service and authorization policy registration
-
-Run them from the repository root:
-
-```powershell
-dotnet test .\src\OidcStarter.AspNetCore.Bff.Tests\OidcStarter.AspNetCore.Bff.Tests.csproj
-```
-
-## Test SPA Mode
-
-1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `spa`.
-2. Start local Keycloak with the imported realm. See
-   [`infra/keycloak/README.md`](infra/keycloak/README.md) for the
-   realm, client, test user, and local development credentials created automatically.
-3. Start the frontend with `npm start`.
-4. Open `http://localhost:4200`.
-5. Use the login button and sign in through Keycloak.
-
-Expected result: the frontend shows the authenticated user claims from Keycloak. Backend ping can
-still be used as a public connectivity check.
-
-## Test BFF Mode
-
-1. In `src/frontend/src/environments/environment.development.ts`, set `authMode` to `bff`.
-2. Start local Keycloak with the imported realm. See
-   [`infra/keycloak/README.md`](infra/keycloak/README.md) for the
-   realm, clients, test user, local development credentials, and the imported BFF client secret
-   that matches `src/backend/appsettings.Development.json`.
-3. Start the backend with the HTTPS launch profile.
-4. Start the frontend with `npm start`.
-5. Open `http://localhost:4200`.
-6. Use the login button and sign in through Keycloak.
-
-Expected result: the backend completes the OIDC flow, sets the local session cookie, and
-`/api/auth/me` returns the current user and mapped roles to the frontend. With the imported local
-realm, `testuser` has `my-test-role` assigned automatically.
-
-## Current Release Readiness
-
-`OidcStarter.AspNetCore.Bff` `v1.0.1` is a hardening validation patch release.
-
-- Breaking changes: none.
-- Public API changes: none.
-- Runtime behavior changes: none.
-- Audit-driven validation added focused coverage for login/logout/current-user/session-state
-  behavior, antiforgery token issuing and request validation, unsafe endpoint protection,
-  unauthorized/forbidden API behavior, and package/sample build compatibility.
-- Final handoff validation passed the BFF test project with 24/24 tests and an audit smoke with
-  0 findings.
-- SPA mode is retained as a reference flow; BFF mode remains the recommended starter path for
-  applications that want server-side token handling.
-
-## More Notes
-
-See [`docs/architecture.md`](docs/architecture.md) for a short overview of the two auth modes,
-security assumptions, antiforgery contract, and role-mapping approach.
+OIDC Starter is licensed under the [MIT License](LICENSE).
