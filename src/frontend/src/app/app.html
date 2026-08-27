@@ -147,6 +147,21 @@
               <dt>OIDC configured</dt>
               <dd>{{ ping.oidcConfigured ? 'Yes' : 'No' }}</dd>
             </div>
+            @if (hasProviderDiscoveryResult()) {
+              <div class="runtime-provider-statuses">
+                <dt>Providers configured</dt>
+                <dd>
+                  <ul aria-label="Built-in provider configuration">
+                    @for (provider of builtInProviders; track provider.id) {
+                      <li>
+                        <span>{{ provider.displayName }}</span>
+                        <strong>{{ isBuiltInProviderConfigured(provider.id) ? 'Yes' : 'No' }}</strong>
+                      </li>
+                    }
+                  </ul>
+                </dd>
+              </div>
+            }
             <div>
               <dt>Last checked</dt>
               <dd>
@@ -442,6 +457,7 @@ login(providerId: string): void &#123;
         <a href="#contact">Contact</a>
         <a href="/privacy.html">Privacy</a>
         <a href="/terms.html">Terms</a>
+        <a href="/data-deletion.html">Data deletion</a>
       </nav>
     </div>
   </div>

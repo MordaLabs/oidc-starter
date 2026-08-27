@@ -24,6 +24,12 @@ export class App {
   protected readonly authMode = environment.authMode;
   protected readonly pingResult = signal<PingResponse | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly builtInProviders = [
+    { id: 'oidc', displayName: 'OpenID Connect' },
+    { id: 'google', displayName: 'Google' },
+    { id: 'github', displayName: 'GitHub' },
+    { id: 'facebook', displayName: 'Facebook' },
+  ] as const;
 
   constructor() {
     this.loadPing();
@@ -44,6 +50,14 @@ export class App {
 
   protected isBffAuthenticated(): boolean {
     return this.bffAuthView()?.isSessionAuthenticated() ?? false;
+  }
+
+  protected hasProviderDiscoveryResult(): boolean {
+    return this.bffAuthView()?.hasDiscoveredLoginProviders() ?? false;
+  }
+
+  protected isBuiltInProviderConfigured(providerId: string): boolean {
+    return this.bffAuthView()?.isLoginProviderConfigured(providerId) ?? false;
   }
 
   protected formatUtcTimestamp(timestamp: string | null | undefined): string {

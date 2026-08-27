@@ -145,6 +145,7 @@
 
       <h2 id="sign-in-dialog-title">Welcome back</h2>
       <p id="sign-in-dialog-description">Choose a provider to continue</p>
+      <p class="demo-account-hint"><strong>Trying OpenID Connect?</strong> Use the demo account <code>demo</code> / <code>demo</code>. These credentials apply only to OpenID Connect; Google, GitHub, and Facebook use your own provider account.</p>
 
       <div class="dialog-actions">
         @if (isSignInDialogOpen() && (service.isDiscoveringLoginProviders() || service.loginProviders() === null && !service.providerDiscoveryError())) {
