@@ -773,6 +773,52 @@ dd {
   margin-top: 1rem;
   color: var(--muted);
 }
+.footer-content {
+  display: grid;
+  grid-template-columns: minmax(20rem, 1fr) minmax(0, 2.5fr);
+  align-items: start;
+  gap: 2.5rem;
+}
+
+.footer-identity {
+  min-width: 0;
+}
+
+.footer-identity small {
+  white-space: nowrap;
+}
+
+.footer-navigation {
+  display: grid;
+  min-width: 0;
+  justify-items: end;
+  gap: 0.85rem;
+}
+
+.footer-primary-navigation,
+.footer-legal-navigation {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem 1rem;
+}
+
+.footer-content nav a {
+  white-space: nowrap;
+}
+
+.footer-primary-navigation a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.footer-legal-navigation {
+  font-size: 0.85rem;
+}
+
+.footer-legal-navigation a {
+  color: var(--muted);
+  font-weight: 600;
+}
 
 :host a:focus-visible,
 :host button:focus-visible {
@@ -830,11 +876,25 @@ dd {
   }
 
   .footer-content {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .get-started-guide {
     justify-self: start;
+  }
+
+  .footer-navigation {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .footer-primary-navigation,
+  .footer-legal-navigation {
+    justify-content: flex-start;
+  }
+
+  .footer-identity small {
+    white-space: normal;
   }
 
   .footer-repository {

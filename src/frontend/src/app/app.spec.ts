@@ -279,8 +279,17 @@ describe('App', () => {
     expect(repositoryLinks[0].textContent?.trim()).toBe('View on GitHub');
     expect(repositoryLinks[0].target).toBe('_blank');
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
-    expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact', '/privacy.html', '/terms.html', '/data-deletion.html']);
+    const primaryFooterLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Footer primary navigation"] a'));
+    expect(primaryFooterLinks.map((link) => link.getAttribute('href')))
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact']);
+    expect(primaryFooterLinks.map((link) => link.textContent?.trim()))
+      .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Contact']);
+
+    const legalFooterLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Footer legal navigation"] a'));
+    expect(legalFooterLinks.map((link) => link.getAttribute('href')))
+      .toEqual(['/privacy.html', '/terms.html', '/data-deletion.html']);
+    expect(legalFooterLinks.map((link) => link.textContent?.trim()))
+      .toEqual(['Privacy', 'Terms', 'Data deletion']);
   });
 
   it('formats the ping timestamp as UTC while preserving the backend value', () => {
