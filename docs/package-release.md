@@ -1,6 +1,6 @@
 # Package Release Notes
 
-The reusable backend and frontend packages are published. This note records the local pack and maintainer publish commands.
+This note records the local pack and maintainer publish commands for the reusable backend and frontend packages. Publication status should be verified from the relevant registry.
 
 ## NuGet: OidcStarter.AspNetCore.Bff
 
@@ -24,14 +24,25 @@ dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNe
 ## npm: @flying-bee/oidc-starter-auth
 
 ### v0.2.0
+
 Backward-compatible feature release for provider-aware BFF integration.
 
-Angular compatibility release `0.1.1` is complete and published to npm. Angular 20.3+, Angular 21,
-and Angular 22 compatibility, the committed change, and committed-diff review are verified. The
-published artifact metadata was verified with `latest` pointing to `0.1.1`, `@angular/common` and
-`@angular/core` set to `^20.3.0 || ^21.0.0 || ^22.0.0`, `angular-auth-oidc-client` set to `^21.0.1`,
-and RxJS set to `~7.8.0`. No further compatibility implementation is required. The compatibility
-branch still needs to be merged to `master`; no tag or release has been created.
+- Adds provider-targeted `BffAuthService.login(providerId)` while retaining the existing default `login()` flow.
+- Adds `getLoginProviders()` and `BffLoginProvider` for runtime provider discovery and consumer-owned provider pickers.
+- Adds optional `BffExternalIdentity` data through `BffCurrentUser.externalIdentity`.
+- Existing default/single-provider BFF consumers require no mandatory migration.
+- Existing SPA/reference-mode consumers require no migration.
+- Declared peer compatibility remains Angular 20.3+, Angular 21, and Angular 22.
+
+Publication status should be verified from the npm registry.
+
+### v0.1.1 — historical
+
+Angular compatibility maintenance release. Angular 20.3+, Angular 21, and Angular 22 compatibility,
+the committed change, and committed-diff review were verified. The published artifact metadata was
+verified with `latest` pointing to `0.1.1`, `@angular/common` and `@angular/core` set to
+`^20.3.0 || ^21.0.0 || ^22.0.0`, `angular-auth-oidc-client` set to `^21.0.1`, and RxJS set to
+`~7.8.0`. No further compatibility implementation was required; the release was published to npm.
 
 From `src/frontend`:
 
