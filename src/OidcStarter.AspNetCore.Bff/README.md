@@ -301,7 +301,7 @@ trust arbitrary forwarded headers from the public internet.
 
 ## Release Readiness Notes
 
-The package has a stable `1.0.x` API. Default role mapping still reads flat role claims, and
+The package provides a backward-compatible BFF API. Default role mapping still reads flat role claims, and
 provider-specific role extraction remains app-owned.
 
 Integration requirements consumers should know before enabling production settings:
@@ -342,7 +342,7 @@ The package is written to `src/OidcStarter.AspNetCore.Bff/bin/Release`.
 Publication command for maintainers:
 
 ```powershell
-dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.1.0.1.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
+dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<VERSION>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
 Only publish after confirming the target version, release notes, and registry credentials.
