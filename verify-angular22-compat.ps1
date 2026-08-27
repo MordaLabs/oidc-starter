@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $env:NG_CLI_ANALYTICS = 'false'
 
-$ExpectedVersion = '0.1.1'
+$ExpectedVersion = '0.2.0'
 $ExpectedPeers = '^20.3.0 || ^21.0.0 || ^22.0.0'
 
 function Run {
@@ -98,7 +98,7 @@ $temp = Join-Path ([IO.Path]::GetTempPath()) ("oidc-auth-compat-" + [guid]::NewG
 New-Item -ItemType Directory -Path $temp | Out-Null
 
 try {
-    Run 'Pack 0.1.1 artifact' 'npm' @('pack',$dist,'--pack-destination',$temp) $repo
+    Run 'Pack 0.2.0 artifact' 'npm' @('pack',$dist,'--pack-destination',$temp) $repo
     $tarball = Get-ChildItem $temp -Filter '*.tgz' -File | Select-Object -First 1
     if ($null -eq $tarball) { throw "Tarball not created." }
 
