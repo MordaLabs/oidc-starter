@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Facebook user data deletion information for the OIDC Starter public demo." />
+    <title>Data Deletion | OIDC Starter</title>
+    <style>
+      :root { color: #1c2823; background: #f7f5f0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      a { color: #155d4d; }
+      a:focus-visible { outline: 3px solid #236bff; outline-offset: 3px; }
+      .site-header { border-bottom: 1px solid #cbd5ca; background: rgba(247, 245, 240, 0.96); }
+      .page-container { width: min(60rem, calc(100% - 2rem)); margin: 0 auto; }
+      .header-content { display: flex; min-height: 4.5rem; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+      .brand { color: #1c2823; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; }
+      main { padding: 4rem 0; }
+      .eyebrow { margin: 0; color: #155d4d; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+      h1, h2 { color: #172033; }
+      h1 { margin: 0.75rem 0 0; font-size: clamp(2.25rem, 7vw, 3.5rem); letter-spacing: -0.04em; }
+      h2 { margin-top: 2.5rem; font-size: 1.35rem; }
+      p { color: #41506b; line-height: 1.7; }
+      .notice { margin-top: 2rem; padding: 1.25rem; border-left: 3px solid #155d4d; background: #ffffff; }
+      footer { border-top: 1px solid #cbd5ca; padding: 1.5rem 0 2.25rem; background: #e5ebe4; }
+      footer p { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-container header-content">
+        <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
+        <a href="/">Back to demo</a>
+      </div>
+    </header>
+
+    <main>
+      <article class="page-container">
+        <p class="eyebrow">Morda Labs public demo</p>
+        <h1>Facebook user data deletion</h1>
+
+        <p>OIDC Starter is a public technical demo operated by Morda Labs. The hosted demo does not have a separate application database or dedicated user-profile store for Facebook profile information.</p>
+
+        <h2>Session and token handling</h2>
+        <p>The Facebook authentication handler does not save Facebook provider access or refresh tokens. Signing out ends the application's authenticated session, subject to normal browser and session-cookie behavior.</p>
+
+        <h2>Facebook account data</h2>
+        <p>Signing out does not delete information held independently by Facebook. Facebook controls data held in your Facebook account under Facebook's own policies.</p>
+
+        <h2>Questions or concerns</h2>
+        <p>If you have a question or believe information related to your demo interaction needs attention, email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. To report a security issue, email <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
+
+        <aside class="notice">
+          <strong>Related pages.</strong>
+          <p>Read the <a href="/privacy.html">Privacy Policy</a> and <a href="/terms.html">Terms of Use</a> for more information about this public demo.</p>
+        </aside>
+      </article>
+    </main>
+
+    <footer>
+      <div class="page-container">
+        <p>OIDC Starter · Morda Labs · <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Use</a> · <a href="https://github.com/MordaLabs/oidc-starter">View the source</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

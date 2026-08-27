@@ -280,7 +280,7 @@ describe('App', () => {
     expect(repositoryLinks[0].target).toBe('_blank');
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     expect(Array.from(compiled.querySelectorAll('nav[aria-label="Footer navigation"] a')).map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact', '/privacy.html', '/terms.html']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact', '/privacy.html', '/terms.html', '/data-deletion.html']);
   });
 
   it('formats the ping timestamp as UTC while preserving the backend value', () => {
@@ -306,6 +306,51 @@ describe('App', () => {
     expect(compiled.querySelector('.runtime-details')?.textContent).toContain('Yes');
   });
 
+  it('renders all built-in provider statuses from discovery', () => {
+    if (environment.authMode !== 'bff') {
+      return;
+    }
+
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+
+    httpTestingController.expectOne(`${environment.apiOrigin.replace(/\/$/, '')}/api/auth/providers`).flush([
+      { id: 'oidc', displayName: 'OpenID Connect', isDefault: true, loginUrl: '/ignored/oidc' },
+      { id: 'google', displayName: 'Google', isDefault: false, loginUrl: '/ignored/google' },
+      { id: 'github', displayName: 'GitHub', isDefault: false, loginUrl: '/ignored/github' },
+      { id: 'facebook', displayName: 'Facebook', isDefault: false, loginUrl: '/ignored/facebook' },
+    ]);
+    fixture.detectChanges();
+
+    const statuses = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.runtime-provider-statuses li'),
+    ).map((item) => item.textContent?.replace(/\s+/g, ' ').trim());
+    expect(statuses).toEqual(['OpenID Connect Yes', 'Google Yes', 'GitHub Yes', 'Facebook Yes']);
+  });
+
+  it('renders absent built-in providers as not configured', () => {
+    if (environment.authMode !== 'bff') {
+      return;
+    }
+
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+
+    httpTestingController.expectOne(`${environment.apiOrigin.replace(/\/$/, '')}/api/auth/providers`).flush([
+      { id: 'oidc', displayName: 'OpenID Connect', isDefault: true, loginUrl: '/ignored/oidc' },
+      { id: 'google', displayName: 'Google', isDefault: false, loginUrl: '/ignored/google' },
+    ]);
+    fixture.detectChanges();
+
+    const statuses = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.runtime-provider-statuses li'),
+    ).map((item) => item.textContent?.replace(/\s+/g, ' ').trim());
+    expect(statuses).toEqual(['OpenID Connect Yes', 'Google Yes', 'GitHub No', 'Facebook No']);
+  });
   it('retains the runtime loading and error states for the unchanged ping endpoint', () => {
     const fixture = TestBed.createComponent(App);
     const apiOrigin = environment.apiOrigin.replace(/\/$/, '');

@@ -305,6 +305,22 @@ dd {
   cursor: pointer;
 }
 
+.demo-account-hint {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 3px solid #236bff;
+  color: #41506b;
+  background: #f4f7fb;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.demo-account-hint code {
+  color: #172033;
+  font-family: Consolas, 'Courier New', monospace;
+  font-weight: 700;
+}
+
 .dialog-actions {
   display: grid;
   gap: 0.75rem;

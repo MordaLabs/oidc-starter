@@ -84,6 +84,9 @@ describe('BffAuthViewComponent', () => {
     expect(dialog().open).toBeTrue();
     expect(dialog().textContent).toContain('Welcome back');
     expect(dialog().textContent).toContain('Choose a provider to continue');
+    expect(dialog().textContent).toContain('Trying OpenID Connect?');
+    expect(dialog().textContent).toContain('demo / demo');
+    expect(dialog().textContent).toContain('Google, GitHub, and Facebook use your own provider account.');
     expect(dialog().textContent).toContain('Loading sign-in options...');
     expect(providerActions()).toHaveSize(0);
     expect(auth.login).not.toHaveBeenCalled();

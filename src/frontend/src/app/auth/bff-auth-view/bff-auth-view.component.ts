@@ -35,6 +35,18 @@ export class BffAuthViewComponent {
     return this.service.isLoggingOut();
   }
 
+  public hasDiscoveredLoginProviders(): boolean {
+    return this.service.loginProviders() !== null;
+  }
+
+  public isLoginProviderConfigured(providerId: string): boolean {
+    const normalizedProviderId = providerId.trim().toLowerCase();
+
+    return this.service.loginProviders()?.some(
+      (provider) => provider.id.trim().toLowerCase() === normalizedProviderId,
+    ) ?? false;
+  }
+
   public openSignInDialog(focusReturnTarget?: HTMLElement): void {
     if (this.service.isLoading() || this.service.isLoggingOut() || this.service.authenticated()) {
       return;
