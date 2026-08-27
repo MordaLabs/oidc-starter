@@ -14,11 +14,14 @@ Version `0.1.1` is human-verified for Angular 20.3+, Angular 21, and Angular 22.
 npm install @flying-bee/oidc-starter-auth
 ```
 
+This README describes the package source on the current `master` branch. The published npm `0.1.1` package should be evaluated by its published artifact and release information; do not assume it contains every current-source provider capability described here.
+
 ## What It Provides
 
 - `provideBffAuth(config)` to configure backend-for-frontend auth endpoints.
-- `BffAuthService` for current-user loading, login redirect, antiforgery initialization, and logout form post.
-- `BffCurrentUser` for the `/api/auth/me` response contract.
+- `BffAuthService` for current-user loading, default or provider-targeted login redirects, provider discovery, antiforgery initialization, and logout form posts.
+- `BffLoginProvider` for runtime provider-picker data from `GET /api/auth/providers`.
+- `BffCurrentUser` and optional `BffExternalIdentity` for the normalized `/api/auth/me` response.
 - `provideSpaOidcAuth(config)` for the sample SPA/reference mode wrapper around `angular-auth-oidc-client`.
 - `SpaAuthConfig` and `BffAuthConfig` configuration contracts.
 
@@ -64,7 +67,11 @@ export class AuthButtonComponent {
   readonly auth = inject(BffAuthService);
 
   login(): void {
-    this.auth.login();
+    this.auth.login(); // GET /api/auth/login: the BFF default provider
+  }
+
+  loginWith(providerId: string): void {
+    this.auth.login(providerId); // GET /api/auth/login/{providerId}
   }
 
   logout(): void {
@@ -72,6 +79,24 @@ export class AuthButtonComponent {
   }
 }
 ```
+
+## BFF provider discovery
+
+`BffAuthService.login()` preserves the default single-provider flow by navigating to `GET /api/auth/login`. `BffAuthService.login(providerId)` navigates to the provider-targeted login endpoint and rejects an empty provider id.
+
+Call `getLoginProviders()` to retrieve `readonly BffLoginProvider[]` from `GET /api/auth/providers`. Each entry contains `id`, `displayName`, `isDefault`, and `loginUrl`. The BFF is the runtime source of truth for which providers are enabled; consuming applications own the actual provider-picker UI and may continue to render a single default login button.
+
+`BffCurrentUser.externalIdentity` is optional (or `null`) and has the `BffExternalIdentity` shape:
+
+```ts
+type BffExternalIdentity = {
+  readonly providerId: string;
+  readonly emailVerified?: boolean | null;
+  readonly pictureUrl?: string | null;
+};
+```
+
+Treat external identity fields as display metadata supplied by the BFF, not as a replacement for application authorization decisions.
 
 ## BFF Antiforgery
 

@@ -14,9 +14,10 @@ dotnet add package OidcStarter.AspNetCore.Bff
 
 - `AddOidcStarterBff(configuration)` for cookie/OIDC auth, CORS, forwarded headers, authorization, and BFF services.
 - `UseOidcStarterBff()` for the expected middleware order.
-- `/api/auth/login`, `/api/auth/me`, `/api/auth/csrf`, and `/api/auth/logout` endpoints.
+- Built-in OpenID Connect login plus opt-in Google, Facebook, GitHub, and generic external login-provider registration.
+- `/api/auth/login`, `/api/auth/login/{provider}`, `/api/auth/providers`, `/api/auth/me`, `/api/auth/csrf`, and `/api/auth/logout` endpoints.
 - `OidcOptions` and `OidcStarterBffOptions` configuration models.
-- `ICurrentUserService` and `CurrentUserResponse` for current-user claim mapping.
+- `ICurrentUserService` and `CurrentUserResponse` for current-user claim mapping, including additive external identity metadata when available.
 - A lightweight origin check for logout form posts.
 - Antiforgery token groundwork for cookie-authenticated BFF endpoints.
 - Authorization policy constants and policy-builder helpers.
@@ -26,9 +27,11 @@ dotnet add package OidcStarter.AspNetCore.Bff
 
 The package keeps its public surface intentionally small:
 
-- `AddOidcStarterBff(configuration)` registers the BFF services, controllers, authentication,
-  antiforgery, forwarded-header options, CORS, and authorization policies.
+- `AddOidcStarterBff(configuration)` registers the built-in `oidc` provider, BFF services,
+  controllers, authentication, antiforgery, forwarded-header options, CORS, and authorization policies.
 - `UseOidcStarterBff()` applies the expected middleware order.
+- `AddOidcStarterGoogle(...)`, `AddOidcStarterFacebook(...)`, and `AddOidcStarterGitHub(...)` add the corresponding opt-in external handlers and provider metadata.
+- `AddOidcStarterLoginProvider(...)` registers metadata for an authentication scheme that the consuming application has configured separately.
 - `AddOidcStarterRoleMapper<TMapper>()` registers provider-specific role extraction logic while
   preserving the default flat-claim mapper.
 - `OidcOptions`, `OidcStarterBffOptions`, and `RequiredClaimOptions` describe supported
@@ -64,6 +67,7 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
 {
   "Starter": {
     "FrontendOrigin": "http://localhost:4200",
+    "DefaultLoginProvider": "oidc",
     "AllowedForwardedHosts": [ "localhost" ],
     "KnownForwardedProxies": [],
     "KnownForwardedNetworks": [],
@@ -92,6 +96,59 @@ The sample backend keeps sample-only endpoints such as `/api/public/ping` in its
   }
 }
 ```
+
+`Starter:DefaultLoginProvider` controls the provider challenged by the existing `GET /api/auth/login` route. It defaults to `oidc` and must name a registered provider. Leaving it at the default preserves the single-OIDC-consumer flow.
+
+## External Login Providers
+
+`AddOidcStarterBff(...)` registers the built-in OpenID Connect provider with the `oidc` provider id. Add a social provider only when the consuming host has the required provider credentials and callback registration:
+
+```csharp
+var google = builder.Configuration.GetSection("ExternalLogin:Google");
+if (google.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterGoogle(google.GetSection("Options"));
+}
+
+var github = builder.Configuration.GetSection("ExternalLogin:GitHub");
+if (github.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterGitHub(github.GetSection("Options"));
+}
+
+var facebook = builder.Configuration.GetSection("ExternalLogin:Facebook");
+if (facebook.GetValue<bool>("Enabled"))
+{
+    builder.Services.AddOidcStarterFacebook(facebook.GetSection("Options"));
+}
+```
+
+The package assigns the provider ids `google`, `github`, and `facebook`. The external handler options require provider credentials and accept a local absolute callback path. The default paths are `/signin-google`, `/signin-github`, and `/signin-facebook`; register the matching public HTTPS callback URL with the provider and route that path to the BFF. Do not place client secrets in a browser bundle.
+
+For another handler, configure that authentication scheme in the consuming application, then register its discovery and login metadata separately:
+
+```csharp
+builder.Services.AddOidcStarterLoginProvider(
+    providerId: "contoso",
+    displayName: "Contoso",
+    authenticationScheme: "Contoso");
+```
+
+Provider ids are route-safe lowercase ASCII identifiers. Generic registration does not add or configure the referenced authentication handler.
+
+### Provider discovery and login
+
+- `GET /api/auth/providers` returns the enabled providers with `id`, `displayName`, `isDefault`, and a provider-specific `loginUrl`.
+- `GET /api/auth/login` challenges `Starter:DefaultLoginProvider`.
+- `GET /api/auth/login/{provider}` challenges a registered provider id; an unknown provider returns `404`.
+
+Existing consumers can continue to call `GET /api/auth/login` and need not use discovery or provider-targeted login.
+
+### Session, logout, and external identity
+
+All registered providers establish the common BFF cookie session. `/api/auth/me` retains its existing normalized user fields and can add `externalIdentity` with the provider id plus available `emailVerified` and `pictureUrl` fields. Consumers should treat that object as optional.
+
+Logout always clears the local BFF cookie session. The built-in OIDC provider also performs its configured remote sign-out flow. Google, GitHub, Facebook, and generic providers use local-session-only logout; the package does not request remote sign-out from them.
 
 ## Security And Hosting Notes
 
