@@ -1,14 +1,28 @@
 # OidcStarter.AspNetCore.Bff
 
-Reusable ASP.NET Core backend-for-frontend auth building blocks for OIDC Starter.
+**BFF-first ASP.NET Core authentication building blocks with secure cookie-backed application sessions.**
 
-This package is published to NuGet as `OidcStarter.AspNetCore.Bff`. The sample backend in this repository consumes the in-repository project via project reference so changes can be developed and verified locally.
+`OidcStarter.AspNetCore.Bff` provides built-in OpenID Connect as the default flow, opt-in Google, GitHub, and Facebook providers, and generic custom login-provider registration. Existing consumers can continue using the default single-OIDC login endpoint.
+
+[Live demo](https://oidc-starter.mordalabs.com) · [Repository](https://github.com/MordaLabs/oidc-starter)
 
 ## Install
 
 ```powershell
 dotnet add package OidcStarter.AspNetCore.Bff
 ```
+
+## Provider capabilities
+
+| Provider type | Package capability |
+| --- | --- |
+| OpenID Connect | Built-in default flow |
+| Google | Opt-in registration |
+| GitHub | Opt-in registration |
+| Facebook | Opt-in registration |
+| Custom provider | Generic registration extension point |
+
+Provider availability in a running application or demo depends on its backend configuration; the table describes package capability.
 
 ## What It Provides
 
