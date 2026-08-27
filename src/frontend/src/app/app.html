@@ -443,22 +443,26 @@ login(providerId: string): void &#123;
     </div>
 
     <div class="footer-content">
-      <div>
+      <div class="footer-identity">
         <a class="brand" href="#overview">OIDC Starter</a>
-        <small>Provider-neutral BFF authentication for Angular + ASP.NET Core <i>by Morda Labs</i></small>
+        <small>Provider-neutral BFF authentication for Angular + ASP.NET Core <i>· by Morda Labs</i></small>
       </div>
-      <nav aria-label="Footer navigation">
-        <a href="#overview">Overview</a>
-        <a href="#providers">Providers</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#demo">Live demo</a>
-        <a href="#security">Security</a>
-        <a href="#get-started">Get started</a>
-        <a href="#contact">Contact</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/terms.html">Terms</a>
-        <a href="/data-deletion.html">Data deletion</a>
-      </nav>
+      <div class="footer-navigation">
+        <nav class="footer-primary-navigation" aria-label="Footer primary navigation">
+          <a href="#overview">Overview</a>
+          <a href="#providers">Providers</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#demo">Live demo</a>
+          <a href="#security">Security</a>
+          <a href="#get-started">Get started</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <nav class="footer-legal-navigation" aria-label="Footer legal navigation">
+          <a href="/privacy.html">Privacy</a>
+          <a href="/terms.html">Terms</a>
+          <a href="/data-deletion.html">Data deletion</a>
+        </nav>
+      </div>
     </div>
   </div>
 </footer>
