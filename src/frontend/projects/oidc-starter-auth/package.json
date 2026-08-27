@@ -1,7 +1,7 @@
 {
   "name": "@flying-bee/oidc-starter-auth",
-  "version": "0.1.1",
-  "description": "Reusable Angular auth building blocks for the OIDC Starter sample.",
+  "version": "0.2.0",
+  "description": "Reusable Angular BFF authentication building blocks with provider discovery and provider-targeted login.",
   "author": "Morda Labs",
   "license": "MIT",
   "repository": {
@@ -20,7 +20,9 @@
     "angular",
     "oidc",
     "bff",
-    "authentication"
+    "authentication",
+    "external-login",
+    "provider-discovery"
   ],
   "peerDependencies": {
     "@angular/common": "^20.3.0 || ^21.0.0 || ^22.0.0",

@@ -6,16 +6,14 @@ This package is published to npm as `@flying-bee/oidc-starter-auth`. The sample 
 
 ## Angular Compatibility
 
-Version `0.1.1` is human-verified for Angular 20.3+, Angular 21, and Angular 22.
-
+Version `0.2.0` retains the declared Angular 20.3+, Angular 21, and Angular 22 peer compatibility.
 ## Install
 
 ```powershell
 npm install @flying-bee/oidc-starter-auth
 ```
 
-This README describes the package source on the current `master` branch. The published npm `0.1.1` package should be evaluated by its published artifact and release information; do not assume it contains every current-source provider capability described here.
-
+This README describes the package source for version `0.2.0`; npm publication status should be verified from the registry.
 ## What It Provides
 
 - `provideBffAuth(config)` to configure backend-for-frontend auth endpoints.

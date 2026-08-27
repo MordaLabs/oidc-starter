@@ -23,6 +23,9 @@ dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNe
 
 ## npm: @flying-bee/oidc-starter-auth
 
+### v0.2.0
+Backward-compatible feature release for provider-aware BFF integration.
+
 Angular compatibility release `0.1.1` is complete and published to npm. Angular 20.3+, Angular 21,
 and Angular 22 compatibility, the committed change, and committed-diff review are verified. The
 published artifact metadata was verified with `latest` pointing to `0.1.1`, `@angular/common` and
