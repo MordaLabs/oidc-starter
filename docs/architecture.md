@@ -23,7 +23,7 @@ In `bff` mode, the Angular application uses the ASP.NET Core BFF as its authenti
 
 `AddOidcStarterBff(...)` always registers the built-in `oidc` provider. Google, GitHub, Facebook, and generic handlers are opt-in package capabilities registered by the consuming backend. The running backend's configuration therefore determines what discovery returns; package support is not the same as a provider being enabled in a particular sample or deployment.
 
-The frontend loads `/api/auth/me` to establish session state. When unauthenticated, it can load `/api/auth/providers` and render its own chooser. `@flying-bee/oidc-starter-auth` provides the discovery and navigation APIs, while the consuming application owns the provider-picker UI. Existing consumers can continue to call the default login endpoint without implementing a chooser.
+The frontend loads `/api/auth/me` to establish session state. When unauthenticated, it can load `/api/auth/providers` and render its own chooser. `@mordalabs/oidc-starter-auth` provides the discovery and navigation APIs, while the consuming application owns the provider-picker UI. Existing consumers can continue to call the default login endpoint without implementing a chooser.
 
 ### Provider-aware session behavior
 

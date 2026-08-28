@@ -1,8 +1,8 @@
-# @flying-bee/oidc-starter-auth
+# @mordalabs/oidc-starter-auth
 
 Reusable Angular auth building blocks for OIDC Starter.
 
-This package is published to npm as `@flying-bee/oidc-starter-auth`. The sample frontend in this repository consumes the in-repository Angular library through the workspace path alias `@flying-bee/oidc-starter-auth` so changes can be developed and verified locally.
+This README describes the maintained package source for version `0.2.0`, `@mordalabs/oidc-starter-auth`; npm publication status should be verified from the registry. The sample frontend in this repository consumes the in-repository Angular library through the workspace path alias `@mordalabs/oidc-starter-auth` so changes can be developed and verified locally.
 
 ## Angular Compatibility
 
@@ -10,10 +10,9 @@ Version `0.2.0` retains the declared Angular 20.3+, Angular 21, and Angular 22 p
 ## Install
 
 ```powershell
-npm install @flying-bee/oidc-starter-auth
+npm install @mordalabs/oidc-starter-auth
 ```
 
-This README describes the package source for version `0.2.0`; npm publication status should be verified from the registry.
 ## What It Provides
 
 - `provideBffAuth(config)` to configure backend-for-frontend auth endpoints.
@@ -26,7 +25,7 @@ This README describes the package source for version `0.2.0`; npm publication st
 ## Sample Frontend Usage
 
 ```ts
-import { provideBffAuth, provideSpaOidcAuth } from '@flying-bee/oidc-starter-auth';
+import { provideBffAuth, provideSpaOidcAuth } from '@mordalabs/oidc-starter-auth';
 
 const authProviders =
   environment.authMode === 'spa'
@@ -41,7 +40,7 @@ The sample app keeps demo layout, copy, mode switching, and backend ping present
 ```ts
 import { provideHttpClient } from '@angular/common/http';
 import { ApplicationConfig } from '@angular/core';
-import { provideBffAuth } from '@flying-bee/oidc-starter-auth';
+import { provideBffAuth } from '@mordalabs/oidc-starter-auth';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -58,7 +57,7 @@ export const appConfig: ApplicationConfig = {
 
 ```ts
 import { Component, inject } from '@angular/core';
-import { BffAuthService } from '@flying-bee/oidc-starter-auth';
+import { BffAuthService } from '@mordalabs/oidc-starter-auth';
 
 @Component({ selector: 'app-auth-button', template: '' })
 export class AuthButtonComponent {

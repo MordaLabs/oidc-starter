@@ -1,6 +1,6 @@
 # OIDC Starter sample frontend
 
-This Angular application is the repository sample and public-demo UI for OIDC Starter. It demonstrates the reusable `@flying-bee/oidc-starter-auth` package against the sample ASP.NET Core backend; it is not a standalone authentication product.
+This Angular application is the repository sample and public-demo UI for OIDC Starter. It demonstrates the reusable `@mordalabs/oidc-starter-auth` package against the sample ASP.NET Core backend; it is not a standalone authentication product.
 
 ## Authentication modes
 
@@ -11,7 +11,7 @@ The active mode and development settings are in `src/environments`. BFF mode nor
 
 ## External Login Providers in the sample
 
-In BFF mode, the sample asks `@flying-bee/oidc-starter-auth` for `GET /api/auth/providers` after it determines that no session is active. It renders the configured runtime provider choices and starts the chosen login through `login(provider.id)`. The backend configuration, not the frontend, determines which providers appear.
+In BFF mode, the sample asks `@mordalabs/oidc-starter-auth` for `GET /api/auth/providers` after it determines that no session is active. It renders the configured runtime provider choices and starts the chosen login through `login(provider.id)`. The backend configuration, not the frontend, determines which providers appear.
 
 The sample keeps a default-login path for the existing single OpenID Connect flow. Google, GitHub, Facebook, and custom providers appear only when the backend has registered and enabled them.
 
