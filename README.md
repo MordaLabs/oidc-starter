@@ -10,7 +10,7 @@ Try built-in OpenID Connect with **`demo` / `demo`**, or use your own Google or 
 
 | Backend package | Frontend package |
 | --- | --- |
-| [NuGet: `OidcStarter.AspNetCore.Bff`](https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/) | [npm: `@flying-bee/oidc-starter-auth`](https://www.npmjs.com/package/@flying-bee/oidc-starter-auth) |
+| [NuGet: `OidcStarter.AspNetCore.Bff`](https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff/) | [npm: `@mordalabs/oidc-starter-auth`](https://www.npmjs.com/package/@mordalabs/oidc-starter-auth) |
 
 ## Why OIDC Starter
 
@@ -75,7 +75,7 @@ The package provides cookie/OIDC configuration, BFF endpoints, authorization fou
 Install the optional Angular package:
 
 ```powershell
-npm install @flying-bee/oidc-starter-auth
+npm install @mordalabs/oidc-starter-auth
 ```
 
 Use `provideBffAuth(...)` and `BffAuthService` for BFF current-user loading, login redirects, provider discovery, logout, and antiforgery setup. The package also retains an SPA/reference wrapper for the sample's direct OIDC flow. See the [Angular package guide](src/frontend/projects/oidc-starter-auth/README.md) for setup details.

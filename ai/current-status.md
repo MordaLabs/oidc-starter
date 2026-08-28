@@ -15,7 +15,7 @@ Last reviewed: 2026-07-15, after the `OidcStarter.AspNetCore.Bff` `v1.0.1` harde
 Current state:
 
 - the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is at the verified `v1.0.1` baseline,
-- the reusable frontend package `@flying-bee/oidc-starter-auth` exists and is published,
+- the maintained reusable frontend package source is `@mordalabs/oidc-starter-auth` at version `0.2.0` and is not yet published to npm,
 - the repository remains a public reference implementation and sample app,
 - the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract,
 - the `v1.0.1` backend release was a hardening validation patch with no breaking changes, no public API changes, and no runtime behavior changes.
@@ -33,7 +33,13 @@ The current goal is not broad redesign. The current goal is to evolve the starte
 
 ### Angular Package Compatibility Closeout
 
-The `@flying-bee/oidc-starter-auth` `0.1.1` Angular 20.3+/21/22 compatibility release is complete and published to npm. The `latest` dist-tag points to `0.1.1`, and the published artifact metadata has been verified. No further compatibility implementation is required. The compatibility branch still needs to be merged to `master`; after it is cleanly merged or closed, Offer Case can resume frontend auth integration. No tag or release has been created.
+The historical `@flying-bee/oidc-starter-auth` `0.1.1` Angular 20.3+/21/22 compatibility release was published to npm, and its Angular compatibility was verified. No further compatibility implementation is required.
+
+### Angular package scope migration
+
+- Core package identity migration to `@mordalabs/oidc-starter-auth` is merged.
+- The maintained source package remains at version `0.2.0` and has not yet been published to npm.
+- `@flying-bee/oidc-starter-auth@0.2.0` remains published and must not yet be deprecated.
 
 ## Stable Assumptions
 

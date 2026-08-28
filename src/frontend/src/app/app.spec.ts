@@ -110,9 +110,9 @@ describe('App', () => {
     const frontendCard = getStarted?.querySelector<HTMLElement>('.package-card-frontend');
     const frontendSample = frontendCard?.querySelector('.frontend-provider-sample')?.textContent ?? '';
     expect(frontendCard?.querySelector('.package-label')?.textContent).toContain('Optional headless Angular client');
-    expect(frontendCard?.textContent).toContain('@flying-bee/oidc-starter-auth');
+    expect(frontendCard?.textContent).toContain('@mordalabs/oidc-starter-auth');
     expect(frontendCard?.textContent).toContain('Your application owns the buttons, modal, icons, layout, and styling.');
-    expect(frontendCard?.querySelector('pre code')?.textContent?.trim()).toBe('npm install @flying-bee/oidc-starter-auth');
+    expect(frontendCard?.querySelector('pre code')?.textContent?.trim()).toBe('npm install @mordalabs/oidc-starter-auth');
     expect(frontendSample).toContain('BffAuthService');
     expect(frontendSample).toContain('getLoginProviders()');
     expect(frontendSample).toContain('login(providerId)');
@@ -229,7 +229,7 @@ describe('App', () => {
     expect(getStarted?.querySelector('.package-link-nuget')?.getAttribute('href'))
       .toBe('https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff');
     expect(getStarted?.querySelector('.package-link-npm')?.getAttribute('href'))
-      .toBe('https://www.npmjs.com/package/@flying-bee/oidc-starter-auth');
+      .toBe('https://www.npmjs.com/package/@mordalabs/oidc-starter-auth');
     expect(getStarted?.querySelector('.get-started-guide')?.getAttribute('href'))
       .toBe('https://github.com/MordaLabs/oidc-starter');
     expect(getStarted?.querySelector('.get-started-next')?.textContent)

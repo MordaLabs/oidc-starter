@@ -16,7 +16,7 @@ This repository contains:
   Source of the reusable ASP.NET Core backend package `OidcStarter.AspNetCore.Bff`.
 
 - `src/frontend/projects/oidc-starter-auth`  
-  Source of the reusable Angular auth package `@flying-bee/oidc-starter-auth`.
+  Source of the reusable Angular auth package `@mordalabs/oidc-starter-auth`.
 
 - `src/backend`  
   Sample ASP.NET Core backend host that consumes the reusable backend package.

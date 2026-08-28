@@ -21,7 +21,16 @@ Publication command for maintainers:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
-## npm: @flying-bee/oidc-starter-auth
+## npm scope migration
+
+The maintained package source identity is `@mordalabs/oidc-starter-auth`; npm publication migration is in progress. Its lineage version remains `0.2.0`.
+
+- `@flying-bee/oidc-starter-auth@0.2.0` remains available.
+- Before deprecating the old scope, locally validate, publish, and publicly verify the new-scope package.
+- Verify the new-scope publication status from npm.
+- Do not unpublish the old package; deprecation is a post-verification operator action.
+
+## npm release history: @flying-bee/oidc-starter-auth
 
 ### v0.2.0
 
