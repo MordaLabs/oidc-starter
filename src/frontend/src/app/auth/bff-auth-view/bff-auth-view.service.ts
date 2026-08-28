@@ -1,5 +1,5 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
-import { BffAuthService, type BffLoginProvider } from '@flying-bee/oidc-starter-auth';
+import { BffAuthService, type BffLoginProvider } from '@mordalabs/oidc-starter-auth';
 
 @Injectable({ providedIn: 'root' })
 export class BffAuthViewService {

@@ -45,7 +45,7 @@ function Test-Consumer {
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { BffAuthService, provideBffAuth } from '@flying-bee/oidc-starter-auth';
+import { BffAuthService, provideBffAuth } from '@mordalabs/oidc-starter-auth';
 import { routes } from './app.routes';
 
 export const bffServiceTypeCheck: typeof BffAuthService = BffAuthService;
@@ -62,7 +62,7 @@ export const appConfig: ApplicationConfig = {
 
     Run "Build Angular $Major BFF consumer" 'npm' @('run','build') $consumer
     Run "Resolve Angular $Major peer graph" 'npm' @(
-        'ls','@flying-bee/oidc-starter-auth','@angular/core','@angular/common',
+        'ls','@mordalabs/oidc-starter-auth','@angular/core','@angular/common',
         'angular-auth-oidc-client','rxjs'
     ) $consumer
 }
