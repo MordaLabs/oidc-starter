@@ -23,12 +23,11 @@ dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNe
 
 ## npm scope migration
 
-The maintained package source identity is `@mordalabs/oidc-starter-auth`; npm publication migration is in progress. Its lineage version remains `0.2.0`.
+The maintained package is `@mordalabs/oidc-starter-auth`; the current lineage version is `0.2.0`. `@mordalabs/oidc-starter-auth@0.2.0` is published and was verified from the public npm registry.
 
-- `@flying-bee/oidc-starter-auth@0.2.0` remains available.
-- Before deprecating the old scope, locally validate, publish, and publicly verify the new-scope package.
-- Verify the new-scope publication status from npm.
-- Do not unpublish the old package; deprecation is a post-verification operator action.
+- `@flying-bee/oidc-starter-auth` remains available for existing consumers.
+- All published old-scope versions (`0.1.0`, `0.1.1`, and `0.2.0`) are deprecated with migration guidance to `@mordalabs/oidc-starter-auth`.
+- The old package must not be unpublished.
 
 ## npm release history: @flying-bee/oidc-starter-auth
 
