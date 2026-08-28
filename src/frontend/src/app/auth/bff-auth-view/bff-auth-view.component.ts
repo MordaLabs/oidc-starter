@@ -1,5 +1,5 @@
 import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
-import type { BffCurrentUser } from '@flying-bee/oidc-starter-auth';
+import type { BffCurrentUser } from '@mordalabs/oidc-starter-auth';
 import { BFF_CLIPBOARD_WRITER } from './bff-clipboard-writer';
 import { BffAuthViewService } from './bff-auth-view.service';
 

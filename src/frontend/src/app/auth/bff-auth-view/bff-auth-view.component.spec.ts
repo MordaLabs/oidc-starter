@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { BffAuthService, type BffCurrentUser, type BffLoginProvider } from '@flying-bee/oidc-starter-auth';
+import { BffAuthService, type BffCurrentUser, type BffLoginProvider } from '@mordalabs/oidc-starter-auth';
 import { BFF_CLIPBOARD_WRITER } from './bff-clipboard-writer';
 import { BffAuthViewComponent } from './bff-auth-view.component';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@flying-bee/oidc-starter-auth",
+  "name": "@mordalabs/oidc-starter-auth",
   "version": "0.2.0",
   "description": "Reusable Angular BFF authentication building blocks with provider discovery and provider-targeted login.",
   "author": "Morda Labs",
