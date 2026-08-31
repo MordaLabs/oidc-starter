@@ -28,3 +28,6 @@ Thumbs.db
 
 # Build/test artifacts
 TestResults/
+
+# Local package inspection artifacts
+/tmp/
