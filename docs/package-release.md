@@ -21,6 +21,21 @@ Publication command for maintainers:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
+## Planned backend release: 1.2.0
+
+`OidcStarter.AspNetCore.Bff` `1.2.0` is the next planned minor release and has not yet been published.
+
+- Breaking changes: none.
+- Runtime behavior changes: none.
+- Public API addition: `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`.
+- Purpose: supported read-only access to the persisted login-provider identity for downstream
+  integrations and extensions; the persisted property-key literal remains internal.
+- Targeted P3A backend validation: 58 tests passed, 0 failed.
+
+This backend release does not include a frontend/npm release. The maintained frontend package remains
+`@mordalabs/oidc-starter-auth` `0.2.0`, published and verified from the public npm registry. Angular
+compatibility remains verified for Angular 20.3+, 21, and 22.
+
 ## npm scope migration
 
 The maintained package is `@mordalabs/oidc-starter-auth`; the current lineage version is `0.2.0`. `@mordalabs/oidc-starter-auth@0.2.0` is published and was verified from the public npm registry.
@@ -97,7 +112,7 @@ companion auditor repository, `oidc-starter-agent`: https://github.com/jszyduk/o
   requests. This behavior is part of the current package contract; `v1.0.1` only adds validation
   evidence and documentation clarification, with no runtime behavior change.
 
-## v1.0.1 Hardening Validation Patch
+## Historical: v1.0.1 Hardening Validation Patch
 
 `OidcStarter.AspNetCore.Bff` `v1.0.1` is a hardening validation patch release.
 
@@ -111,8 +126,7 @@ companion auditor repository, `oidc-starter-agent`: https://github.com/jszyduk/o
   - package/sample build compatibility evidence,
   - audit smoke confirmed 0 findings.
 
-For `v1.0.1`, confirm the package project version has been bumped in a separate versioning task,
-then pack and publish the generated `OidcStarter.AspNetCore.Bff.1.0.1.nupkg` after final validation.
+The `v1.0.1` package was prepared and published as a separate historical release task.
 
 ## Release Readiness Checklist
 

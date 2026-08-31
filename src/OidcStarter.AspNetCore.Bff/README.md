@@ -52,6 +52,9 @@ The package keeps its public surface intentionally small:
   configuration.
 - `OidcStarterBffPolicies` exposes stable policy names for consuming apps.
 - `OidcStarterAuthorizationPolicyBuilderExtensions` adds scope/claim policy helpers.
+- `OidcStarterAuthenticationPropertiesExtensions` adds the read-only
+  `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)` accessor for obtaining the OIDC
+  Starter login-provider id persisted in authentication properties.
 - `IOidcStarterRoleMapper` and `OidcStarterRoleMappingContext` are the role-mapping extension point.
 - `ICurrentUserService` and `CurrentUserResponse` expose the current-user contract used by
   `/api/auth/me`.
@@ -315,18 +318,14 @@ Integration requirements consumers should know before enabling production settin
   flat role claims.
 - Move secrets out of checked-in appsettings files for real deployments.
 
-Version 1.0.0 establishes the initial stable contract for the package: cookie-backed OIDC BFF authentication,
-antiforgery integration points, authorization helpers, and provider-agnostic role-mapping extensibility.
-`POST /api/auth/logout` now always requires antiforgery validation. Consumers with custom frontends
-must call `GET /api/auth/csrf` and submit the returned token with logout requests. The earlier
-`Starter:RequireAntiforgeryToken` switch is retained for compatibility but no longer controls
-package-provided endpoints.
+`POST /api/auth/logout` requires antiforgery validation. Custom frontends must first obtain a token
+from `GET /api/auth/csrf` and submit it with logout requests. The legacy
+`Starter:RequireAntiforgeryToken` setting remains for compatibility but does not control protection
+for package-provided endpoints.
 
-Version 1.0.1 is a hardening validation patch release. It adds focused validation coverage for
-login/logout/current-user/session-state behavior, antiforgery token issuing and request validation,
-unsafe endpoint protection, unauthorized/forbidden API behavior, and package/sample build
-compatibility evidence. Audit smoke confirmed 0 findings. Breaking changes: none. Public API
-changes: none. Runtime behavior changes: none.
+The next planned backend package release is `1.2.0`. It includes the additive read-only
+`AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)` accessor; no login/logout runtime
+behavior changes are planned. The release has not yet been published.
 
 ## Local Packaging
 
