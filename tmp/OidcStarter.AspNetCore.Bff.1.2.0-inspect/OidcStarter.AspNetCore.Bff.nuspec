@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>OidcStarter.AspNetCore.Bff</id>
+    <version>1.2.0</version>
+    <title>OIDC Starter ASP.NET Core BFF</title>
+    <authors>Morda Labs</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/MordaLabs/oidc-starter</projectUrl>
+    <description>ASP.NET Core BFF authentication building blocks with built-in OpenID Connect, opt-in external login providers, and secure cookie-backed application sessions.</description>
+    <tags>aspnetcore bff authentication oidc openidconnect oauth external-login</tags>
+    <repository type="git" url="https://github.com/MordaLabs/oidc-starter" commit="b26c87d0aff5d7010a6c6a2c427e279ebcefc138" />
+    <dependencies>
+      <group targetFramework="net9.0">
+        <dependency id="AspNet.Security.OAuth.GitHub" version="9.4.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.AspNetCore.Authentication.Facebook" version="9.0.4" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.AspNetCore.Authentication.Google" version="9.0.4" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.AspNetCore.Authentication.OpenIdConnect" version="9.0.4" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net9.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+</package>
