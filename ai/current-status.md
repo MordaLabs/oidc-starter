@@ -6,7 +6,7 @@ This file captures current working assumptions for Codex.
 
 Update it after meaningful milestone changes, not after every small task.
 
-Last reviewed: 2026-07-15, after the `OidcStarter.AspNetCore.Bff` `v1.0.1` hardening validation patch release.
+Last reviewed: 2026-08-31, after the merged P3A OSS extensibility milestone.
 
 ## Repository Stage
 
@@ -14,11 +14,16 @@ Last reviewed: 2026-07-15, after the `OidcStarter.AspNetCore.Bff` `v1.0.1` harde
 
 Current state:
 
-- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is at the verified `v1.0.1` baseline,
+- the reusable backend package source is at the `1.1.0` metadata baseline; `1.2.0` is the next planned minor release and is not yet published,
 - the maintained reusable frontend package is `@mordalabs/oidc-starter-auth` at version `0.2.0`, published to npm and verified from the public registry,
 - the repository remains a public reference implementation and sample app,
 - the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract,
 - the `v1.0.1` backend release was a hardening validation patch with no breaking changes, no public API changes, and no runtime behavior changes.
+
+The merged P3A milestone adds the public `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`
+read-only accessor for downstream integrations and extensions. The persisted provider-property key remains
+internal, and login/logout runtime behavior is unchanged. Targeted P3A backend validation passed (58 tests,
+0 failures). The next planned backend release is `1.2.0`; it has not been published.
 
 ## Current Primary Focus
 
