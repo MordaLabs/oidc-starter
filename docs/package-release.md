@@ -21,18 +21,30 @@ Publication command for maintainers:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
-## Planned backend release: 1.2.0
+## Published backend releases: 1.2.0 and 1.2.1
 
-`OidcStarter.AspNetCore.Bff` `1.2.0` is the next planned minor release and has not yet been published.
+`OidcStarter.AspNetCore.Bff` `1.2.0` was published as a backward-compatible minor release.
 
 - Breaking changes: none.
 - Runtime behavior changes: none.
-- Public API addition: `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`.
-- Purpose: supported read-only access to the persisted login-provider identity for downstream
-  integrations and extensions; the persisted property-key literal remains internal.
+- Public API addition: `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`, providing
+  supported read-only access to the persisted login-provider identity for downstream integrations and
+  extensions.
+- The persisted property-key literal remains internal.
+- Configuration migration: none.
 - Targeted P3A backend validation: 58 tests passed, 0 failed.
 
-This backend release does not include a frontend/npm release. The maintained frontend package remains
+`OidcStarter.AspNetCore.Bff` `1.2.1` is the current published patch release. It corrected the NuGet
+Project Website to `https://oidc-starter.mordalabs.com/`; repository metadata remains
+`https://github.com/MordaLabs/oidc-starter`.
+
+- Metadata-only patch release.
+- Breaking changes: none.
+- Public API changes: none.
+- Runtime behavior changes: none.
+- Configuration changes: none.
+
+These backend releases do not include a frontend/npm release. The maintained frontend package remains
 `@mordalabs/oidc-starter-auth` `0.2.0`, published and verified from the public npm registry. Angular
 compatibility remains verified for Angular 20.3+, 21, and 22.
 

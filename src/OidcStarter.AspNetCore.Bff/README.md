@@ -323,9 +323,10 @@ from `GET /api/auth/csrf` and submit it with logout requests. The legacy
 `Starter:RequireAntiforgeryToken` setting remains for compatibility but does not control protection
 for package-provided endpoints.
 
-The next planned backend package release is `1.2.0`. It includes the additive read-only
-`AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)` accessor; no login/logout runtime
-behavior changes are planned. The release has not yet been published.
+The current backend package release is `1.2.1`. Release `1.2.0` introduced the additive read-only
+`AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)` accessor. Release `1.2.1` was a
+metadata-only correction to the NuGet Project Website; these releases introduced no login/logout
+runtime behavior changes.
 
 ## Local Packaging
 
