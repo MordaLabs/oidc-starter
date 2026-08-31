@@ -14,16 +14,17 @@ Last reviewed: 2026-08-31, after the merged P3A OSS extensibility milestone.
 
 Current state:
 
-- the reusable backend package source is at the `1.1.0` metadata baseline; `1.2.0` is the next planned minor release and is not yet published,
+- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is currently published at `1.2.1`,
 - the maintained reusable frontend package is `@mordalabs/oidc-starter-auth` at version `0.2.0`, published to npm and verified from the public registry,
 - the repository remains a public reference implementation and sample app,
 - the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract,
-- the `v1.0.1` backend release was a hardening validation patch with no breaking changes, no public API changes, and no runtime behavior changes.
+- the `1.2.1` backend release is the current metadata-correction patch, and its GitHub tag/release `v1.2.1` exists.
 
-The merged P3A milestone adds the public `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`
+The `1.2.0` backend release introduced the public `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`
 read-only accessor for downstream integrations and extensions. The persisted provider-property key remains
 internal, and login/logout runtime behavior is unchanged. Targeted P3A backend validation passed (58 tests,
-0 failures). The next planned backend release is `1.2.0`; it has not been published.
+0 failures). The `1.2.1` patch corrected package Project Website metadata only; it introduced no runtime or
+public API changes.
 
 ## Current Primary Focus
 
