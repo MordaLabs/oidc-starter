@@ -1,5 +1,16 @@
 # OidcStarter.AspNetCore.Bff Release Notes
 
+## v1.2.1
+
+Metadata-only patch release.
+
+- Corrected the NuGet Project Website to `https://oidc-starter.mordalabs.com/`.
+- The repository URL remains `https://github.com/MordaLabs/oidc-starter`.
+- Breaking changes: none.
+- Public API changes: none.
+- Runtime behavior changes: none.
+- Configuration changes: none.
+
 ## v1.2.0
 
 Backward-compatible minor release.

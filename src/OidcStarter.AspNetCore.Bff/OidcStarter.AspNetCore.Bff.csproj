@@ -9,11 +9,11 @@
     <Title>OIDC Starter ASP.NET Core BFF</Title>
     <Authors>Morda Labs</Authors>
     <Company>Morda Labs</Company>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Description>ASP.NET Core BFF authentication building blocks with built-in OpenID Connect, opt-in external login providers, and secure cookie-backed application sessions.</Description>
     <PackageTags>aspnetcore;bff;authentication;oidc;openidconnect;oauth;external-login</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/MordaLabs/oidc-starter</PackageProjectUrl>
+    <PackageProjectUrl>https://oidc-starter.mordalabs.com/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MordaLabs/oidc-starter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
