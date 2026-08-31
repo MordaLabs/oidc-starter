@@ -120,7 +120,7 @@ public sealed class AuthController(
     private AuthenticationProperties CreateLoginProperties(LoginProviderDescriptor loginProvider)
     {
         var properties = CreateFrontendRedirectProperties();
-        properties.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey] = loginProvider.Id;
+        LoginProviderAuthenticationProperties.SetLoginProviderId(properties, loginProvider.Id);
 
         return properties;
     }
@@ -137,8 +137,8 @@ public sealed class AuthController(
     {
         if (!authenticationResult.Succeeded
             || authenticationResult.Properties is null
-            || !authenticationResult.Properties.Items.TryGetValue(
-                LoginProviderAuthenticationProperties.ProviderIdItemKey,
+            || !LoginProviderAuthenticationProperties.TryGetLoginProviderId(
+                authenticationResult.Properties,
                 out var providerId))
         {
             return OpenIdConnectDefaults.AuthenticationScheme;
@@ -157,8 +157,8 @@ public sealed class AuthController(
 
         if (!authenticationResult.Succeeded
             || authenticationResult.Properties is null
-            || !authenticationResult.Properties.Items.TryGetValue(
-                LoginProviderAuthenticationProperties.ProviderIdItemKey,
+            || !LoginProviderAuthenticationProperties.TryGetLoginProviderId(
+                authenticationResult.Properties,
                 out var providerId)
             || !bffOptions.Value.LoginProviders.TryGetProvider(providerId, out var loginProvider))
         {

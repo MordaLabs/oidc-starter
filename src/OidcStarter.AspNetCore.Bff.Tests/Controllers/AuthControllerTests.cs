@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Controllers;
+using OidcStarter.AspNetCore.Bff.Extensions;
 using OidcStarter.AspNetCore.Bff.Models.Auth;
 using OidcStarter.AspNetCore.Bff.Security;
 using OidcStarter.AspNetCore.Bff.Services.Auth;
@@ -31,9 +32,8 @@ public sealed class AuthControllerTests
 
         Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
         Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
-        Assert.Equal(
-            "oidc",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("oidc", providerId);
     }
 
     [Fact]
@@ -58,9 +58,8 @@ public sealed class AuthControllerTests
         var result = Assert.IsType<ChallengeResult>(controller.Login());
 
         Assert.Contains("google-scheme", result.AuthenticationSchemes);
-        Assert.Equal(
-            "google",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("google", providerId);
     }
 
     [Theory]
@@ -74,9 +73,8 @@ public sealed class AuthControllerTests
 
         Assert.Contains(OpenIdConnectDefaults.AuthenticationScheme, result.AuthenticationSchemes);
         Assert.Equal("http://localhost:4200", result.Properties?.RedirectUri);
-        Assert.Equal(
-            "oidc",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("oidc", providerId);
     }
 
     [Theory]
@@ -91,9 +89,8 @@ public sealed class AuthControllerTests
         var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
 
         Assert.Contains(OidcStarterGoogleDefaults.AuthenticationScheme, result.AuthenticationSchemes);
-        Assert.Equal(
-            "google",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("google", providerId);
     }
 
     [Theory]
@@ -108,9 +105,8 @@ public sealed class AuthControllerTests
         var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
 
         Assert.Contains(OidcStarterFacebookDefaults.AuthenticationScheme, result.AuthenticationSchemes);
-        Assert.Equal(
-            "facebook",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("facebook", providerId);
     }
 
     [Theory]
@@ -125,9 +121,8 @@ public sealed class AuthControllerTests
         var result = Assert.IsType<ChallengeResult>(controller.Login(provider));
 
         Assert.Contains(OidcStarterGitHubDefaults.AuthenticationScheme, result.AuthenticationSchemes);
-        Assert.Equal(
-            "github",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("github", providerId);
     }
 
     [Fact]
@@ -140,9 +135,8 @@ public sealed class AuthControllerTests
         var result = Assert.IsType<ChallengeResult>(controller.Login());
 
         Assert.Contains(OidcStarterGoogleDefaults.AuthenticationScheme, result.AuthenticationSchemes);
-        Assert.Equal(
-            "google",
-            result.Properties?.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey]);
+        Assert.True(result.Properties!.TryGetOidcStarterLoginProviderId(out var providerId));
+        Assert.Equal("google", providerId);
     }
 
     [Fact]
@@ -900,7 +894,7 @@ public sealed class AuthControllerTests
 
         if (providerId is not null)
         {
-            properties.Items[LoginProviderAuthenticationProperties.ProviderIdItemKey] = providerId;
+            LoginProviderAuthenticationProperties.SetLoginProviderId(properties, providerId);
         }
 
         return properties;
