@@ -139,8 +139,10 @@ describe('App', () => {
     expect(providersSection?.querySelectorAll('button')).toHaveSize(0);
 
     const securitySection = compiled.querySelector<HTMLElement>('#security');
+    expect(securitySection?.querySelector('.eyebrow')?.textContent?.trim()).toBe('Security');
+    expect(securitySection?.querySelector('#security-title')?.textContent?.trim()).toBe('Security boundaries that stay legible');
     expect(Array.from(securitySection?.querySelectorAll<HTMLElement>('.capability h3') ?? []).map((heading) => heading.textContent?.trim()))
-      .toEqual(['Server-side session', 'Provider-aware identity', 'Application-owned authorization']);
+      .toEqual(['Server-side session', 'Provider-aware identity', 'Application-owned authorization', 'Validated OIDC sign-in metadata']);
     const securityText = securitySection?.textContent ?? '';
     expect(securityText).toContain('backend session instead of receiving provider tokens through the current-user response');
     expect(securityText).toContain('HTTP-only, secure');
@@ -148,6 +150,7 @@ describe('App', () => {
     expect(securityText).toContain('return 401');
     expect(securityText).toContain('without turning external profile data into authorization');
     expect(securityText).toContain('business authorization decisions');
+    expect(securityText).toContain('authoritative issuer, subject, provider, and session metadata');
 
     const endpointProtectionPanel = securitySection?.querySelector<HTMLElement>('.endpoint-protection-panel');
     expect(securitySection?.querySelectorAll('.endpoint-protection-panel')).toHaveSize(1);

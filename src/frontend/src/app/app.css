@@ -219,7 +219,7 @@ h3 {
 }
 
 .section-heading {
-  max-width: 44rem;
+  max-width: 60rem;
 }
 
 .section-heading > p:not(.eyebrow) {
@@ -228,6 +228,32 @@ h3 {
 
 .provider-section {
   background: var(--surface);
+}
+
+.provider-model-panel {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #f0f5f1;
+}
+
+.provider-model-heading {
+  max-width: 60rem;
+}
+
+.provider-model-heading p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.provider-model-heading p.eyebrow {
+  margin-bottom: 0.75rem;
+  color: var(--accent-hover);
+}
+
+.provider-model-heading p + p {
+  margin-top: 0.75rem;
 }
 
 .provider-list {
@@ -328,9 +354,25 @@ h3 {
 
 .capability-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.security-model-panel {
   margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #f0f5f1;
+}
+
+.security-model-heading {
+  max-width: 60rem;
+}
+
+.security-model-heading > p:not(.eyebrow) {
+  margin-top: 0.75rem;
 }
 
 .capability {
@@ -371,11 +413,15 @@ h3 {
 }
 
 .endpoint-protection-heading {
-  max-width: 48rem;
+  max-width: 60rem;
 }
 
 .endpoint-protection-heading > p:not(.eyebrow) {
   margin-top: 0.75rem;
+}
+
+.endpoint-protection-heading > p.eyebrow {
+  color: var(--accent-hover);
 }
 
 .endpoint-boundary-list {
@@ -506,10 +552,6 @@ h3 {
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: none;
-}
-
-.release-note {
-  max-width: 48rem;
 }
 
 .package-sample-label {
@@ -687,7 +729,7 @@ dd {
 }
 
 .support-heading {
-  max-width: 44rem;
+  max-width: 60rem;
 }
 
 .support-heading > p:not(.eyebrow),
