@@ -21,6 +21,19 @@ Publication command for maintainers:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
+## Backend 1.3.0 release preparation
+
+`OidcStarter.AspNetCore.Bff` `1.3.0` is prepared but not yet published.
+
+- Backward-compatible additive minor release.
+- Adds the validated OIDC sign-in metadata handoff and read-only accessor.
+- Breaking changes: none.
+- Login/logout endpoint changes: none.
+- Existing consumer configuration migration: none.
+- Premium-specific API: none.
+- Project Website: `https://oidc-starter.mordalabs.com/`.
+- Repository: `https://github.com/MordaLabs/oidc-starter`.
+
 ## Published backend releases: 1.2.0 and 1.2.1
 
 `OidcStarter.AspNetCore.Bff` `1.2.0` was published as a backward-compatible minor release.
