@@ -21,9 +21,9 @@ Publication command for maintainers:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
-## Backend 1.3.0 release preparation
+## Published backend release: 1.3.0
 
-`OidcStarter.AspNetCore.Bff` `1.3.0` is prepared but not yet published.
+`OidcStarter.AspNetCore.Bff` `1.3.0` is published on NuGet.
 
 - Backward-compatible additive minor release.
 - Adds the validated OIDC sign-in metadata handoff and read-only accessor.
