@@ -58,18 +58,23 @@
   <section id="providers" class="provider-section" aria-labelledby="providers-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">External Login Providers</p>
+        <p class="eyebrow">Providers</p>
         <h2 id="providers-title">OIDC at the core. More ways to sign in.</h2>
-        <p>OpenID Connect remains the built-in BFF default. Add Google, GitHub, Facebook, or a custom provider registration when your application needs them.</p>
-        <p>The BFF exposes only configured providers at runtime, so the chooser reflects the sign-in options actually available to your users.</p>
       </div>
-      <ul class="provider-list" aria-label="Built-in and extensible login provider support">
-        <li>OpenID Connect</li>
-        <li>Google</li>
-        <li>GitHub</li>
-        <li>Facebook</li>
-        <li>Custom provider registration</li>
-      </ul>
+      <div class="provider-model-panel">
+        <div class="provider-model-heading">
+          <p class="eyebrow">External Login Providers</p>
+          <p>OpenID Connect remains the built-in BFF default. Add Google, GitHub, Facebook, or a custom provider registration when your application needs them.</p>
+          <p>The BFF exposes only configured providers at runtime, so the chooser reflects the sign-in options actually available to your users.</p>
+        </div>
+        <ul class="provider-list" aria-label="Built-in and extensible login provider support">
+          <li>OpenID Connect</li>
+          <li>Google</li>
+          <li>GitHub</li>
+          <li>Facebook</li>
+          <li>Custom provider registration</li>
+        </ul>
+      </div>
 
     </div>
   </section>
@@ -181,10 +186,16 @@
   <section id="security" class="capability-section" aria-labelledby="security-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">Practical boundaries</p>
-        <h2 id="security-title">Authentication that stays legible</h2>
+        <p class="eyebrow">Security</p>
+        <h2 id="security-title">Security boundaries that stay legible</h2>
       </div>
-      <div class="capability-list">
+      <section class="security-model-panel" aria-labelledby="security-model-title">
+        <div class="security-model-heading">
+          <p class="eyebrow">Authentication &amp; session boundaries</p>
+          <h3 id="security-model-title">Explicit session, identity, authorization, and validated sign-in context</h3>
+          <p>OIDC Starter keeps authentication and session responsibilities explicit while your application remains in control of authorization.</p>
+        </div>
+        <div class="capability-list">
         <article class="capability">
           <h3>Server-side session</h3>
           <p>The browser uses the backend session instead of receiving provider tokens through the current-user response.</p>
@@ -195,12 +206,18 @@
           <p>The current-user contract includes provider provenance and normalized profile metadata without turning external profile data into authorization.</p>
           <p class="capability-supporting">Unauthenticated current-user requests return <code>401</code>.</p>
         </article>
-        <article class="capability">
+          <article class="capability">
           <h3>Application-owned authorization</h3>
           <p>OIDC Starter provides authenticated-session policies, claim and scope helpers, and role-mapping foundations.</p>
           <p class="capability-supporting">Your application still owns roles, tenant access, resource ownership, and business authorization decisions.</p>
         </article>
-      </div>
+        <article class="capability">
+          <h3>Validated OIDC sign-in metadata</h3>
+          <p>Downstream integrations and extensions can access authoritative issuer, subject, provider, and session metadata captured from the validated sign-in context.</p>
+          <p class="capability-supporting">This avoids reconstructing identity and session information from transformed claims.</p>
+          </article>
+        </div>
+      </section>
 
       <section class="endpoint-protection-panel" aria-labelledby="endpoint-protection-title">
         <div class="endpoint-protection-heading">
@@ -259,7 +276,6 @@
         <h2 id="get-started-title">Add OIDC Starter to your Angular + ASP.NET Core app</h2>
         <p>Start with the core ASP.NET Core BFF package. For Angular applications, optionally add the headless auth client to reduce integration code without imposing a user interface.</p>
         <p>OIDC Starter provides one BFF integration surface for OpenID Connect and registered social login providers.</p>
-        <p class="release-note">Backend 1.3.0 adds validated OIDC sign-in metadata for downstream integrations and extensions.</p>
       </div>
 
       <div class="package-grid">
