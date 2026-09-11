@@ -1,5 +1,20 @@
 # OidcStarter.AspNetCore.Bff Release Notes
 
+## v1.3.0
+
+Backward-compatible minor release.
+
+- Added the public immutable `OidcStarterValidatedOidcSignInMetadata` model and the read-only
+  `AuthenticationProperties.TryGetOidcStarterValidatedOidcSignInMetadata(...)` accessor.
+- The handoff includes the OidcStarter provider ID, ASP.NET Core authentication scheme, validated issuer,
+  raw OIDC subject, optional upstream `sid`, and configured client ID.
+- Metadata is captured from the validated OIDC token while preserving consumer `OnTokenValidated` behavior.
+- Persisted `AuthenticationProperties` keys remain internal.
+- Additive release; breaking API changes: none.
+- Login/logout endpoint changes: none.
+- Existing consumers require no configuration migration.
+- No Premium-specific API is introduced.
+
 ## v1.2.1
 
 Metadata-only patch release.

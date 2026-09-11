@@ -33,9 +33,12 @@ provider id, ASP.NET Core authentication scheme, validated issuer, raw OIDC subj
 and configured client id. Metadata is snapshotted before consumer `OnTokenValidated` processing and persisted only
 when processing continues normally; consumer behavior remains unchanged. Persisted `AuthenticationProperties`
 keys remain internal, and the existing provider-id accessor remains compatible. `EventsType` replacement remains
-a documented capture limitation. No Premium-specific concepts were added to OSS. Package version remains `1.2.1`;
-no release has been performed. Operator targeted tests passed (97/97), and full backend tests passed (163/163).
-The next OSS step is release preparation for backend `1.3.0`.
+a documented capture limitation. No Premium-specific concepts were added to OSS. Operator targeted tests passed
+(97/97), and full backend tests passed (163/163). The previously published package remains `1.2.1` until the
+prepared `1.3.0` release is published.
+The validated metadata implementation is merged. Backend package `1.3.0` is prepared for release but is not
+yet published; operator publishing remains pending. The next OSS step is operator validation and release of
+backend `1.3.0`.
 
 ## Current Primary Focus
 
