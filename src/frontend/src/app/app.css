@@ -470,7 +470,8 @@ h3 {
 }
 
 .package-label,
-.package-name {
+.package-name,
+.package-version {
   color: var(--accent-hover);
   font-size: 0.78rem;
   font-weight: 800;
@@ -481,13 +482,13 @@ h3 {
   margin-top: 0.75rem;
 }
 
-.package-card > p:not(.package-label):not(.package-name):not(.package-sample-label),
+.package-card > p:not(.package-label):not(.package-name):not(.package-version):not(.package-sample-label),
 .get-started-next p {
   color: var(--muted);
   line-height: 1.65;
 }
 
-.package-card > p:not(.package-label):not(.package-name):not(.package-sample-label) {
+.package-card > p:not(.package-label):not(.package-name):not(.package-version):not(.package-sample-label) {
   margin-top: 0.75rem;
 }
 
@@ -497,6 +498,18 @@ h3 {
   font-family: Consolas, 'Courier New', monospace;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.package-version {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.release-note {
+  max-width: 48rem;
 }
 
 .package-sample-label {

@@ -259,6 +259,7 @@
         <h2 id="get-started-title">Add OIDC Starter to your Angular + ASP.NET Core app</h2>
         <p>Start with the core ASP.NET Core BFF package. For Angular applications, optionally add the headless auth client to reduce integration code without imposing a user interface.</p>
         <p>OIDC Starter provides one BFF integration surface for OpenID Connect and registered social login providers.</p>
+        <p class="release-note">Backend 1.3.0 adds validated OIDC sign-in metadata for downstream integrations and extensions.</p>
       </div>
 
       <div class="package-grid">
@@ -268,6 +269,7 @@
           <p>The core OIDC Starter package provides the backend session, authentication endpoints, antiforgery integration, provider discovery, and authorization foundations.</p>
           <p>Register only the login providers your application needs. Providers that are not registered are not offered by the runtime discovery endpoint.</p>
           <p class="package-name">OidcStarter.AspNetCore.Bff</p>
+          <p class="package-version">Version 1.3.0</p>
           <p class="package-sample-label">Installation</p>
           <pre><code>dotnet add package OidcStarter.AspNetCore.Bff</code></pre>
           <p class="package-sample-label">Provider registration</p>
@@ -310,6 +312,7 @@ app.MapControllers();</code></pre>
           <p>Optional Angular services and typed contracts for applications using the OIDC Starter BFF. The package handles current-user loading, provider discovery, login redirects, logout, and antiforgery initialization without rendering a user interface.</p>
           <p class="package-clarification">Your application owns the buttons, modal, icons, layout, and styling.</p>
           <p class="package-name">@mordalabs/oidc-starter-auth</p>
+          <p class="package-version">Version 0.2.0</p>
           <p class="package-sample-label">Installation</p>
           <pre><code>npm install @mordalabs/oidc-starter-auth</code></pre>
           <p class="package-sample-label">Registration</p>
