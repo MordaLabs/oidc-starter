@@ -26,6 +26,17 @@ internal, and login/logout runtime behavior is unchanged. Targeted P3A backend v
 0 failures). The `1.2.1` patch corrected package Project Website metadata only; it introduced no runtime or
 public API changes.
 
+The validated OIDC sign-in metadata handoff is complete and operator-validated. It adds the public immutable
+`OidcStarterValidatedOidcSignInMetadata` model and the read-only
+`AuthenticationProperties.TryGetOidcStarterValidatedOidcSignInMetadata(...)` accessor, exposing the OidcStarter
+provider id, ASP.NET Core authentication scheme, validated issuer, raw OIDC subject, optional upstream `sid`,
+and configured client id. Metadata is snapshotted before consumer `OnTokenValidated` processing and persisted only
+when processing continues normally; consumer behavior remains unchanged. Persisted `AuthenticationProperties`
+keys remain internal, and the existing provider-id accessor remains compatible. `EventsType` replacement remains
+a documented capture limitation. No Premium-specific concepts were added to OSS. Package version remains `1.2.1`;
+no release has been performed. Operator targeted tests passed (97/97), and full backend tests passed (163/163).
+The next OSS step is release preparation for backend `1.3.0`.
+
 ## Current Primary Focus
 
 Current work in this repository is focused on:
