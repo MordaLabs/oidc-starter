@@ -55,12 +55,20 @@ The package keeps its public surface intentionally small:
 - `OidcStarterAuthenticationPropertiesExtensions` adds the read-only
   `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)` accessor for obtaining the OIDC
   Starter login-provider id persisted in authentication properties.
+- `OidcStarterValidatedOidcSignInMetadata` and
+  `AuthenticationProperties.TryGetOidcStarterValidatedOidcSignInMetadata(...)` provide read-only
+  metadata from a successfully validated OIDC sign-in for downstream integrations.
 - `IOidcStarterRoleMapper` and `OidcStarterRoleMappingContext` are the role-mapping extension point.
 - `ICurrentUserService` and `CurrentUserResponse` expose the current-user contract used by
   `/api/auth/me`.
 
 Controllers, low-level validators, and default service implementations exist to support the package
 endpoints and are not intended as customization points.
+
+Validated sign-in metadata capture requires the standard `OpenIdConnectOptions.Events` pipeline. If
+a consumer configures `OpenIdConnectOptions.EventsType`, ASP.NET Core resolves that events instance
+from DI instead, and OIDC Starter does not capture this metadata for that scheme. OIDC authentication
+behavior is otherwise unchanged.
 
 ## Sample Backend Usage
 

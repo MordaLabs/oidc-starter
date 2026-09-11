@@ -1,4 +1,5 @@
 using AspNet.Security.OAuth.GitHub;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Facebook;
@@ -12,11 +13,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.Security.Claims;
 using System.Text.Json;
 using OidcStarter.AspNetCore.Bff.Authorization;
 using OidcStarter.AspNetCore.Bff.Configuration;
 using OidcStarter.AspNetCore.Bff.Extensions;
+using OidcStarter.AspNetCore.Bff.Models.Auth;
 using OidcStarter.AspNetCore.Bff.Services.Auth;
 
 namespace OidcStarter.AspNetCore.Bff.Tests.Extensions;
@@ -993,6 +996,162 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public async Task AddOidcStarterBff_snapshots_validated_oidc_metadata_before_consumer_token_validation()
+    {
+        var consumerCallCount = 0;
+        const string authenticationScheme = "contoso-oidc";
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["Oidc:ClientId"] = "bff-client"
+        }));
+        services.AddAuthentication()
+            .AddOpenIdConnect(authenticationScheme, options =>
+            {
+                options.ClientId = "contoso-client";
+                options.Configuration = new OpenIdConnectConfiguration();
+            });
+        services.AddOidcStarterLoginProvider("contoso", "Contoso", authenticationScheme);
+        services.Configure<OpenIdConnectOptions>(authenticationScheme, options =>
+        {
+            options.Events.OnTokenValidated = context =>
+            {
+                consumerCallCount++;
+                context.Principal!.AddIdentity(new ClaimsIdentity(
+                    [new Claim("sub", "transformed-subject")],
+                    "consumer"));
+                context.SecurityToken = new JwtSecurityToken(
+                    issuer: "https://consumer.example.test",
+                    claims:
+                    [
+                        new Claim("sub", "consumer-subject"),
+                        new Claim("sid", "consumer-session")
+                    ]);
+                return Task.CompletedTask;
+            };
+        });
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(authenticationScheme);
+        var properties = new AuthenticationProperties();
+        LoginProviderAuthenticationProperties.SetLoginProviderId(properties, "contoso");
+        var context = CreateTokenValidatedContext(
+            options,
+            properties,
+            new JwtSecurityToken(
+                issuer: "https://identity.example.test",
+                claims:
+                [
+                    new Claim("sub", "raw-subject"),
+                    new Claim("sid", "upstream-session")
+                ]
+                ),
+            authenticationScheme);
+
+        await options.Events.OnTokenValidated(context);
+
+        Assert.Equal(1, consumerCallCount);
+        Assert.True(properties.TryGetOidcStarterValidatedOidcSignInMetadata(out var metadata));
+        Assert.Equal("contoso", metadata?.ProviderId);
+        Assert.Equal(authenticationScheme, metadata?.AuthenticationScheme);
+        Assert.Equal("https://identity.example.test", metadata?.Issuer);
+        Assert.Equal("raw-subject", metadata?.Subject);
+        Assert.Equal("upstream-session", metadata?.SessionId);
+        Assert.Equal("contoso-client", metadata?.ClientId);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterBff_does_not_capture_metadata_when_the_validated_token_has_no_subject()
+    {
+        using var provider = CreateServices(new Dictionary<string, string?>
+        {
+            ["Oidc:ClientId"] = "bff-client"
+        });
+        var options = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+        var properties = new AuthenticationProperties();
+        LoginProviderAuthenticationProperties.SetLoginProviderId(properties, "oidc");
+        var context = CreateTokenValidatedContext(
+            options,
+            properties,
+            new JwtSecurityToken(issuer: "https://identity.example.test"));
+
+        await options.Events.OnTokenValidated(context);
+
+        Assert.False(properties.TryGetOidcStarterValidatedOidcSignInMetadata(out var metadata));
+        Assert.Null(metadata);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterBff_captures_metadata_without_an_upstream_session_id()
+    {
+        using var provider = CreateServices(new Dictionary<string, string?>
+        {
+            ["Oidc:ClientId"] = "bff-client"
+        });
+        var options = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+        var properties = new AuthenticationProperties();
+        LoginProviderAuthenticationProperties.SetLoginProviderId(properties, "oidc");
+        var context = CreateTokenValidatedContext(
+            options,
+            properties,
+            new JwtSecurityToken(
+                issuer: "https://identity.example.test",
+                claims: [new Claim("sub", "raw-subject")]));
+
+        await options.Events.OnTokenValidated(context);
+
+        Assert.True(properties.TryGetOidcStarterValidatedOidcSignInMetadata(out var metadata));
+        Assert.Null(metadata?.SessionId);
+    }
+
+    [Fact]
+    public async Task AddOidcStarterBff_preserves_consumer_token_validation_failure_without_capturing_metadata()
+    {
+        var consumerCallCount = 0;
+        var services = new ServiceCollection();
+        services.AddOidcStarterBff(CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["Oidc:ClientId"] = "bff-client"
+        }));
+        services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+        {
+            options.Configuration = new OpenIdConnectConfiguration();
+            options.Events.OnTokenValidated = context =>
+            {
+                consumerCallCount++;
+                context.Fail("consumer validation failed");
+                return Task.CompletedTask;
+            };
+        });
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider
+            .GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>()
+            .Get(OpenIdConnectDefaults.AuthenticationScheme);
+        var properties = new AuthenticationProperties();
+        LoginProviderAuthenticationProperties.SetLoginProviderId(properties, "oidc");
+        var context = CreateTokenValidatedContext(
+            options,
+            properties,
+            new JwtSecurityToken(
+                issuer: "https://identity.example.test",
+                claims: [new Claim("sub", "raw-subject")]));
+
+        await options.Events.OnTokenValidated(context);
+
+        Assert.Equal(1, consumerCallCount);
+        Assert.NotNull(context.Result?.Failure);
+        Assert.False(properties.TryGetOidcStarterValidatedOidcSignInMetadata(out var metadata));
+        Assert.Null(metadata);
+    }
+
+    [Fact]
     public async Task AddOidcStarterBff_registers_authorization_policies_from_configuration()
     {
         using var provider = CreateServices(new Dictionary<string, string?>
@@ -1096,6 +1255,8 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         services.AddOidcStarterBff(CreateConfiguration(values));
+        services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme,
+            options => options.Configuration = new OpenIdConnectConfiguration());
 
         return services.BuildServiceProvider();
     }
@@ -1113,6 +1274,24 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
             cookieOptions,
             new AuthenticationProperties(),
             redirectUri);
+
+    private static TokenValidatedContext CreateTokenValidatedContext(
+        OpenIdConnectOptions options,
+        AuthenticationProperties properties,
+        JwtSecurityToken token,
+        string authenticationScheme = OpenIdConnectDefaults.AuthenticationScheme)
+        => new(
+            new DefaultHttpContext(),
+            new AuthenticationScheme(
+                authenticationScheme,
+                authenticationScheme,
+                typeof(OpenIdConnectHandler)),
+            options,
+            new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", "mapped-subject")], "oidc")),
+            properties)
+        {
+            SecurityToken = token
+        };
 
     private static IConfiguration CreateConfiguration(Dictionary<string, string?> values)
         => new ConfigurationBuilder()

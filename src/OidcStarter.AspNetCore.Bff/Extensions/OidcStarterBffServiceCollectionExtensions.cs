@@ -249,6 +249,7 @@ public static class OidcStarterBffServiceCollectionExtensions
         ConfigureForwardedHeaders(services, bffSettings);
         ConfigureCors(services, bffSettings);
         ConfigureAuthentication(services, configuration, bffSettings);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<OpenIdConnectOptions>, ValidatedOidcSignInMetadataOptionsPostConfigure>());
         ConfigureAntiforgery(services, bffSettings);
         ConfigureAuthorization(services, bffSettings);
 
