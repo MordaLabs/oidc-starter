@@ -6,7 +6,7 @@ This file captures current working assumptions for Codex.
 
 Update it after meaningful milestone changes, not after every small task.
 
-Last reviewed: 2026-08-31, after the merged P3A OSS extensibility milestone.
+Last reviewed: 2026-09-11, after the published backend 1.3.0 / closed P3E1a OSS prerequisite.
 
 ## Repository Stage
 
@@ -14,11 +14,12 @@ Last reviewed: 2026-08-31, after the merged P3A OSS extensibility milestone.
 
 Current state:
 
-- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is currently published at `1.2.1`,
+- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is currently published at `1.3.0`,
 - the maintained reusable frontend package is `@mordalabs/oidc-starter-auth` at version `0.2.0`, published to npm and verified from the public registry,
 - the repository remains a public reference implementation and sample app,
 - the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract,
-- the `1.2.1` backend release is the current metadata-correction patch, and its GitHub tag/release `v1.2.1` exists.
+- the `1.3.0` backend release is published, with tag `v1.3.0` and GitHub Release at
+  `https://github.com/MordaLabs/oidc-starter/releases/tag/v1.3.0`.
 
 The `1.2.0` backend release introduced the public `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`
 read-only accessor for downstream integrations and extensions. The persisted provider-property key remains
@@ -34,11 +35,10 @@ and configured client id. Metadata is snapshotted before consumer `OnTokenValida
 when processing continues normally; consumer behavior remains unchanged. Persisted `AuthenticationProperties`
 keys remain internal, and the existing provider-id accessor remains compatible. `EventsType` replacement remains
 a documented capture limitation. No Premium-specific concepts were added to OSS. Operator targeted tests passed
-(97/97), and full backend tests passed (163/163). The previously published package remains `1.2.1` until the
-prepared `1.3.0` release is published.
-The validated metadata implementation is merged. Backend package `1.3.0` is prepared for release but is not
-yet published; operator publishing remains pending. The next OSS step is operator validation and release of
-backend `1.3.0`.
+(97/97), and full backend tests passed (163/163). The validated metadata implementation is merged and fully
+released as the P3E1a OSS prerequisite, now CLOSED. Backend package `1.3.0` is published on NuGet. The next
+Premium step is P3E1b - immutable OIDC session binding, v2 opaque references, and in-memory behavior. P3E
+Back-Channel Logout is not complete.
 
 ## Current Primary Focus
 
