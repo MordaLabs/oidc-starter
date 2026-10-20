@@ -74,9 +74,9 @@ describe('App', () => {
       .toContain('No');
     const primaryNavigationLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Primary navigation"] a'));
     expect(primaryNavigationLinks.map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#github']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#github']);
     expect(primaryNavigationLinks.map((link) => link.textContent?.trim()))
-      .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'GitHub']);
+      .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'GitHub']);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
       .toEqual(['overview', 'providers', 'how-it-works', 'demo', 'security', 'get-started']);
     expect(compiled.querySelector('main #github')).toBeNull();
@@ -127,7 +127,8 @@ describe('App', () => {
     expect(Array.from(getStarted?.querySelectorAll('pre code') ?? [])).not.toHaveSize(0);
 
     const providersSection = compiled.querySelector<HTMLElement>('#providers');
-    expect(providersSection?.querySelector('.eyebrow')?.textContent).toContain('External Login Providers');
+    expect(providersSection?.querySelector('.section-heading > .eyebrow')?.textContent?.trim()).toBe('Providers');
+    expect(providersSection?.querySelector('.provider-model-heading > .eyebrow')?.textContent?.trim()).toBe('External Login Providers');
     expect(providersSection?.querySelector('#providers-title')?.textContent)
       .toContain('OIDC at the core. More ways to sign in.');
     expect(providersSection?.textContent).toContain('OpenID Connect remains the built-in BFF default.');
@@ -284,9 +285,9 @@ describe('App', () => {
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     const primaryFooterLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Footer primary navigation"] a'));
     expect(primaryFooterLinks.map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '#contact']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#contact']);
     expect(primaryFooterLinks.map((link) => link.textContent?.trim()))
-      .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Contact']);
+      .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'Contact']);
 
     const legalFooterLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Footer legal navigation"] a'));
     expect(legalFooterLinks.map((link) => link.getAttribute('href')))
