@@ -15,44 +15,43 @@
       <a href="#github">GitHub</a>
     </nav>
 
-    <div class="header-action">
-      @if (authMode === 'bff') {
-        @if (isBffAuthenticated()) {
-          <a class="header-button header-button-session" href="#demo">View session</a>
-        } @else {
-          <button
-            #headerSignIn
-            type="button"
-            class="header-button"
-            [disabled]="isBffHeaderSignInDisabled()"
-            (click)="openBffSignIn(headerSignIn)"
-          >
-            Sign in
-          </button>
-        }
-      } @else {
-        <a class="header-button" href="#demo">Sign in</a>
-      }
-    </div>
   </div>
 </header>
 
 <main id="main-content" class="page-shell" [class.page-shell-spa]="authMode === 'spa'" [class.page-shell-bff]="authMode === 'bff'">
   <section id="overview" class="hero-section" aria-labelledby="hero-title">
-    <div class="page-container hero-content">
-      <p class="eyebrow">Provider-neutral BFF authentication</p>
-      <h1 id="hero-title">One sign-in flow. Every provider your app needs.</h1>
-      <p class="hero-copy">
-        @if (authMode === 'spa') {
-          A browser-based OpenID Connect starter using Authorization Code Flow with PKCE for the local Keycloak demo.
-        } @else {
-          OpenID Connect and social login for Angular + ASP.NET Core, backed by a server-side session and runtime provider discovery.
-        }
-      </p>
-      <div class="hero-actions">
-        <a class="primary-link" href="#demo">Explore live demo</a>
-        <a class="text-link" href="#providers">See provider support</a>
+    <div class="page-container">
+      <div class="hero-content">
+        <div class="hero-intro">
+          <p class="eyebrow">Provider-neutral BFF authentication</p>
+          <h1 id="hero-title">One sign-in flow. Every provider your app needs.</h1>
+          <p class="hero-copy">
+            @if (authMode === 'spa') {
+              A browser-based OpenID Connect starter using Authorization Code Flow with PKCE for the local Keycloak demo.
+            } @else {
+              OpenID Connect and social login for Angular + ASP.NET Core, backed by a server-side session and runtime provider discovery.
+            }
+          </p>
+          <div class="hero-actions">
+            <a class="primary-link" href="#demo">Explore live demo</a>
+            <a class="text-link" href="#providers">See provider support</a>
+          </div>
+        </div>
+        <aside class="hero-demo-card" aria-labelledby="hero-demo-title">
+          <p class="eyebrow">Try the live demo</p>
+          <h2 id="hero-demo-title">Sign in to the demo</h2>
+          <p>Explore the sample sign-in flow and inspect the resulting application session.</p>
+          <p class="hero-demo-providers">OpenID Connect · Google · GitHub · Facebook</p>
+          <p class="hero-demo-note">Available sign-in options depend on the demo's configured providers.</p>
+          <a class="text-link" href="#demo">Open live demo</a>
+        </aside>
       </div>
+      <ul class="hero-benefits" aria-label="OIDC Starter benefits">
+        <li><strong>Secure by default</strong><span>Server-side BFF sessions and guarded state changes.</span></li>
+        <li><strong>Multiple providers</strong><span>Discover the providers your application configures.</span></li>
+        <li><strong>Ready for production</strong><span>A production-oriented foundation you configure for your deployment.</span></li>
+        <li><strong>Open source</strong><span>MIT-licensed core packages and starter guidance.</span></li>
+      </ul>
     </div>
   </section>
 
@@ -267,6 +266,30 @@
           <p>Custom cookie-authenticated POST, PUT, PATCH, and DELETE endpoints should follow the same antiforgery contract.</p>
         </aside>
       </section>
+    </div>
+  </section>
+
+  <section id="premium-family" class="premium-family-section" aria-labelledby="premium-family-title">
+    <div class="page-container section-content">
+      <div class="section-heading">
+        <p class="eyebrow">Open Source + Premium</p>
+        <h2 id="premium-family-title">A foundation that can grow with your application.</h2>
+        <p>OIDC Starter OSS provides the safe BFF authentication foundation. Premium adds reusable operational capabilities built on it.</p>
+      </div>
+      <div class="premium-family-grid">
+        <article class="premium-family-card">
+          <p class="eyebrow">Available now</p>
+          <h3>Premium Sessions</h3>
+          <p>Authoritative session visibility and control for supported OIDC integrations.</p>
+          <a class="text-link" href="/premium/sessions">Explore the module</a>
+        </article>
+        <article class="premium-family-card">
+          <p class="eyebrow">Under discovery</p>
+          <h3>Next Premium module</h3>
+          <p>Additional operational needs are evaluated with design partners. No capability or release date is announced.</p>
+        </article>
+      </div>
+      <a class="primary-link" href="/premium">Explore OIDC Starter Premium</a>
     </div>
   </section>
 

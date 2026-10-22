@@ -35,23 +35,6 @@ export class App {
     this.loadPing();
   }
 
-  protected openBffSignIn(trigger: HTMLButtonElement): void {
-    this.bffAuthView()?.openSignInDialog(trigger);
-  }
-
-  protected isBffHeaderSignInDisabled(): boolean {
-    const bffAuthView = this.bffAuthView();
-
-    return !bffAuthView
-      || bffAuthView.isSessionLoading()
-      || bffAuthView.isSessionLoggingOut()
-      || bffAuthView.isSessionAuthenticated();
-  }
-
-  protected isBffAuthenticated(): boolean {
-    return this.bffAuthView()?.isSessionAuthenticated() ?? false;
-  }
-
   protected hasProviderDiscoveryResult(): boolean {
     return this.bffAuthView()?.hasDiscoveredLoginProviders() ?? false;
   }
