@@ -30,6 +30,28 @@ Copy the site block from `Caddyfile.example` into the host Caddy configuration, 
 
 The frontend container serves static Angular assets only, so its catch-all proxy removes the browser `Cookie` header. BFF authentication cookies continue to reach backend and callback routes, while the static server avoids receiving unnecessary session cookies and oversized request headers.
 
+## Premium product-page demo route
+
+Static Premium product CTAs use `/premium/demo`. The frontend nginx serves a
+request-access page at that route by default; the future public demo hostname
+is not configured as a redirect. Trailing slashes on `/premium`,
+`/premium/sessions`, and `/premium/demo` redirect to host-relative paths, so
+staging requests remain on the staging product-site host.
+
+On the staging **product-site** Caddy host `demo.yaroo.ovh`, the operator can
+add this route before forwarding other paths to the static frontend:
+
+```caddyfile
+@premiumDemo path /premium/demo /premium/demo/
+redir @premiumDemo https://premium-demo.yaroo.ovh/ 302
+```
+
+This fragment belongs in that host's existing site block, not in the
+`Caddyfile.example` block for the OSS demo host. The production product-site
+host keeps the request-access page until P5B0C has deployed and verified the
+separate public Premium demo, then its operator can configure the corresponding
+host-managed redirect. Do not point production at an unavailable demo host.
+
 Caddy supplies forwarded headers to the backend. The Compose network fixes its gateway at `FORWARDED_PROXY_IP`, and the backend trusts forwarded headers only from that gateway. Keep the subnet and gateway settings aligned; do not broaden this trust to arbitrary proxy networks.
 
 ## Verify and stop

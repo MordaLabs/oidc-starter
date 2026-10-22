@@ -77,8 +77,24 @@ describe('App', () => {
       .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#github']);
     expect(primaryNavigationLinks.map((link) => link.textContent?.trim()))
       .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'GitHub']);
+    expect(compiled.querySelector('.site-header .header-action')).toBeNull();
+    expect(compiled.querySelector('.site-header button')).toBeNull();
+    expect(compiled.querySelector('#overview .hero-actions a[href="#demo"]')?.textContent).toContain('Explore live demo');
+    expect(compiled.querySelector('#overview .hero-demo-card a[href="#demo"]')?.textContent).toContain('Open live demo');
+    expect(compiled.querySelector('#overview .hero-demo-note')?.textContent).toContain('depend on the demo');
+    expect(Array.from(compiled.querySelectorAll('.hero-benefits strong')).map((item) => item.textContent?.trim()))
+      .toEqual(['Secure by default', 'Multiple providers', 'Ready for production', 'Open source']);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
-      .toEqual(['overview', 'providers', 'how-it-works', 'demo', 'security', 'get-started']);
+      .toEqual(['overview', 'providers', 'how-it-works', 'demo', 'security', 'premium-family', 'get-started']);
+    const premiumFamily = compiled.querySelector('#premium-family');
+    expect(premiumFamily?.textContent).toContain('OSS provides the safe BFF authentication foundation');
+    expect(premiumFamily?.textContent).toContain('Premium Sessions');
+    expect(premiumFamily?.textContent).toContain('Available now');
+    expect(premiumFamily?.textContent).toContain('Next Premium module');
+    expect(premiumFamily?.textContent).toContain('Under discovery');
+    expect(premiumFamily?.textContent).toContain('No capability or release date is announced.');
+    expect(premiumFamily?.querySelector('a[href="/premium"]')?.textContent).toContain('Explore OIDC Starter Premium');
+    expect(premiumFamily?.querySelector('a[href="/premium/sessions"]')?.textContent).toContain('Explore the module');
     expect(compiled.querySelector('main #github')).toBeNull();
 
     const getStarted = compiled.querySelector<HTMLElement>('#get-started');
@@ -391,11 +407,12 @@ describe('App', () => {
     const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
     expect(fixture.nativeElement.querySelector('app-spa-auth-view')).not.toBeNull();
     expect(httpTestingController.match(`${apiOrigin}/api/auth/providers`)).toHaveSize(0);
-    expect(fixture.nativeElement.querySelector('.header-button')?.getAttribute('href')).toBe('#demo');
+    expect(fixture.nativeElement.querySelector('.site-header button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#overview .hero-actions a[href="#demo"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.sign-in-dialog')).toBeNull();
   });
 
-  it('uses the existing BFF dialog from the header without duplicating provider discovery', () => {
+  it('keeps BFF sign-in in the live demo without duplicating provider discovery', () => {
     if (environment.authMode !== 'bff') {
       return;
     }
@@ -405,8 +422,7 @@ describe('App', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const headerSignIn = compiled.querySelector<HTMLButtonElement>('.site-header .header-button');
-    expect(headerSignIn?.disabled).toBeTrue();
+    expect(compiled.querySelector('.site-header button')).toBeNull();
     expect(compiled.querySelector('.unauthenticated-sign-in')).toBeNull();
     expect(authenticatedCardHeadings(compiled)).toEqual([]);
 
@@ -417,29 +433,21 @@ describe('App', () => {
     providerRequest.flush([]);
     fixture.detectChanges();
 
-    expect(headerSignIn?.disabled).toBeFalse();
     expect(compiled.querySelector('.unauthenticated-state')?.textContent).toContain('No active session');
     expect(authenticatedCardHeadings(compiled)).toEqual([]);
-    headerSignIn?.click();
+    const demoSignIn = compiled.querySelector<HTMLButtonElement>('.unauthenticated-sign-in');
+    demoSignIn?.click();
     fixture.detectChanges();
 
     const dialog = compiled.querySelector<HTMLDialogElement>('.sign-in-dialog');
     expect(dialog?.open).toBeTrue();
     expect(compiled.querySelectorAll('.sign-in-dialog')).toHaveSize(1);
-    expect(compiled.querySelector('.site-header .provider-action')).toBeNull();
-    dialog?.querySelector<HTMLButtonElement>('.dialog-close')?.click();
-
-    expect(document.activeElement).toBe(headerSignIn);
-    const demoSignIn = compiled.querySelector<HTMLButtonElement>('.unauthenticated-sign-in');
-    demoSignIn?.click();
-    fixture.detectChanges();
-    expect(dialog?.open).toBeTrue();
     dialog?.querySelector<HTMLButtonElement>('.dialog-close')?.click();
     expect(document.activeElement).toBe(demoSignIn);
     expect(httpTestingController.match(`${environment.apiOrigin.replace(/\/$/, '')}/api/auth/providers`)).toHaveSize(0);
   });
 
-  it('replaces BFF header sign-in with a session link for authenticated users', () => {
+  it('keeps authenticated session controls in the demo, outside the global header', () => {
     if (environment.authMode !== 'bff') {
       return;
     }
@@ -459,10 +467,7 @@ describe('App', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const sessionLink = compiled.querySelector<HTMLAnchorElement>('.site-header .header-button-session');
-    expect(sessionLink?.textContent).toContain('View session');
-    expect(sessionLink?.getAttribute('href')).toBe('#demo');
-    expect(compiled.querySelector('.site-header button.header-button')).toBeNull();
+    expect(compiled.querySelector('.site-header button, .site-header .header-button')).toBeNull();
     expect(compiled.querySelector('.unauthenticated-state')).toBeNull();
     expect(authenticatedCardHeadings(compiled)).toEqual(['Login', 'User info']);
     expect(compiled.textContent).toContain('subject-123');

@@ -14,22 +14,34 @@
       <div class="container header-inner">
         <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
         <nav aria-label="Primary navigation">
-          <a href="/">OSS home</a>
+          <a href="/#overview">Overview</a>
+          <a href="/#providers">Providers</a>
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#demo">Live demo</a>
+          <a href="/#security">Security</a>
+          <a href="/#get-started">Get started</a>
           <a href="/premium" aria-current="page">Premium</a>
-          <a href="/premium/sessions">Sessions</a>
+          <a href="/#github">GitHub</a>
         </nav>
       </div>
     </header>
+    <nav class="premium-subnav" aria-label="Premium navigation">
+      <div class="container">
+        <a href="/premium" aria-current="page">Overview</a>
+        <a href="/premium/sessions">Sessions</a>
+        <a href="/premium/demo">Live demo</a>
+      </div>
+    </nav>
 
     <main id="main-content">
       <section class="hero">
         <div class="container">
-          <p class="breadcrumb">MordaLabs <span aria-hidden="true">/</span> <a href="/">OIDC Starter</a> <span aria-hidden="true">/</span> Premium</p>
           <p class="eyebrow">Commercial product · private preview</p>
           <h1>OIDC Starter Premium</h1>
           <p class="lead">Reusable operational capabilities for production-oriented .NET BFF applications built on the open-source OIDC Starter foundation.</p>
           <div class="actions">
-            <a class="button" href="/premium/sessions">Explore Premium Sessions</a>
+            <a class="button" href="/premium/demo">Try the Premium demo</a>
+            <a class="button button-secondary" href="#modules">Explore modules</a>
             <a class="text-link" href="mailto:premium@mordalabs.com?subject=OIDC%20Starter%20Premium%20evaluation">Discuss an evaluation</a>
           </div>
         </div>
@@ -38,18 +50,19 @@
       <section class="section" aria-labelledby="boundary-title">
         <div class="container">
           <p class="eyebrow">Product family</p>
-          <h2 id="boundary-title">A useful OSS foundation, with an optional operational layer.</h2>
-          <div class="card-grid two-up">
+          <h2 id="boundary-title">From Open Source to Premium</h2>
+          <div class="card-grid two-up family-comparison">
             <article class="card">
-              <p class="card-label">OIDC Starter · OSS</p>
+              <p class="card-label">OIDC Starter (OSS)</p>
               <h3>A safe BFF session</h3>
-              <p>The open-source packages provide the ASP.NET Core BFF sign-in flow, backend session, provider discovery, antiforgery integration, and optional headless Angular client. OSS is usable on its own.</p>
+              <p>The MIT-licensed open-source packages provide provider-neutral ASP.NET Core BFF authentication, backend sessions, templates, and integration guidance. OSS is usable on its own.</p>
               <a class="text-link" href="/">Explore the OSS starter</a>
             </article>
+            <span class="comparison-plus" aria-hidden="true">+</span>
             <article class="card emphasized">
-              <p class="card-label">OIDC Starter · Premium</p>
+              <p class="card-label">OIDC Starter Premium</p>
               <h3>Operational control over that session</h3>
-              <p>Premium extends the OSS BFF with reusable operational capabilities. Premium Sessions is its first currently available module.</p>
+              <p>Premium adds reusable operational modules on the same OSS foundation for production teams. Premium Sessions is available now.</p>
               <a class="text-link" href="/premium/sessions">See the Sessions module</a>
             </article>
           </div>
@@ -72,12 +85,24 @@
         </div>
       </section>
 
-      <section class="section" aria-labelledby="available-title">
+      <section id="modules" class="section" aria-labelledby="available-title">
         <div class="container">
-          <p class="eyebrow">Available today</p>
-          <h2 id="available-title">Premium Sessions</h2>
-          <p class="section-lead">The first available Premium module provides authoritative server-side BFF sessions, active-session visibility, selective and bulk local revocation, shared Redis coordination, and Back-Channel Logout for supported OIDC configurations.</p>
-          <a class="button button-secondary" href="/premium/sessions">Understand Premium Sessions</a>
+          <p class="eyebrow">Modules</p>
+          <h2 id="available-title">Operational capabilities for real applications.</h2>
+          <div class="card-grid two-up">
+            <article class="card emphasized">
+              <p class="card-label">Available now</p>
+              <h3>Premium Sessions</h3>
+              <p>Authoritative server-side BFF sessions, active-session visibility, local revocation, shared Redis coordination, and Back-Channel Logout for supported OIDC configurations.</p>
+              <a class="text-link" href="/premium/sessions">Learn more</a>
+              <p class="module-note">Live demo available through the Premium demo route.</p>
+            </article>
+            <article class="card">
+              <p class="card-label">Under discovery</p>
+              <h3>Next Premium module</h3>
+              <p>Additional operational needs are evaluated with design partners. No capability or release date is announced.</p>
+            </article>
+          </div>
         </div>
       </section>
 

@@ -14,23 +14,35 @@
       <div class="container header-inner">
         <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
         <nav aria-label="Primary navigation">
-          <a href="/">OSS home</a>
-          <a href="/premium">Premium overview</a>
-          <a href="/premium/sessions" aria-current="page">Sessions</a>
+          <a href="/#overview">Overview</a>
+          <a href="/#providers">Providers</a>
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#demo">Live demo</a>
+          <a href="/#security">Security</a>
+          <a href="/#get-started">Get started</a>
+          <a href="/premium" aria-current="page">Premium</a>
+          <a href="/#github">GitHub</a>
         </nav>
       </div>
     </header>
+    <nav class="premium-subnav" aria-label="Premium navigation">
+      <div class="container">
+        <a href="/premium">Overview</a>
+        <a href="/premium/sessions" aria-current="page">Sessions</a>
+        <a href="/premium/demo">Live demo</a>
+      </div>
+    </nav>
 
     <main id="main-content">
       <section class="hero">
         <div class="container">
-          <p class="breadcrumb">MordaLabs <span aria-hidden="true">/</span> <a href="/">OIDC Starter</a> <span aria-hidden="true">/</span> <a href="/premium">Premium</a> <span aria-hidden="true">/</span> Sessions</p>
           <p class="eyebrow">OIDC Starter Premium · first available module</p>
           <h1>Premium Sessions</h1>
           <p class="lead">Authoritative operational control over local ASP.NET Core BFF sessions, built on the open-source OIDC Starter foundation.</p>
           <div class="actions">
-            <a class="button" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Discuss an evaluation</a>
-            <a class="text-link" href="/premium">Back to Premium overview</a>
+            <a class="button" href="/premium/demo">Try live demo</a>
+            <a class="button button-secondary" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Discuss an evaluation</a>
+            <a class="text-link" href="/premium">Premium overview</a>
           </div>
         </div>
       </section>
@@ -128,6 +140,17 @@
         </div>
       </section>
 
+      <section class="section live-demo-callout" aria-labelledby="live-demo-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Live evaluation</p>
+            <h2 id="live-demo-title">See Premium Sessions in the live demo</h2>
+            <p>Try session visibility and local revocation in the guided two-browser flow. Demo access is coordinated for invited evaluators.</p>
+          </div>
+          <div class="closing-action"><a class="button" href="/premium/demo">Try live demo</a></div>
+        </div>
+      </section>
+
       <section class="section closing" aria-labelledby="evaluation-title">
         <div class="container split">
           <div>
@@ -137,7 +160,7 @@
           </div>
           <div class="closing-action">
             <a class="button" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Email premium@mordalabs.com</a>
-            <a class="text-link" href="/premium">View the Premium product overview</a>
+            <a class="text-link" href="/premium">Back to Premium overview</a>
           </div>
         </div>
       </section>
