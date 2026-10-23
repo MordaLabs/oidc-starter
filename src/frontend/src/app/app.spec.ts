@@ -84,6 +84,7 @@ describe('App', () => {
     expect(compiled.querySelector('#overview .hero-demo-note')?.textContent).toContain('depend on the demo');
     expect(Array.from(compiled.querySelectorAll('.hero-benefits strong')).map((item) => item.textContent?.trim()))
       .toEqual(['Secure by default', 'Multiple providers', 'Ready for production', 'Open source']);
+    expect(compiled.querySelectorAll('.hero-benefits li .visual-icon[aria-hidden="true"]')).toHaveSize(4);
     expect(Array.from(compiled.querySelector('main')!.querySelectorAll(':scope > section')).map((section) => section.id))
       .toEqual(['overview', 'providers', 'how-it-works', 'demo', 'security', 'premium-family', 'get-started']);
     const premiumFamily = compiled.querySelector('#premium-family');
@@ -95,6 +96,7 @@ describe('App', () => {
     expect(premiumFamily?.textContent).toContain('No capability or release date is announced.');
     expect(premiumFamily?.querySelector('a[href="/premium"]')?.textContent).toContain('Explore OIDC Starter Premium');
     expect(premiumFamily?.querySelector('a[href="/premium/sessions"]')?.textContent).toContain('Explore the module');
+    expect(premiumFamily?.querySelectorAll('.premium-family-card .visual-icon[aria-hidden="true"]')).toHaveSize(2);
     expect(compiled.querySelector('main #github')).toBeNull();
 
     const getStarted = compiled.querySelector<HTMLElement>('#get-started');

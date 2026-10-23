@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#0e6244" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+  <symbol id="shield" viewBox="0 0 24 24"><path d="M12 2.5 20 6v5.5c0 5-3.2 8.4-8 10-4.8-1.6-8-5-8-10V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="nodes" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="m6.7 7.1 4.2 9M17.3 7.1l-4.2 9M7 6h10"/></symbol>
+  <symbol id="package" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10M8 4.2l9 5"/></symbol>
+  <symbol id="code" viewBox="0 0 24 24"><path d="m8 5-6 7 6 7m8-14 6 7-6 7m-3-16-2 18"/></symbol>
+  <symbol id="stack" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5zM3 12l9 5 9-5M3 17l9 5 9-5"/></symbol>
+  <symbol id="session" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18m-13 6h5m3 0h2"/></symbol>
+  <symbol id="visibility" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  <symbol id="revoke-one" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h10m-6 4h6"/><path d="m5 3 14 18"/></symbol>
+  <symbol id="revoke-all" viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 15h16M4 20h16"/><path d="m7 3 10 19"/></symbol>
+  <symbol id="network" viewBox="0 0 24 24"><rect x="2" y="3" width="7" height="6" rx="1"/><rect x="15" y="3" width="7" height="6" rx="1"/><rect x="8.5" y="16" width="7" height="6" rx="1"/><path d="M5.5 9v4h13V9M12 13v3"/></symbol>
+  <symbol id="logout" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7M9 12h12m-4-4 4 4-4 4"/></symbol>
+  <symbol id="discovery" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/><path d="M12 8v8m-4-4h8"/></symbol>
+  <symbol id="boundary" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><path d="M12 3v5m0 8v5M3 12h5m8 0h5"/></symbol>
+</svg>

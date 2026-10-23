@@ -6,10 +6,12 @@
     <title>OIDC Starter Premium | Operational control for .NET BFFs</title>
     <meta name="description" content="OIDC Starter Premium adds reusable operational control to the open-source OIDC Starter BFF. Premium Sessions is available in private preview for design-partner evaluation." />
     <link rel="canonical" href="https://oidc-starter.mordalabs.com/premium" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/premium/premium.css" />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="premium-navigation-shell">
     <header class="site-header">
       <div class="container header-inner">
         <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
@@ -32,18 +34,33 @@
         <a href="/premium/demo">Live demo</a>
       </div>
     </nav>
+    </div>
 
     <main id="main-content">
       <section class="hero">
-        <div class="container">
-          <p class="eyebrow">Commercial product · private preview</p>
-          <h1>OIDC Starter Premium</h1>
-          <p class="lead">Reusable operational capabilities for production-oriented .NET BFF applications built on the open-source OIDC Starter foundation.</p>
-          <div class="actions">
-            <a class="button" href="/premium/demo">Try the Premium demo</a>
-            <a class="button button-secondary" href="#modules">Explore modules</a>
-            <a class="text-link" href="mailto:premium@mordalabs.com?subject=OIDC%20Starter%20Premium%20evaluation">Discuss an evaluation</a>
+        <div class="container hero-layout">
+          <div class="hero-copy">
+            <p class="eyebrow">Commercial product · private preview</p>
+            <h1>OIDC Starter Premium</h1>
+            <p class="lead">Reusable operational capabilities for production-oriented .NET BFF applications built on the open-source OIDC Starter foundation.</p>
+            <div class="actions">
+              <a class="button" href="/premium/demo">Try the Premium demo</a>
+              <a class="button button-secondary" href="#modules">Explore modules</a>
+              <a class="text-link" href="mailto:premium@mordalabs.com?subject=OIDC%20Starter%20Premium%20evaluation">Discuss an evaluation</a>
+            </div>
           </div>
+          <svg class="hero-art" viewBox="0 0 420 320" fill="none" aria-hidden="true">
+            <circle cx="210" cy="160" r="145" fill="#e4eee4" />
+            <path d="m62 198 148-76 148 76-148 76z" fill="#b7d5bf" stroke="#5c9472" stroke-width="2" />
+            <path d="M62 198v30l148 76v-30z" fill="#91bba0" stroke="#5c9472" stroke-width="2" />
+            <path d="M358 198v30l-148 76v-30z" fill="#6b9d7e" stroke="#5c9472" stroke-width="2" />
+            <path d="m94 157 116-59 116 59-116 59z" fill="#e6f1e7" stroke="#5c9472" stroke-width="2" />
+            <path d="M94 157v26l116 59v-26z" fill="#c3dcc8" stroke="#5c9472" stroke-width="2" />
+            <path d="M326 157v26l-116 59v-26z" fill="#a8ccb0" stroke="#5c9472" stroke-width="2" />
+            <path d="m138 100 72-37 72 37-72 37z" fill="#f8fbf7" stroke="#5c9472" stroke-width="2" />
+            <path d="M138 100v24l72 37v-24z" fill="#d7e9d9" stroke="#5c9472" stroke-width="2" />
+            <path d="M282 100v24l-72 37v-24z" fill="#b9d9c1" stroke="#5c9472" stroke-width="2" />
+          </svg>
         </div>
       </section>
 
@@ -53,6 +70,7 @@
           <h2 id="boundary-title">From Open Source to Premium</h2>
           <div class="card-grid two-up family-comparison">
             <article class="card">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#package" /></svg>
               <p class="card-label">OIDC Starter (OSS)</p>
               <h3>A safe BFF session</h3>
               <p>The MIT-licensed open-source packages provide provider-neutral ASP.NET Core BFF authentication, backend sessions, templates, and integration guidance. OSS is usable on its own.</p>
@@ -60,6 +78,7 @@
             </article>
             <span class="comparison-plus" aria-hidden="true">+</span>
             <article class="card emphasized">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#stack" /></svg>
               <p class="card-label">OIDC Starter Premium</p>
               <h3>Operational control over that session</h3>
               <p>Premium adds reusable operational modules on the same OSS foundation for production teams. Premium Sessions is available now.</p>
@@ -91,6 +110,7 @@
           <h2 id="available-title">Operational capabilities for real applications.</h2>
           <div class="card-grid two-up">
             <article class="card emphasized">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#session" /></svg>
               <p class="card-label">Available now</p>
               <h3>Premium Sessions</h3>
               <p>Authoritative server-side BFF sessions, active-session visibility, local revocation, shared Redis coordination, and Back-Channel Logout for supported OIDC configurations.</p>
@@ -98,6 +118,7 @@
               <p class="module-note">Live demo available through the Premium demo route.</p>
             </article>
             <article class="card">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#discovery" /></svg>
               <p class="card-label">Under discovery</p>
               <h3>Next Premium module</h3>
               <p>Additional operational needs are evaluated with design partners. No capability or release date is announced.</p>

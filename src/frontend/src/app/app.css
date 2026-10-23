@@ -205,6 +205,12 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.visual-icon { display: block; width: 1.65rem; height: 1.65rem; flex: none; fill: none; stroke: var(--accent-hover); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.hero-demo-card { position: relative; isolation: isolate; }
+.hero-demo-card::before, .hero-demo-card::after { position: absolute; z-index: -1; content: ''; pointer-events: none; }
+.hero-demo-card::before { width: 7rem; height: 7rem; top: -2rem; right: -1.5rem; border: 1px solid #b8d2c0; border-radius: 50%; background: #e5efe7; }
+.hero-demo-card::after { width: 3.5rem; height: 3.5rem; right: 2.25rem; bottom: -1.25rem; border: 1px solid #cbdccf; border-radius: .5rem; background: #eaf1e9; transform: rotate(28deg); }
+.hero-demo-mark { display: inline-flex; padding: .6rem; margin-bottom: 1rem; border-radius: .65rem; background: #e5efe7; }
 .hero-demo-card h2 { font-size: clamp(1.7rem, 2.4vw, 2.2rem); }
 .hero-demo-card p:not(.eyebrow), .premium-family-card p:not(.eyebrow) { margin-top: 0.8rem; color: var(--muted); line-height: 1.6; }
 .hero-demo-card .hero-demo-providers { color: var(--ink); font-weight: 700; }
@@ -212,11 +218,13 @@ h3 {
 .hero-demo-card .text-link, .premium-family-card .text-link { display: inline-block; margin-top: 1rem; color: var(--accent-hover); }
 .hero-benefits { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; padding: 0; margin: clamp(2rem, 5vw, 3rem) 0 0; list-style: none; }
 .hero-benefits li { padding-top: 1rem; border-top: 2px solid var(--accent); }
+.hero-benefits .visual-icon { margin-bottom: .8rem; }
 .hero-benefits strong, .hero-benefits span { display: block; }
 .hero-benefits span { margin-top: 0.45rem; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
 .premium-family-section { border-top: 1px solid var(--border); background: #edf1ea; }
 .premium-family-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
 .premium-family-card { box-shadow: none; }
+.premium-family-card .visual-icon { margin-bottom: 1rem; }
 .premium-family-section .primary-link { margin-top: 1.5rem; }
 
 .section-content {
@@ -897,6 +905,8 @@ dd {
   }
 
   .hero-content, .premium-family-grid { grid-template-columns: 1fr; }
+  .hero-demo-card::before { right: -.5rem; }
+  .hero-demo-card::after { right: 1rem; }
   .hero-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   h1 {
