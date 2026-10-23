@@ -6,10 +6,12 @@
     <title>Premium Sessions | OIDC Starter Premium</title>
     <meta name="description" content="Premium Sessions adds authoritative server-side BFF session visibility, local revocation, Redis coordination, and supported OIDC Back-Channel Logout to OIDC Starter Premium." />
     <link rel="canonical" href="https://oidc-starter.mordalabs.com/premium/sessions" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/premium/premium.css" />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="premium-navigation-shell">
     <header class="site-header">
       <div class="container header-inner">
         <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
@@ -32,18 +34,32 @@
         <a href="/premium/demo">Live demo</a>
       </div>
     </nav>
+    </div>
 
     <main id="main-content">
       <section class="hero">
-        <div class="container">
-          <p class="eyebrow">OIDC Starter Premium · first available module</p>
-          <h1>Premium Sessions</h1>
-          <p class="lead">Authoritative operational control over local ASP.NET Core BFF sessions, built on the open-source OIDC Starter foundation.</p>
-          <div class="actions">
-            <a class="button" href="/premium/demo">Try live demo</a>
-            <a class="button button-secondary" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Discuss an evaluation</a>
-            <a class="text-link" href="/premium">Premium overview</a>
+        <div class="container hero-layout">
+          <div class="hero-copy">
+            <p class="eyebrow">OIDC Starter Premium · first available module</p>
+            <h1>Premium Sessions</h1>
+            <p class="lead">Authoritative operational control over local ASP.NET Core BFF sessions, built on the open-source OIDC Starter foundation.</p>
+            <div class="actions">
+              <a class="button" href="/premium/demo">Try live demo</a>
+              <a class="button button-secondary" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Discuss an evaluation</a>
+              <a class="text-link" href="/premium">Premium overview</a>
+            </div>
           </div>
+          <svg class="hero-art sessions-art" viewBox="0 0 420 320" fill="none" aria-hidden="true">
+            <circle cx="210" cy="160" r="145" fill="#e4eee4" />
+            <path d="M72 121c0-23 62-41 138-41s138 18 138 41v112c0 23-62 41-138 41S72 256 72 233z" fill="#b9d9c1" stroke="#5c9472" stroke-width="2" />
+            <ellipse cx="210" cy="121" rx="138" ry="41" fill="#edf5eb" stroke="#5c9472" stroke-width="2" />
+            <path d="M72 175c0 23 62 41 138 41s138-18 138-41" stroke="#5c9472" stroke-width="2" />
+            <path d="M72 225c0 23 62 41 138 41s138-18 138-41" stroke="#5c9472" stroke-width="2" />
+            <rect x="178" y="138" width="128" height="84" rx="12" fill="#fff" stroke="#0e6244" stroke-width="2" />
+            <path d="M195 160h58m-58 18h42m-42 18h76" stroke="#90b69a" stroke-width="5" stroke-linecap="round" />
+            <path d="m115 138 31-14 31 14v25c0 20-13 34-31 41-18-7-31-21-31-41z" fill="#e5f0e5" stroke="#0e6244" stroke-width="2" />
+            <path d="m134 162 9 9 17-20" stroke="#0e6244" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
       </section>
 
@@ -52,12 +68,12 @@
           <p class="eyebrow">Current module</p>
           <h2 id="capabilities-title">Control the local session after sign-in.</h2>
           <div class="card-grid three-up">
-            <article class="card"><h3>Authoritative sessions</h3><p>Keep protected authentication ticket state on the server in an authoritative session store.</p></article>
-            <article class="card"><h3>Active-session visibility</h3><p>Query active local sessions for an exact trusted OIDC identity scope, with safe metadata and opaque handles.</p></article>
-            <article class="card"><h3>Revoke one</h3><p>End one selected local session so its existing browser cookie no longer authorizes protected requests.</p></article>
-            <article class="card"><h3>Revoke all</h3><p>Revoke the snapshot of active local sessions in the same trusted identity scope. This does not end the upstream provider session or prevent future sign-in.</p></article>
-            <article class="card"><h3>Shared-store coordination</h3><p>Redis coordinates authoritative state across BFF instances; the host also provides shared persistent ASP.NET Core Data Protection keys.</p></article>
-            <article class="card"><h3>Upstream logout</h3><p>Standards-based OIDC Back-Channel Logout can revoke matching local sessions for explicitly configured, supported providers.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#session" /></svg><h3>Authoritative sessions</h3><p>Keep protected authentication ticket state on the server in an authoritative session store.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#visibility" /></svg><h3>Active-session visibility</h3><p>Query active local sessions for an exact trusted OIDC identity scope, with safe metadata and opaque handles.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#revoke-one" /></svg><h3>Revoke one</h3><p>End one selected local session so its existing browser cookie no longer authorizes protected requests.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#revoke-all" /></svg><h3>Revoke all</h3><p>Revoke the snapshot of active local sessions in the same trusted identity scope. This does not end the upstream provider session or prevent future sign-in.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#network" /></svg><h3>Shared-store coordination</h3><p>Redis coordinates authoritative state across BFF instances; the host also provides shared persistent ASP.NET Core Data Protection keys.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#logout" /></svg><h3>Upstream logout</h3><p>Standards-based OIDC Back-Channel Logout can revoke matching local sessions for explicitly configured, supported providers.</p></article>
           </div>
         </div>
       </section>
@@ -71,6 +87,7 @@
             <p>Standards-compliant direct OIDC integrations can use the OSS validated metadata handoff. Brokered OIDC requires evaluation at the broker's identity and account-linking boundary. OAuth-only or custom non-OIDC handlers are not automatically covered.</p>
           </div>
           <div class="note-panel">
+            <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#boundary" /></svg>
             <h3>One application boundary</h3>
             <ol class="flow">
               <li>Browser</li>

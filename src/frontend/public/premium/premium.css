@@ -13,6 +13,7 @@ a:focus-visible { outline: 3px solid #236bff; outline-offset: 3px; }
 .skip-link { position: fixed; z-index: 5; top: .75rem; left: .75rem; padding: .75rem 1rem; transform: translateY(-160%); color: #fff; background: #1c2823; }
 .skip-link:focus { transform: translateY(0); }
 
+.premium-navigation-shell { position: sticky; z-index: 4; top: 0; background: #f7f5f0; box-shadow: 0 3px 12px rgba(28, 40, 35, .06); }
 .site-header { border-bottom: 1px solid #d9ded6; background: #f7f5f0; }
 .header-inner, .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .header-inner { min-height: 4.5rem; }
@@ -25,8 +26,13 @@ nav a:hover, nav a[aria-current] { color: #0e6244; text-decoration: underline; t
 .premium-subnav { border-bottom: 1px solid #d9ded6; background: #edf1ea; }
 .premium-subnav .container { display: flex; gap: .5rem 1.5rem; padding-block: .7rem; }
 .premium-subnav a { padding-block: .3rem; }
+#main-content, #modules { scroll-margin-top: 8rem; }
 
 .hero { padding: clamp(3rem, 7vw, 5rem) 0; border-bottom: 1px solid #d9ded6; }
+.hero-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(2rem, 5vw, 5rem); align-items: center; }
+.hero-layout > * { min-width: 0; }
+.hero-art { display: block; width: min(100%, 26rem); height: auto; justify-self: center; }
+.visual-icon { display: block; width: 1.7rem; height: 1.7rem; flex: none; fill: none; stroke: #0e6244; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .eyebrow, .card-label { margin: 0 0 .7rem; color: #0e6244; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 h1, h2, h3, p { margin: 0; }
 h1, h2 { color: #172033; font-family: Georgia, 'Times New Roman', serif; letter-spacing: -.03em; }
@@ -51,10 +57,11 @@ p, li { line-height: 1.65; }
 .card-grid { display: grid; gap: 1rem; margin-top: 2rem; }
 .two-up { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .family-comparison { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; }
-.comparison-plus { color: #0e6244; font-family: Georgia, 'Times New Roman', serif; font-size: 2.4rem; font-weight: 700; }
+.comparison-plus { display: grid; width: 3rem; height: 3rem; place-items: center; border: 1px solid #b8d2c0; border-radius: 50%; color: #0e6244; background: #e5efe7; font-family: Georgia, 'Times New Roman', serif; font-size: 2rem; font-weight: 700; line-height: 1; }
 .three-up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .card, .note-panel, .code-panel { min-width: 0; padding: 1.5rem; border: 1px solid #d9ded6; border-radius: .5rem; background: #fff; }
 .card.emphasized { border-top: 3px solid #17815c; }
+.card > .visual-icon, .note-panel > .visual-icon { margin-bottom: 1rem; }
 .card p:not(.card-label), .note-panel p, .code-panel p { margin-top: .75rem; color: #405149; }
 .card .text-link { display: inline-block; margin-top: 1rem; }
 .boundary-line { margin-top: 2rem; padding-left: 1rem; border-left: 3px solid #17815c; font-size: 1.1rem; font-weight: 700; }
@@ -87,11 +94,13 @@ code { overflow-wrap: anywhere; }
 @media (max-width: 980px) {
   .header-inner { flex-wrap: wrap; padding-block: .9rem; }
   .header-inner nav { width: 100%; justify-content: flex-start; }
+  #main-content, #modules { scroll-margin-top: 12rem; }
 }
 
 @media (max-width: 850px) {
   .three-up { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .split { grid-template-columns: 1fr; }
+  .split, .hero-layout { grid-template-columns: 1fr; }
+  .hero-art { width: min(65vw, 19rem); }
 }
 
 @media (max-width: 620px) {
@@ -100,8 +109,10 @@ code { overflow-wrap: anywhere; }
   .two-up, .three-up, .family-comparison { grid-template-columns: 1fr; }
   .comparison-plus { justify-self: center; }
   .hero { padding-block: 2.5rem; }
+  .hero-art { width: min(70vw, 15rem); }
   .actions { align-items: stretch; flex-direction: column; }
   .premium-subnav .container { flex-wrap: wrap; }
+  #main-content, #modules { scroll-margin-top: 17rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

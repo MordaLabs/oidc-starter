@@ -9,10 +9,28 @@ const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const overview = read('src/frontend/public/premium/index.html');
 const sessions = read('src/frontend/public/premium/sessions/index.html');
 const demo = read('src/frontend/public/premium/demo.html');
+const favicon = read('src/frontend/public/favicon.svg');
+const visuals = read('src/frontend/public/premium/visuals.svg');
 const nginx = read('deploy/public-demo/nginx.conf');
 const deploymentGuide = read('deploy/public-demo/README.md');
 
+test('Premium pages use the local OSS favicon and local decorative visuals', () => {
+  assert.match(favicon, /<svg\b/);
+  assert.match(visuals, /<svg\b/);
+  for (const page of [overview, sessions, demo]) {
+    assert.match(page, /<link rel="icon" type="image\/svg\+xml" href="\/favicon\.svg" \/>/);
+  }
+  for (const page of [overview, sessions]) {
+    assert.match(page, /aria-hidden="true"/);
+    assert.match(page, /\/premium\/visuals\.svg#/);
+  }
+});
+
 test('Premium pages share the global header and mark their product and subnavigation state', () => {
+  for (const page of [overview, sessions, demo]) {
+    assert.match(page, /<div class="premium-navigation-shell">\s*<header class="site-header">/);
+    assert.match(page, /<nav class="premium-subnav" aria-label="Premium navigation">[\s\S]*?<\/nav>\s*<\/div>\s*<main id="main-content">/);
+  }
   for (const page of [overview, sessions]) {
     for (const [href, label] of [
       ['/#overview', 'Overview'], ['/#providers', 'Providers'],
