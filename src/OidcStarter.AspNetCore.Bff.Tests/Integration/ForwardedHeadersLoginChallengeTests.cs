@@ -11,8 +11,12 @@ namespace OidcStarter.AspNetCore.Bff.Tests.Integration;
 
 public sealed class ForwardedHeadersLoginChallengeTests
 {
-    [Fact]
-    public async Task Trusted_forwarded_public_origin_is_used_for_google_callback_uri()
+    [Theory]
+    [InlineData("Starter:KnownForwardedProxies:0", "127.0.0.1", "127.0.0.1", "https://demo.example.com/signin-google")]
+    [InlineData("Starter:KnownForwardedNetworks:0", "127.0.0.0/8", "127.0.0.1", "https://demo.example.com/signin-google")]
+    [InlineData("Starter:KnownForwardedNetworks:0", "127.0.0.0/8", "198.51.100.10", "http://localhost/signin-google")]
+    public async Task Forwarded_public_origin_requires_trusted_proxy_or_network(
+        string knownAddressSetting, string knownAddress, string remoteAddress, string expectedCallbackUri)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -22,7 +26,7 @@ public sealed class ForwardedHeadersLoginChallengeTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Starter:AllowedForwardedHosts:0"] = "demo.example.com",
-            ["Starter:KnownForwardedProxies:0"] = "127.0.0.1",
+            [knownAddressSetting] = knownAddress,
             ["Oidc:Authority"] = "https://identity.example.test",
             ["Oidc:ClientId"] = "test-oidc-client-id",
             ["Oidc:ClientSecret"] = "test-oidc-client-secret",
@@ -33,11 +37,17 @@ public sealed class ForwardedHeadersLoginChallengeTests
         builder.Services.AddOidcStarterGoogle(builder.Configuration.GetSection("Google"));
 
         await using var app = builder.Build();
+        app.Use((context, next) =>
+        {
+            context.Connection.RemoteIpAddress = IPAddress.Parse(context.Request.Headers["X-Test-Remote-IP"].ToString());
+            return next();
+        });
         app.UseOidcStarterBff();
         app.MapControllers();
         await app.StartAsync();
 
         using var client = app.GetTestClient();
+        client.DefaultRequestHeaders.TryAddWithoutValidation("X-Test-Remote-IP", remoteAddress);
         client.DefaultRequestHeaders.TryAddWithoutValidation("X-Forwarded-For", "203.0.113.10");
         client.DefaultRequestHeaders.TryAddWithoutValidation("X-Forwarded-Proto", "https");
         client.DefaultRequestHeaders.TryAddWithoutValidation("X-Forwarded-Host", "demo.example.com");
@@ -49,6 +59,6 @@ public sealed class ForwardedHeadersLoginChallengeTests
             $"Expected a redirect but received {(int)response.StatusCode} {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
         var authorizationRedirect = Assert.IsType<Uri>(response.Headers.Location);
         var query = QueryHelpers.ParseQuery(authorizationRedirect.Query);
-        Assert.Equal("https://demo.example.com/signin-google", query["redirect_uri"].Single());
+        Assert.Equal(expectedCallbackUri, query["redirect_uri"].Single());
     }
 }

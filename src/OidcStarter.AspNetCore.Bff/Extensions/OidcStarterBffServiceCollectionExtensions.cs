@@ -391,9 +391,13 @@ public static class OidcStarterBffServiceCollectionExtensions
 
             foreach (var network in bffSettings.KnownForwardedNetworks.Where(static network => !string.IsNullOrWhiteSpace(network)))
             {
-                if (TryParseNetwork(network, out var parsedNetwork))
+                if (TryParseNetwork(network, out var parsedNetwork) && parsedNetwork is { } knownNetwork)
                 {
-                    options.KnownNetworks.Add(parsedNetwork);
+#if NET10_0_OR_GREATER
+                    options.KnownIPNetworks.Add(knownNetwork);
+#else
+                    options.KnownNetworks.Add(knownNetwork);
+#endif
                 }
             }
         });
@@ -592,9 +596,17 @@ public static class OidcStarterBffServiceCollectionExtensions
         });
     }
 
+#if NET10_0_OR_GREATER
+    private static bool TryParseNetwork(string value, out System.Net.IPNetwork? network)
+#else
     private static bool TryParseNetwork(string value, out Microsoft.AspNetCore.HttpOverrides.IPNetwork network)
+#endif
     {
+#if NET10_0_OR_GREATER
+        network = null;
+#else
         network = null!;
+#endif
         var parts = value.Split('/', StringSplitOptions.TrimEntries);
 
         if (parts.Length != 2
@@ -604,7 +616,11 @@ public static class OidcStarterBffServiceCollectionExtensions
             return false;
         }
 
+#if NET10_0_OR_GREATER
+        network = new System.Net.IPNetwork(prefix, prefixLength);
+#else
         network = new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, prefixLength);
+#endif
         return true;
     }
 }
