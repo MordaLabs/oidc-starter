@@ -35,13 +35,6 @@
     <ProjectReference Include="..\OidcStarter.AspNetCore.Bff\OidcStarter.AspNetCore.Bff.csproj" />
   </ItemGroup>
 
-  <Target Name="BuildSampleBackendCompatibility" BeforeTargets="CoreCompile" Condition="'$(TargetFramework)' == 'net9.0'">
-    <MSBuild
-      Projects="..\backend\Backend.csproj"
-      Targets="Build"
-      Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
-  </Target>
-
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
