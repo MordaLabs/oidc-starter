@@ -6,7 +6,7 @@ This file captures current working assumptions for Codex.
 
 Update it after meaningful milestone changes, not after every small task.
 
-Last reviewed: 2026-09-11, after the published backend 1.3.0 / closed P3E1a OSS prerequisite.
+Last reviewed: 2026-10-26, after the published backend 1.4.0 release.
 
 ## Repository Stage
 
@@ -14,12 +14,21 @@ Last reviewed: 2026-09-11, after the published backend 1.3.0 / closed P3E1a OSS 
 
 Current state:
 
-- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is currently published at `1.3.0`,
+- the reusable backend NuGet package `OidcStarter.AspNetCore.Bff` is currently published at `1.4.0`,
 - the maintained reusable frontend package is `@mordalabs/oidc-starter-auth` at version `0.2.0`, published to npm and verified from the public registry,
 - the repository remains a public reference implementation and sample app,
 - the backend package is the primary product focus at this stage, while the frontend package remains part of the reusable starter contract,
-- the `1.3.0` backend release is published, with tag `v1.3.0` and GitHub Release at
+- the earlier `1.3.0` backend release was published, with tag `v1.3.0` and GitHub Release at
   `https://github.com/MordaLabs/oidc-starter/releases/tag/v1.3.0`.
+
+N10A, N10B, and N10C are COMPLETE. `OidcStarter.AspNetCore.Bff` `1.4.0` is PUBLISHED on NuGet,
+with a published GitHub Release under tag `v1.4.0` from authoritative source SHA
+`6b9cbcc78ce2437395bc936cacbcd84ddbf70477`. The package targets `net9.0;net10.0`, retaining
+.NET 9 compatibility and adding .NET 10 support without a public API or configuration migration.
+BFF tests passed 165/165 on both target frameworks, and clean package consumers passed on both.
+The OSS sample/backend and Docker backend were verified on .NET 10; staging verified OIDC
+login/logout and authenticated-session continuity across backend container replacement.
+The next recommended migration stage is N10D in `oidc-starter-premium`.
 
 The `1.2.0` backend release introduced the public `AuthenticationProperties.TryGetOidcStarterLoginProviderId(...)`
 read-only accessor for downstream integrations and extensions. The persisted provider-property key remains
@@ -36,9 +45,9 @@ when processing continues normally; consumer behavior remains unchanged. Persist
 keys remain internal, and the existing provider-id accessor remains compatible. `EventsType` replacement remains
 a documented capture limitation. No Premium-specific concepts were added to OSS. Operator targeted tests passed
 (97/97), and full backend tests passed (163/163). The validated metadata implementation is merged and fully
-released as the P3E1a OSS prerequisite, now CLOSED. Backend package `1.3.0` is published on NuGet. The next
-Premium step is P3E1b - immutable OIDC session binding, v2 opaque references, and in-memory behavior. P3E
-Back-Channel Logout is not complete.
+released as the P3E1a OSS prerequisite, now CLOSED. Backend package `1.3.0` was published on NuGet.
+At that checkpoint, the next Premium step was P3E1b - immutable OIDC session binding, v2 opaque references,
+and in-memory behavior; P3E Back-Channel Logout was not complete.
 
 ## Current Primary Focus
 
