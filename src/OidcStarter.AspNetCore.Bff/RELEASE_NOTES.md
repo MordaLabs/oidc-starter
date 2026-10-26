@@ -1,5 +1,16 @@
 # OidcStarter.AspNetCore.Bff Release Notes
 
+## v1.4.0
+
+.NET 10 compatibility release.
+
+- Adds a `net10.0` package target while retaining `net9.0` support in the same package.
+- No public API or configuration migration is required.
+- The `net10.0` target passed the existing BFF test suite.
+- The OSS sample backend and Docker runtime were verified on .NET 10.
+- Staging verification covered OIDC login/logout and continuity of an existing authenticated BFF
+  session across backend container replacement.
+
 ## v1.3.0
 
 Backward-compatible minor release.
