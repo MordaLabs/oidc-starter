@@ -21,6 +21,19 @@ Publication command for maintainers:
 dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNetCore.Bff.<version>.nupkg --api-key <NUGET_API_KEY> --source https://api.nuget.org/v3/index.json
 ```
 
+## Current published backend release: 1.4.0
+
+`OidcStarter.AspNetCore.Bff` `1.4.0` is published on NuGet. The GitHub Release is published
+under tag `v1.4.0` from source SHA `6b9cbcc78ce2437395bc936cacbcd84ddbf70477`.
+The final published nupkg SHA-256 is
+`ebeb35e2b367f3e29b7798c34ccd4e1d3bcdde9beb72a71382e3de553c9b27e1`.
+
+- Targets `net9.0;net10.0`, retaining .NET 9 compatibility and adding .NET 10 support.
+- No public API or configuration migration is required.
+- BFF tests passed 165/165 on each target framework; clean package consumers passed on both.
+- The OSS sample/backend and Docker backend were verified on .NET 10. Staging verified OIDC
+  login/logout and authenticated-session continuity across backend container replacement.
+
 ## Published backend release: 1.3.0
 
 `OidcStarter.AspNetCore.Bff` `1.3.0` is published on NuGet.
@@ -47,7 +60,7 @@ dotnet nuget push .\src\OidcStarter.AspNetCore.Bff\bin\Release\OidcStarter.AspNe
 - Configuration migration: none.
 - Targeted P3A backend validation: 58 tests passed, 0 failed.
 
-`OidcStarter.AspNetCore.Bff` `1.2.1` is the current published patch release. It corrected the NuGet
+`OidcStarter.AspNetCore.Bff` `1.2.1` was a published patch release. It corrected the NuGet
 Project Website to `https://oidc-starter.mordalabs.com/`; repository metadata remains
 `https://github.com/MordaLabs/oidc-starter`.
 
