@@ -4,6 +4,8 @@ import { Subject } from 'rxjs';
 import { BffAuthService, type BffCurrentUser, type BffLoginProvider } from '@mordalabs/oidc-starter-auth';
 import { BFF_CLIPBOARD_WRITER } from './bff-clipboard-writer';
 import { BffAuthViewComponent } from './bff-auth-view.component';
+import { BffAuthViewService } from './bff-auth-view.service';
+import { LOCALE_STORAGE_KEY, LocaleService } from '../../locale.service';
 
 type BffAuthServiceStub = {
   isLoading: WritableSignal<boolean>;
@@ -22,6 +24,7 @@ describe('BffAuthViewComponent', () => {
   let clipboardWriter: jasmine.Spy;
 
   beforeEach(async () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
     providerResponses = new Subject<readonly BffLoginProvider[]>();
     clipboardWriter = jasmine.createSpy('clipboardWriter').and.resolveTo();
     auth = {
@@ -43,7 +46,10 @@ describe('BffAuthViewComponent', () => {
     }).compileComponents();
   });
 
-  afterEach(() => TestBed.resetTestingModule());
+  afterEach(() => {
+    localStorage.removeItem(LOCALE_STORAGE_KEY);
+    TestBed.resetTestingModule();
+  });
 
   it('renders one unauthenticated sign-in action after the session check without technical cards', async () => {
     await createComponent();
@@ -75,6 +81,35 @@ describe('BffAuthViewComponent', () => {
     expect(auth.login).not.toHaveBeenCalled();
   });
 
+  it('updates loading and signing-out copy without changing session state or invoking auth actions', async () => {
+    auth.isLoading.set(true);
+    await createComponent();
+    const locale = TestBed.inject(LocaleService);
+    const rendered = fixture.nativeElement as HTMLElement;
+
+    locale.selectLocale('pl');
+    fixture.detectChanges();
+    expect(rendered.querySelector('#session-state-title')?.textContent).toBe('Sprawdzanie sesji na serwerze...');
+    expect(rendered.querySelector('.unauthenticated-state')?.textContent).toContain('Trwa wczytywanie bieżącej sesji');
+    expect(auth.isLoading()).toBeTrue();
+    expect(auth.getLoginProviders).not.toHaveBeenCalled();
+
+    auth.isLoading.set(false);
+    auth.isLoggingOut.set(true);
+    auth.authenticated.set(true);
+    fixture.detectChanges();
+    expect(rendered.querySelector('#session-state-title')?.textContent).toBe('Wylogowywanie...');
+    expect(rendered.querySelector('.unauthenticated-state')?.textContent).toContain('Trwa zamykanie bieżącej sesji');
+    expect(TestBed.inject(BffAuthViewService).statusMessage()).toBe('Trwa wylogowywanie...');
+
+    locale.selectLocale('en');
+    fixture.detectChanges();
+    expect(rendered.querySelector('#session-state-title')?.textContent).toBe('Signing out...');
+    expect(TestBed.inject(BffAuthViewService).statusMessage()).toBe('Logging out...');
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(auth.login).not.toHaveBeenCalled();
+  });
+
   it('opens the dialog without automatically selecting a provider and shows discovery loading inside it', async () => {
     await createComponent();
 
@@ -90,6 +125,50 @@ describe('BffAuthViewComponent', () => {
     expect(dialog().textContent).toContain('Loading sign-in options...');
     expect(providerActions()).toHaveSize(0);
     expect(auth.login).not.toHaveBeenCalled();
+
+    TestBed.inject(LocaleService).selectLocale('pl');
+    fixture.detectChanges();
+    expect(dialog().querySelector('[role="status"]')?.textContent).toContain('Wczytywanie opcji logowania...');
+    expect(auth.getLoginProviders).toHaveBeenCalledTimes(1);
+    expect(auth.login).not.toHaveBeenCalled();
+  });
+
+  it('switches the open provider chooser EN to PL to EN without auth or navigation side effects', async () => {
+    await createComponent();
+    providerResponses.next([
+      { id: 'Custom-ID', displayName: 'Custom SSO', isDefault: true, loginUrl: '/ignored/custom' },
+    ]);
+    fixture.detectChanges();
+    signInButton().click();
+    fixture.detectChanges();
+
+    const locale = TestBed.inject(LocaleService);
+    const initialUrl = window.location.href;
+    expect(dialog().open).toBeTrue();
+    expect(providerActions()[0].textContent?.trim()).toBe('Continue with Custom SSO');
+    expect(dialog().querySelector('.dialog-close')?.getAttribute('aria-label')).toBe('Close sign-in dialog');
+
+    locale.selectLocale('pl');
+    fixture.detectChanges();
+    expect(dialog().open).toBeTrue();
+    expect(dialog().querySelector('#sign-in-dialog-title')?.textContent).toBe('Witaj ponownie');
+    expect(dialog().querySelector('#sign-in-dialog-description')?.textContent).toBe('Wybierz dostawcę, aby kontynuować');
+    expect(dialog().querySelector('.dialog-close')?.getAttribute('aria-label')).toBe('Zamknij okno logowania');
+    expect(dialog().textContent).toContain('Użyj konta demonstracyjnego demo / demo');
+    expect(providerActions()[0].textContent?.trim()).toBe('Kontynuuj przez Custom SSO');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.unauthenticated-state')?.textContent).toContain('Brak aktywnej sesji');
+    expect(TestBed.inject(BffAuthViewService).loggedOutMessage()).toContain('Nie zalogowano.');
+    expect(TestBed.inject(BffAuthViewService).statusMessage()).toBe('Nie zalogowano.');
+
+    locale.selectLocale('en');
+    fixture.detectChanges();
+    expect(providerActions()[0].textContent?.trim()).toBe('Continue with Custom SSO');
+    expect(dialog().open).toBeTrue();
+    expect(auth.getLoginProviders).toHaveBeenCalledTimes(1);
+    expect(auth.login).not.toHaveBeenCalled();
+    expect(auth.logout).not.toHaveBeenCalled();
+    expect(auth.currentUser()).toBeNull();
+    expect(window.location.href).toBe(initialUrl);
   });
 
   it('closes with the close control, cancel, and backdrop while preserving inside clicks and restoring focus', async () => {
@@ -168,6 +247,10 @@ describe('BffAuthViewComponent', () => {
     fixture.detectChanges();
 
     expect(dialog().textContent).toContain('No additional providers are available.');
+    TestBed.inject(LocaleService).selectLocale('pl');
+    fixture.detectChanges();
+    expect(dialog().textContent).toContain('Brak dodatkowych dostawców.');
+    expect(fallbackAction().textContent).toContain('Kontynuuj przez domyślnego dostawcę');
     fallbackAction().click();
 
     expect(auth.login).toHaveBeenCalledTimes(1);
@@ -183,6 +266,11 @@ describe('BffAuthViewComponent', () => {
 
     expect(dialog().textContent).toContain("We couldn't load sign-in options.");
     expect(dialog().textContent).not.toContain('Sensitive backend error details');
+    TestBed.inject(LocaleService).selectLocale('pl');
+    fixture.detectChanges();
+    expect(dialog().querySelector('[role="alert"]')?.textContent).toContain('Nie udało się wczytać opcji logowania.');
+    expect(dialog().textContent).not.toContain('Sensitive backend error details');
+    expect(auth.getLoginProviders).toHaveBeenCalledTimes(1);
     fallbackAction().click();
 
     expect(auth.login.calls.mostRecent().args).toEqual([]);
@@ -238,6 +326,48 @@ describe('BffAuthViewComponent', () => {
     expect(avatar?.getAttribute('decoding')).toBe('async');
     expect(avatar?.getAttribute('referrerpolicy')).toBe('no-referrer');
     expect(auth.getLoginProviders).not.toHaveBeenCalled();
+  });
+
+  it('switches authenticated labels while preserving identity, roles, and session state', async () => {
+    setAuthenticatedUser({
+      roles: ['Reader'],
+      externalIdentity: { providerId: 'Custom-ID', emailVerified: false, pictureUrl: null },
+    });
+    await createComponent();
+    const user = auth.currentUser();
+    const locale = TestBed.inject(LocaleService);
+    const rendered = fixture.nativeElement as HTMLElement;
+
+    locale.selectLocale('pl');
+    fixture.detectChanges();
+    expect(cardHeadings()).toEqual(['Logowanie', 'Dane użytkownika']);
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Aktywna');
+    expect(rendered.querySelector('.session-details')?.textContent).toContain('Custom-ID');
+    expect(rendered.querySelector('.identity-name')?.textContent).toBe('Test User');
+    expect(rendered.querySelector('.provider-badge')?.textContent).toBe('Custom-ID');
+    expect(rendered.querySelector('.status-badge')?.textContent).toBe('Niezweryfikowany');
+    expect(rendered.querySelector('.role-list')?.getAttribute('aria-label')).toBe('Role w aplikacji');
+    expect(roleLabels()).toEqual(['Reader']);
+    expect(auth.currentUser()).toBe(user);
+    expect(auth.authenticated()).toBeTrue();
+    expect(TestBed.inject(BffAuthViewService).statusMessage()).toBe('Zalogowano przy użyciu sesji serwera.');
+    expect(auth.getLoginProviders).not.toHaveBeenCalled();
+    expect(auth.login).not.toHaveBeenCalled();
+    expect(auth.logout).not.toHaveBeenCalled();
+
+    locale.selectLocale('en');
+    fixture.detectChanges();
+    expect(cardHeadings()).toEqual(['Login', 'User info']);
+    expect(rendered.querySelector('.status-badge')?.textContent).toBe('Not verified');
+    expect(auth.currentUser()).toBe(user);
+
+    auth.currentUser.set({ ...user!, name: '', username: '', email: '', sub: '', roles: [], externalIdentity: null });
+    locale.selectLocale('pl');
+    fixture.detectChanges();
+    expect(rendered.querySelector('.identity-name')?.textContent).toBe('Nieznany użytkownik');
+    expect(rendered.querySelector('.provider-badge')?.textContent).toBe('Nie podano dostawcy');
+    expect(rendered.querySelector('.user-details')?.textContent).toContain('Brak danych');
+    expect(rendered.querySelector('.roles-detail')?.textContent).toContain('Brak ról w aplikacji');
   });
 
   it('preserves unknown providers and reports missing provider provenance', async () => {
@@ -298,6 +428,11 @@ describe('BffAuthViewComponent', () => {
 
     expect(clipboardWriter).toHaveBeenCalledWith(json);
     expect(rendered.querySelector('.copy-status')?.textContent).toContain('Copied');
+    TestBed.inject(LocaleService).selectLocale('pl');
+    fixture.detectChanges();
+    expect(rendered.querySelector('.copy-status')?.textContent).toContain('Skopiowano');
+    expect(rendered.querySelector('.inspector-copy-button')?.textContent).toContain('Kopiuj JSON');
+    expect(clipboardWriter).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the JSON selectable and reports when copying is unavailable', async () => {
@@ -313,6 +448,11 @@ describe('BffAuthViewComponent', () => {
 
     expect(rendered.querySelector('.copy-status')?.textContent).toContain('Copy unavailable');
     expect(rendered.querySelector('.current-user-inspector pre code')?.textContent).toBe(json);
+    TestBed.inject(LocaleService).selectLocale('pl');
+    fixture.detectChanges();
+    expect(rendered.querySelector('.copy-status')?.textContent).toContain('Kopiowanie niedostępne');
+    expect(rendered.querySelector('.current-user-inspector pre code')?.textContent).toBe(json);
+    expect(clipboardWriter).toHaveBeenCalledTimes(1);
   });
 
   async function createComponent(): Promise<void> {
