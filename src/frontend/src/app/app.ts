@@ -3,6 +3,7 @@ import { Component, inject, signal, viewChild } from '@angular/core';
 import { BffAuthViewComponent } from './auth/bff-auth-view/bff-auth-view.component';
 import { SpaAuthViewComponent } from './auth/spa-auth-view/spa-auth-view.component';
 import { environment } from '../environments/environment';
+import { LocaleService } from './locale.service';
 
 type PingResponse = {
   status: string;
@@ -19,6 +20,7 @@ type PingResponse = {
 })
 export class App {
   private readonly http = inject(HttpClient);
+  protected readonly localeService = inject(LocaleService);
   private readonly bffAuthView = viewChild(BffAuthViewComponent);
 
   protected readonly authMode = environment.authMode;

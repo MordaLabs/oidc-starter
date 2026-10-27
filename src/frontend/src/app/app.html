@@ -15,6 +15,12 @@
       <a href="#github">GitHub</a>
     </nav>
 
+    <div class="language-selector" role="group" [attr.aria-label]="localeService.copy().language" [attr.lang]="localeService.locale()">
+      <span class="language-selector-label" aria-hidden="true">{{ localeService.copy().language }}</span>
+      <button type="button" [attr.aria-label]="localeService.copy().english" [attr.aria-pressed]="localeService.locale() === 'en'" (click)="localeService.selectLocale('en')">EN</button>
+      <button type="button" [attr.aria-label]="localeService.copy().polish" [attr.aria-pressed]="localeService.locale() === 'pl'" (click)="localeService.selectLocale('pl')">PL</button>
+    </div>
+
   </div>
 </header>
 
@@ -23,7 +29,7 @@
     <div class="page-container">
       <div class="hero-content">
         <div class="hero-intro">
-          <p class="eyebrow">Provider-neutral BFF authentication</p>
+          <p class="eyebrow" [attr.lang]="localeService.locale()">{{ localeService.copy().heroEyebrow }}</p>
           <h1 id="hero-title">One sign-in flow. Every provider your app needs.</h1>
           <p class="hero-copy">
             @if (authMode === 'spa') {
