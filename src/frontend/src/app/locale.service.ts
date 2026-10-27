@@ -12,14 +12,26 @@ export class LocaleService {
   readonly locale = this.currentLocale.asReadonly();
   readonly copy = computed(() => localeCatalog[this.currentLocale()]);
 
+  constructor() {
+    this.syncDocumentMetadata(this.currentLocale());
+  }
+
   selectLocale(locale: Locale): void {
     this.currentLocale.set(locale);
+    this.syncDocumentMetadata(locale);
 
     try {
       this.document.defaultView?.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
     } catch {
       // Keep the in-memory selection when browser storage is unavailable.
     }
+  }
+
+  private syncDocumentMetadata(locale: Locale): void {
+    this.document.documentElement?.setAttribute('lang', locale);
+    this.document.title = localeCatalog[locale].documentTitle;
+    this.document.querySelector?.('meta[name="description"]')
+      ?.setAttribute('content', localeCatalog[locale].metaDescription);
   }
 
   private resolveInitialLocale(): Locale {
