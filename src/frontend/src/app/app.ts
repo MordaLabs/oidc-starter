@@ -33,6 +33,11 @@ export class App {
     { id: 'facebook', displayName: 'Facebook' },
   ] as const;
 
+  protected premiumPageUrl(page: 'overview' | 'sessions'): string {
+    const base = this.localeService.locale() === 'pl' ? '/premium/pl/' : '/premium/';
+    return page === 'sessions' ? `${base}sessions/` : base;
+  }
+
   constructor() {
     this.loadPing();
   }

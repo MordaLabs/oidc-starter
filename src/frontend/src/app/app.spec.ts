@@ -123,9 +123,15 @@ describe('App', () => {
 
     expect(compiled.querySelector('.skip-link')?.textContent).toContain('Przejdź do głównej treści');
     expect(compiled.querySelector('.site-header nav')?.getAttribute('aria-label')).toBe('Nawigacja główna');
-    expect(headerLinks.map((link) => link.getAttribute('href'))).toEqual(originalTargets);
+    expect(headerLinks.map((link) => link.getAttribute('href')).filter((href) => !href?.startsWith('/premium/')))
+      .toEqual(originalTargets.filter((href) => !href?.startsWith('/premium/')));
     expect(Array.from(compiled.querySelectorAll<HTMLAnchorElement>('a'))
-      .map((link) => link.getAttribute('href'))).toEqual(originalLinks);
+      .map((link) => link.getAttribute('href')).filter((href) => !href?.startsWith('/premium/')))
+      .toEqual(originalLinks.filter((href) => !href?.startsWith('/premium/')));
+    expect(compiled.querySelector('.site-header nav a[href="/premium/pl/"]')).not.toBeNull();
+    expect(compiled.querySelector('#premium-family a[href="/premium/pl/sessions/"]')).not.toBeNull();
+    expect(compiled.querySelector('#premium-family a.primary-link[href="/premium/pl/"]')).not.toBeNull();
+    expect(compiled.querySelector('.footer-primary-navigation a[href="/premium/pl/"]')).not.toBeNull();
     expect(headerLinks[0].textContent?.trim()).toBe('Przegląd');
     expect(compiled.querySelector('#hero-title')?.textContent).toContain('Jeden proces logowania');
     expect(compiled.querySelector('#overview .hero-demo-note')?.textContent).toContain('Dostępne sposoby logowania');
@@ -218,7 +224,7 @@ describe('App', () => {
       .toContain('No');
     const primaryNavigationLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Primary navigation"] a'));
     expect(primaryNavigationLinks.map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#github']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium/', '#github']);
     expect(primaryNavigationLinks.map((link) => link.textContent?.trim()))
       .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'GitHub']);
     expect(compiled.querySelector('.site-header .header-action')).toBeNull();
@@ -238,8 +244,8 @@ describe('App', () => {
     expect(premiumFamily?.textContent).toContain('Next Premium module');
     expect(premiumFamily?.textContent).toContain('Under discovery');
     expect(premiumFamily?.textContent).toContain('No capability or release date is announced.');
-    expect(premiumFamily?.querySelector('a[href="/premium"]')?.textContent).toContain('Explore OIDC Starter Premium');
-    expect(premiumFamily?.querySelector('a[href="/premium/sessions"]')?.textContent).toContain('Explore the module');
+    expect(premiumFamily?.querySelector('a[href="/premium/"]')?.textContent).toContain('Explore OIDC Starter Premium');
+    expect(premiumFamily?.querySelector('a[href="/premium/sessions/"]')?.textContent).toContain('Explore the module');
     expect(premiumFamily?.querySelectorAll('.premium-family-card .visual-icon[aria-hidden="true"]')).toHaveSize(2);
     expect(compiled.querySelector('main #github')).toBeNull();
 
@@ -447,7 +453,7 @@ describe('App', () => {
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     const primaryFooterLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Footer primary navigation"] a'));
     expect(primaryFooterLinks.map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#contact']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium/', '#contact']);
     expect(primaryFooterLinks.map((link) => link.textContent?.trim()))
       .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'Contact']);
 
