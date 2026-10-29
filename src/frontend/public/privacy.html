@@ -41,29 +41,38 @@
         <h1>Privacy Policy</h1>
         <p class="effective-date">Effective date: 2026-08-26</p>
 
-        <p>OIDC Starter is a public demonstration of an open-source authentication starter operated by Morda Labs. This policy describes information handled when you use this live demo.</p>
+        <p>OIDC Starter is a public demonstration of an open-source authentication starter. Morda Labs is the project name, not a separately registered legal entity. This page describes information handled when you use the hosted demo.</p>
+        <p>Information is used to authenticate visitors, secure sessions, display profile claims, diagnose technical issues, and respond to user requests.</p>
 
         <h2>Authentication and profile information</h2>
-        <p>You can sign in only through authentication providers configured for the demo. These may include an OpenID Connect provider and, when enabled, Google, GitHub, or Facebook. The provider may send identity and profile information needed for sign-in, such as a subject identifier, name, username, email address, role claims, and provider metadata such as email-verification status or a profile picture URL.</p>
-        <p>The demo can display the current authenticated user's normalized profile and provider information in the browser. It does not include an application database or separate user-profile store in this demonstration.</p>
+        <p>Production offers Keycloak through OpenID Connect, Google, and GitHub sign-in. The staging provider endpoint also advertises Facebook; Facebook is not enabled in production. A provider may send information needed for sign-in, such as an account identifier, name, username, email address, role claims, email-verification status, or profile picture URL. Displaying a profile image URL may cause your browser to request the image from an external host.</p>
+        <p>The ASP.NET Core BFF uses this information to establish a session. Its current-user API exposes normalized identity and profile information to the browser, but not provider tokens. The demo has no separate application database dedicated to normalized user profiles.</p>
+        <p>Keycloak is a persistent identity service backed by PostgreSQL. Its shared, publicly documented demo account is used by multiple visitors and does not give each visitor an independent private identity. Keycloak user registration is disabled; individual Keycloak accounts can be deleted administratively.</p>
 
         <h2>Google user data</h2>
-        <p>When Google login is used, Google may provide basic identity and profile information available under the configured sign-in scopes, such as a subject or account identifier, name, email address, email-verification information, and profile picture URL.</p>
-        <p>The demo uses this information to establish the authenticated session and show the normalized current-user profile. Google access and refresh tokens are not exposed to browser JavaScript, and the Google authentication handler does not save provider tokens.</p>
-        <p>The public demo has no separate application database or dedicated user-profile store for this profile information. The OIDC Starter demo does not implement functionality that sends the normalized Google profile to unrelated third-party services.</p>
+        <p>Google may provide basic identity information available under the configured sign-in scopes, including an account identifier, name, email address, email-verification status, and profile picture URL. The demo uses it for sign-in and the current-user profile.</p>
+
         <h2>Sessions, cookies, and tokens</h2>
-        <p>The demo uses an ASP.NET Core BFF session. Essential technical cookies establish and protect the authenticated session, support the sign-in flow, and provide antiforgery protection for logout. The main session cookie is configured as HTTP-only and secure, so browser JavaScript cannot read it.</p>
-        <p>The current-user endpoint returns normalized identity and profile information; it does not return provider access tokens or refresh tokens to the browser. For the built-in OpenID Connect flow, authentication tokens are retained in the protected authentication ticket. The starter's Google, GitHub, and Facebook handlers do not save provider tokens.</p>
+        <p>The BFF uses protected authentication cookies for sessions and antiforgery cookies to protect requests such as logout. The authentication cookie is configured as HTTP-only and secure. An antiforgery request cookie is readable by browser code so it can send the request token.</p>
+        <p>Built-in OpenID Connect explicitly saves tokens in the protected authentication ticket. GitHub explicitly disables token saving; Google and Facebook normally use the framework default of not saving tokens. Token handling can depend on configuration, so this is not a guarantee about every deployment or provider.</p>
+
+        <h2>Browser preference</h2>
+        <p>Your language choice is stored in your browser's localStorage under <code>oidc-starter.public-demo.locale</code>. You can remove it through your browser's site-data controls.</p>
+
+        <h2>Infrastructure, logs, and backups</h2>
+        <p>The demo runs on OVH-hosted infrastructure. Technical server and container logs may record requests, errors, and related connection information. Keycloak user and admin event persistence is disabled in the audited deployments, but this does not mean server logs are absent. Docker uses json-file logging; a log rotation limit has not been confirmed.</p>
+        <p>OVH Automated Backup is active and displays a seven-day restoration window. The exact backup scope and database recovery consistency have not been verified. We cannot promise that a deletion immediately removes copies from logs or backups.</p>
+        <p>Authentication sessions expire according to session settings. Keycloak identities, technical logs, backups, and contact emails are separate records whose retention does not follow session expiration; no fixed retention period is stated for them here.</p>
 
         <h2>Third-party providers</h2>
-        <p>When you choose an external identity provider, that provider processes your authentication according to its own privacy policy and terms. Morda Labs does not control those providers' practices.</p>
+        <p>When you choose an external identity provider, it handles your account and sign-in under its own policies. Signing out of the demo does not delete your provider account or all information held by the demo. See <a href="/data-deletion.html">Data Deletion</a> for how to make a request.</p>
 
-        <h2>Questions and security reports</h2>
-        <p>For privacy questions or other contact about this demo, email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. To report a security issue with the demo, email <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
+        <h2>Your requests and contact</h2>
+        <p>To ask about your information or request access, correction, deletion, or another applicable data-subject right, email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. Requests are handled manually. Contact messages are forwarded to an OVH-hosted mailbox. For security reports, email <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
 
         <aside class="notice">
           <strong>Updates to this policy.</strong>
-          <p>We may update this page as the public demo changes. The effective date above shows when it was last updated.</p>
+          <p>We may update this page as the public demo changes.</p>
         </aside>
       </article>
     </main>
