@@ -2,6 +2,7 @@ import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core'
 import type { BffCurrentUser } from '@mordalabs/oidc-starter-auth';
 import { BFF_CLIPBOARD_WRITER } from './bff-clipboard-writer';
 import { BffAuthViewService } from './bff-auth-view.service';
+import { LocaleService } from '../../locale.service';
 
 @Component({
   selector: 'app-bff-auth-view',
@@ -10,8 +11,9 @@ import { BffAuthViewService } from './bff-auth-view.service';
 })
 export class BffAuthViewComponent {
   protected readonly service = inject(BffAuthViewService);
+  protected readonly localeService = inject(LocaleService);
   protected readonly isSignInDialogOpen = signal(false);
-  protected readonly copyStatus = signal<string | null>(null);
+  protected readonly copyStatus = signal<'copied' | 'unavailable' | null>(null);
   private readonly clipboardWriter = inject(BFF_CLIPBOARD_WRITER);
 
   @ViewChild('providerDialog')
@@ -101,7 +103,10 @@ export class BffAuthViewComponent {
     }
   }
 
-  protected providerDisplayName(providerId: string | null | undefined, missingLabel = 'Not reported'): string {
+  protected providerDisplayName(
+    providerId: string | null | undefined,
+    missingLabel = this.localeService.copy().bffNotReported,
+  ): string {
     if (!providerId?.trim()) {
       return missingLabel;
     }
@@ -122,14 +127,14 @@ export class BffAuthViewComponent {
 
   protected emailVerificationStatus(emailVerified: boolean | null | undefined): string {
     if (emailVerified === true) {
-      return 'Verified';
+      return this.localeService.copy().bffVerified;
     }
 
     if (emailVerified === false) {
-      return 'Not verified';
+      return this.localeService.copy().bffNotVerified;
     }
 
-    return 'Not reported';
+    return this.localeService.copy().bffNotReported;
   }
 
   protected pictureUrl(pictureUrl: string | null | undefined): string | null {
@@ -150,12 +155,12 @@ export class BffAuthViewComponent {
     void this.clipboardWriter(json).then(
       () => {
         if (attempt === this.copyAttempt) {
-          this.copyStatus.set('Copied');
+          this.copyStatus.set('copied');
         }
       },
       () => {
         if (attempt === this.copyAttempt) {
-          this.copyStatus.set('Copy unavailable');
+          this.copyStatus.set('unavailable');
         }
       },
     );

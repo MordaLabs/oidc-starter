@@ -3,8 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Facebook user data deletion information for the OIDC Starter public demo." />
+    <meta name="description" content="Data deletion information for the OIDC Starter public demo." />
     <title>Data Deletion | OIDC Starter</title>
+    <link rel="canonical" href="https://oidc-starter.mordalabs.com/data-deletion.html" />
+    <link rel="alternate" hreflang="en" href="https://oidc-starter.mordalabs.com/data-deletion.html" />
+    <link rel="alternate" hreflang="pl" href="https://oidc-starter.mordalabs.com/pl/data-deletion.html" />
     <style>
       :root { color: #1c2823; background: #f7f5f0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
       * { box-sizing: border-box; }
@@ -31,24 +34,29 @@
       <div class="page-container header-content">
         <a class="brand" href="/" aria-label="OIDC Starter home">OIDC Starter</a>
         <a href="/">Back to demo</a>
+        <nav aria-label="Language"><a href="/data-deletion.html" lang="en" aria-current="page">EN</a> · <a href="/pl/data-deletion.html" lang="pl">PL</a></nav>
       </div>
     </header>
 
     <main>
       <article class="page-container">
         <p class="eyebrow">Morda Labs public demo</p>
-        <h1>Facebook user data deletion</h1>
+        <h1>Data Deletion</h1>
 
-        <p>OIDC Starter is a public technical demo operated by Morda Labs. The hosted demo does not have a separate application database or dedicated user-profile store for Facebook profile information.</p>
+        <p>This page covers Keycloak, Google, and GitHub sign-in. The staging provider endpoint also advertises Facebook; Facebook is not enabled in production. Morda Labs is the project name, not a separately registered legal entity. The hosted demo has no separate application database dedicated to normalized user profiles, but Keycloak has persistent account data in PostgreSQL.</p>
 
-        <h2>Session and token handling</h2>
-        <p>The Facebook authentication handler does not save Facebook provider access or refresh tokens. Signing out ends the application's authenticated session, subject to normal browser and session-cookie behavior.</p>
+        <h2>Request deletion</h2>
+        <p>Email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a> to request deletion of information associated with your demo use. Tell us which sign-in provider and account the request concerns; do not send passwords or tokens. Requests are reviewed and handled manually. Individual Keycloak accounts can be deleted administratively, but the publicly documented Keycloak demo account is shared and does not identify a private visitor account.</p>
+        <p>Signing out ends your demo session; it does not automatically delete provider accounts, Keycloak account data, technical logs, backups, or all other stored information. OVH Automated Backup displays a seven-day restoration window, but its exact scope and database recovery consistency are unverified, so we cannot promise an exact removal time for backup copies. See the <a href="/privacy.html">Privacy Policy</a> for more about logs and storage.</p>
 
-        <h2>Facebook account data</h2>
-        <p>Signing out does not delete information held independently by Facebook. Facebook controls data held in your Facebook account under Facebook's own policies.</p>
+        <h2>Provider accounts</h2>
+        <p>Google, GitHub, and Facebook control information in their own accounts. Contact the provider or use its account controls for data it holds. Removing a provider's authorization for this demo does not by itself delete information held by Keycloak or in demo logs and backups.</p>
+
+        <h2>Facebook-specific guidance</h2>
+        <p>If Facebook shows the demo in your app settings, you can remove its access there and use Facebook's own data controls for information held by Facebook. You can also email us about information associated with your demo interaction. Facebook sign-in is not enabled on production.</p>
 
         <h2>Questions or concerns</h2>
-        <p>If you have a question or believe information related to your demo interaction needs attention, email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. To report a security issue, email <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
+        <p>For questions about a deletion request, email <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. To report a security issue, email <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
 
         <aside class="notice">
           <strong>Related pages.</strong>

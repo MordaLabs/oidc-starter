@@ -3,12 +3,15 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideBffAuth, provideSpaOidcAuth } from '@mordalabs/oidc-starter-auth';
 import { App } from './app';
+import { LOCALE_STORAGE_KEY } from './locale.service';
 import { environment } from '../environments/environment';
 
 describe('App', () => {
   let httpTestingController: HttpTestingController;
+  let testDescription: HTMLMetaElement | null = null;
 
   beforeEach(async () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
@@ -25,6 +28,9 @@ describe('App', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+    localStorage.removeItem(LOCALE_STORAGE_KEY);
+    testDescription?.remove();
+    testDescription = null;
   });
 
   it('should create the app', () => {
@@ -41,6 +47,150 @@ describe('App', () => {
       });
 
     expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('switches the visible copy from the header without navigation or new requests', () => {
+    testDescription = document.createElement('meta');
+    testDescription.name = 'description';
+    document.head.appendChild(testDescription);
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+    flushBffLoginProvidersIfRequested();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const selector = compiled.querySelector<HTMLElement>('.language-selector')!;
+    const english = selector.querySelector<HTMLButtonElement>('button:first-of-type')!;
+    const polish = selector.querySelector<HTMLButtonElement>('button:last-of-type')!;
+    const providersLink = compiled.querySelector<HTMLAnchorElement>('.site-header nav a[href="#providers"]');
+    const initialUrl = window.location.href;
+
+    expect(selector.getAttribute('role')).toBe('group');
+    expect(document.documentElement.lang).toBe('en');
+    expect(document.title).toBe('OIDC Starter — Provider-neutral BFF authentication');
+    expect(testDescription.content).toContain('Provider-neutral BFF authentication');
+    expect(selector.getAttribute('aria-label')).toBe('Language');
+    expect(english.getAttribute('aria-label')).toBe('English');
+    expect(english.getAttribute('aria-pressed')).toBe('true');
+    expect(polish.getAttribute('aria-pressed')).toBe('false');
+    polish.focus();
+    expect(document.activeElement).toBe(polish);
+    polish.click();
+    fixture.detectChanges();
+
+    expect(selector.getAttribute('aria-label')).toBe('Język');
+    expect(document.documentElement.lang).toBe('pl');
+    expect(document.title).toBe('OIDC Starter — uwierzytelnianie BFF niezależne od dostawcy');
+    expect(testDescription.content).toContain('Uwierzytelnianie BFF dla Angular');
+    expect(selector.getAttribute('lang')).toBe('pl');
+    expect(polish.getAttribute('aria-label')).toBe('Polski');
+    expect(polish.getAttribute('aria-pressed')).toBe('true');
+    expect(english.getAttribute('aria-pressed')).toBe('false');
+    expect(compiled.querySelector('#overview .eyebrow')?.textContent?.trim())
+      .toBe('Uwierzytelnianie BFF niezależne od dostawcy');
+    expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('pl');
+    expect(compiled.querySelector('.site-header nav a[href="#providers"]')).toBe(providersLink);
+    expect(providersLink?.getAttribute('href')).toBe('#providers');
+    expect(window.location.href).toBe(initialUrl);
+    expect(httpTestingController.match(() => true)).toHaveSize(0);
+
+    english.click();
+    fixture.detectChanges();
+    expect(compiled.querySelector('#overview .eyebrow')?.textContent?.trim())
+      .toBe('Provider-neutral BFF authentication');
+    expect(english.getAttribute('aria-pressed')).toBe('true');
+    expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+  });
+
+  it('renders Polish copy across the root page while preserving anchors and technical content', () => {
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+    flushBffLoginProvidersIfRequested();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const headerLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('.site-header nav a'));
+    const originalTargets = headerLinks.map((link) => link.getAttribute('href'));
+    const originalLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('a'))
+      .map((link) => link.getAttribute('href'));
+    compiled.querySelector<HTMLButtonElement>('.language-selector button:last-of-type')!.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.skip-link')?.textContent).toContain('Przejdź do głównej treści');
+    expect(compiled.querySelector('.site-header nav')?.getAttribute('aria-label')).toBe('Nawigacja główna');
+    expect(headerLinks.map((link) => link.getAttribute('href')).filter((href) => !href?.startsWith('/premium/')))
+      .toEqual(originalTargets.filter((href) => !href?.startsWith('/premium/')));
+    expect(Array.from(compiled.querySelectorAll<HTMLAnchorElement>('a'))
+      .map((link) => link.getAttribute('href')).filter((href) => !href?.startsWith('/premium/')))
+      .toEqual(originalLinks.filter((href) => !href?.startsWith('/premium/')));
+    expect(compiled.querySelector('.site-header nav a[href="/premium/pl/"]')).not.toBeNull();
+    expect(compiled.querySelector('#premium-family a[href="/premium/pl/sessions/"]')).not.toBeNull();
+    expect(compiled.querySelector('#premium-family a.primary-link[href="/premium/pl/"]')).not.toBeNull();
+    expect(compiled.querySelector('.footer-primary-navigation a[href="/premium/pl/"]')).not.toBeNull();
+    expect(headerLinks[0].textContent?.trim()).toBe('Przegląd');
+    expect(compiled.querySelector('#hero-title')?.textContent).toContain('Jeden proces logowania');
+    expect(compiled.querySelector('#overview .hero-demo-note')?.textContent).toContain('Dostępne sposoby logowania');
+    expect(compiled.querySelector('#providers-title')?.textContent).toContain('OIDC u podstaw');
+    expect(compiled.querySelector('#how-it-works-title')?.textContent).toContain('Od skonfigurowanego dostawcy');
+    expect(compiled.querySelector('#demo-title')?.textContent).toContain('Wypróbuj proces');
+    expect(compiled.querySelector('#security-title')?.textContent).toContain('Jasne granice');
+    expect(compiled.querySelector('#premium-family-title')?.textContent).toContain('Podstawa, która rośnie');
+    expect(compiled.querySelector('#get-started-title')?.textContent).toContain('Dodaj OIDC Starter');
+    expect(compiled.querySelector('#support-title')?.textContent).toContain('Masz pytanie');
+    expect(compiled.querySelector('#github-footer-title')?.textContent).toContain('Zbuduj proces logowania');
+    expect(compiled.querySelector('nav.footer-legal-navigation')?.getAttribute('aria-label')).toBe('Nawigacja prawna w stopce');
+    expect(compiled.querySelector('nav.footer-legal-navigation a[href="/privacy.html"]')?.textContent).toBe('Prywatność');
+    expect(compiled.querySelector('#get-started pre code')?.textContent).toContain('dotnet add package OidcStarter.AspNetCore.Bff');
+    expect(compiled.querySelector('#get-started .package-name')?.textContent).toBe('OidcStarter.AspNetCore.Bff');
+    expect(compiled.querySelector('a[href="https://github.com/MordaLabs/oidc-starter"]')).not.toBeNull();
+    expect(httpTestingController.match(() => true)).toHaveSize(0);
+  });
+
+  it('localizes runtime status and UTC timestamps when the language changes', () => {
+    const fixture = TestBed.createComponent(App);
+    const timestampUtc = '2026-08-06T11:31:19.0631303+00:00';
+    httpTestingController.expectOne(`${environment.apiOrigin.replace(/\/$/, '')}/api/public/ping`).flush({
+      status: 'ok', applicationName: 'OIDC Starter API', timestampUtc, oidcConfigured: false,
+    });
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+    flushBffLoginProvidersIfRequested();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const time = compiled.querySelector<HTMLTimeElement>('.runtime-details time')!;
+    expect(time.textContent?.trim()).toBe('6 Aug 2026, 11:31 UTC');
+    expect(compiled.querySelector('.runtime-details')?.textContent).toContain('No');
+    compiled.querySelector<HTMLButtonElement>('.language-selector button:last-of-type')!.click();
+    fixture.detectChanges();
+
+    expect(Array.from(compiled.querySelectorAll('.runtime-details dt')).map((label) => label.textContent?.trim()))
+      .toEqual(['Stan', 'Aplikacja', 'Skonfigurowano OIDC', 'Ostatnio sprawdzono']);
+    expect(compiled.querySelector('.runtime-details')?.textContent).toContain('Działa');
+    expect(compiled.querySelector('.runtime-details')?.textContent).toContain('Nie');
+    expect(time.getAttribute('datetime')).toBe(timestampUtc);
+    expect(time.textContent?.trim()).toBe('6 sie 2026, 11:31 UTC');
+    expect(httpTestingController.match(() => true)).toHaveSize(0);
+  });
+
+  it('uses a saved Polish preference for loading and backend error copy', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'pl');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Trwa sprawdzanie publicznego punktu końcowego');
+    expect(document.documentElement.lang).toBe('pl');
+    httpTestingController.expectOne(`${environment.apiOrigin.replace(/\/$/, '')}/api/public/ping`).flush(null, {
+      status: 0, statusText: 'Unavailable',
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Interfejs API serwera jest obecnie niedostępny');
+    flushBffCurrentUserIfRendered();
+    flushBffLoginProvidersIfRequested();
   });
 
   it('renders the landing page shell, package onboarding, runtime status, and GitHub footer destination', () => {
@@ -74,11 +224,11 @@ describe('App', () => {
       .toContain('No');
     const primaryNavigationLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Primary navigation"] a'));
     expect(primaryNavigationLinks.map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#github']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium/', '#github']);
     expect(primaryNavigationLinks.map((link) => link.textContent?.trim()))
       .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'GitHub']);
     expect(compiled.querySelector('.site-header .header-action')).toBeNull();
-    expect(compiled.querySelector('.site-header button')).toBeNull();
+    expect(compiled.querySelectorAll('.site-header .language-selector button')).toHaveSize(2);
     expect(compiled.querySelector('#overview .hero-actions a[href="#demo"]')?.textContent).toContain('Explore live demo');
     expect(compiled.querySelector('#overview .hero-demo-card a[href="#demo"]')?.textContent).toContain('Open live demo');
     expect(compiled.querySelector('#overview .hero-demo-note')?.textContent).toContain('depend on the demo');
@@ -94,8 +244,8 @@ describe('App', () => {
     expect(premiumFamily?.textContent).toContain('Next Premium module');
     expect(premiumFamily?.textContent).toContain('Under discovery');
     expect(premiumFamily?.textContent).toContain('No capability or release date is announced.');
-    expect(premiumFamily?.querySelector('a[href="/premium"]')?.textContent).toContain('Explore OIDC Starter Premium');
-    expect(premiumFamily?.querySelector('a[href="/premium/sessions"]')?.textContent).toContain('Explore the module');
+    expect(premiumFamily?.querySelector('a[href="/premium/"]')?.textContent).toContain('Explore OIDC Starter Premium');
+    expect(premiumFamily?.querySelector('a[href="/premium/sessions/"]')?.textContent).toContain('Explore the module');
     expect(premiumFamily?.querySelectorAll('.premium-family-card .visual-icon[aria-hidden="true"]')).toHaveSize(2);
     expect(compiled.querySelector('main #github')).toBeNull();
 
@@ -303,7 +453,7 @@ describe('App', () => {
     expect(repositoryLinks[0].rel).toBe('noopener noreferrer');
     const primaryFooterLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Footer primary navigation"] a'));
     expect(primaryFooterLinks.map((link) => link.getAttribute('href')))
-      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium', '#contact']);
+      .toEqual(['#overview', '#providers', '#how-it-works', '#demo', '#security', '#get-started', '/premium/', '#contact']);
     expect(primaryFooterLinks.map((link) => link.textContent?.trim()))
       .toEqual(['Overview', 'Providers', 'How it works', 'Live demo', 'Security', 'Get started', 'Premium', 'Contact']);
 
@@ -409,7 +559,7 @@ describe('App', () => {
     const apiOrigin = environment.apiOrigin.replace(/\/$/, '');
     expect(fixture.nativeElement.querySelector('app-spa-auth-view')).not.toBeNull();
     expect(httpTestingController.match(`${apiOrigin}/api/auth/providers`)).toHaveSize(0);
-    expect(fixture.nativeElement.querySelector('.site-header button')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.site-header .language-selector button')).toHaveSize(2);
     expect(fixture.nativeElement.querySelector('#overview .hero-actions a[href="#demo"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.sign-in-dialog')).toBeNull();
   });
@@ -424,7 +574,7 @@ describe('App', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.site-header button')).toBeNull();
+    expect(compiled.querySelectorAll('.site-header .language-selector button')).toHaveSize(2);
     expect(compiled.querySelector('.unauthenticated-sign-in')).toBeNull();
     expect(authenticatedCardHeadings(compiled)).toEqual([]);
 
@@ -469,7 +619,7 @@ describe('App', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.site-header button, .site-header .header-button')).toBeNull();
+    expect(compiled.querySelector('.site-header .header-button')).toBeNull();
     expect(compiled.querySelector('.unauthenticated-state')).toBeNull();
     expect(authenticatedCardHeadings(compiled)).toEqual(['Login', 'User info']);
     expect(compiled.textContent).toContain('subject-123');

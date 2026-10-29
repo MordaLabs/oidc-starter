@@ -1,9 +1,11 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { BffAuthService, type BffLoginProvider } from '@mordalabs/oidc-starter-auth';
+import { LocaleService } from '../../locale.service';
 
 @Injectable({ providedIn: 'root' })
 export class BffAuthViewService {
   private readonly auth = inject(BffAuthService);
+  private readonly localeService = inject(LocaleService);
 
   readonly mode = 'bff';
   readonly isLoading = this.auth.isLoading;
@@ -16,12 +18,12 @@ export class BffAuthViewService {
   private readonly providerDiscoveryRequested = signal(false);
   readonly statusMessage = computed(() =>
     this.isLoggingOut()
-      ? 'Logging out...'
+      ? this.localeService.copy().bffLoggingOutStatus
       : this.authenticated()
-        ? 'Logged in with backend session.'
-        : 'Not logged in yet.',
+        ? this.localeService.copy().bffLoggedInStatus
+        : this.localeService.copy().bffNotLoggedInStatus,
   );
-  readonly loggedOutMessage = 'Not logged in yet. Use the login button to start the backend login flow.';
+  readonly loggedOutMessage = computed(() => this.localeService.copy().bffLoggedOutMessage);
 
   constructor() {
     effect(() => {

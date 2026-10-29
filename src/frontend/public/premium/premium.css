@@ -26,6 +26,8 @@ nav a:hover, nav a[aria-current] { color: #0e6244; text-decoration: underline; t
 .premium-subnav { border-bottom: 1px solid #d9ded6; background: #edf1ea; }
 .premium-subnav .container { display: flex; gap: .5rem 1.5rem; padding-block: .7rem; }
 .premium-subnav a { padding-block: .3rem; }
+.premium-subnav .language-selector { display: flex; align-items: center; gap: .6rem; margin-left: auto; font-size: .9rem; }
+.language-selector a[aria-current="page"] { color: #0e6244; text-decoration: underline; text-underline-offset: .25em; }
 #main-content, #modules { scroll-margin-top: 8rem; }
 
 .hero { padding: clamp(3rem, 7vw, 5rem) 0; border-bottom: 1px solid #d9ded6; }
@@ -112,6 +114,7 @@ code { overflow-wrap: anywhere; }
   .hero-art { width: min(70vw, 15rem); }
   .actions { align-items: stretch; flex-direction: column; }
   .premium-subnav .container { flex-wrap: wrap; }
+  .premium-subnav .language-selector { margin-left: 0; }
   #main-content, #modules { scroll-margin-top: 17rem; }
 }
 

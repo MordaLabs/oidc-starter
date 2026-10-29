@@ -1,19 +1,25 @@
-<a class="skip-link" href="#main-content">Skip to main content</a>
+<a class="skip-link" href="#main-content">{{ localeService.copy().skipLink }}</a>
 
 <header class="site-header">
   <div class="page-container header-content">
-    <a class="brand" href="#overview" aria-label="OIDC Starter overview">OIDC Starter</a>
+    <a class="brand" href="#overview" [attr.aria-label]="localeService.copy().brandOverview">OIDC Starter</a>
 
-    <nav aria-label="Primary navigation">
-      <a href="#overview">Overview</a>
-      <a href="#providers">Providers</a>
-      <a href="#how-it-works">How it works</a>
-      <a href="#demo">Live demo</a>
-      <a href="#security">Security</a>
-      <a href="#get-started">Get started</a>
-      <a href="/premium">Premium</a>
+    <nav [attr.aria-label]="localeService.copy().primaryNavigation">
+      <a href="#overview">{{ localeService.copy().navOverview }}</a>
+      <a href="#providers">{{ localeService.copy().navProviders }}</a>
+      <a href="#how-it-works">{{ localeService.copy().navHowItWorks }}</a>
+      <a href="#demo">{{ localeService.copy().navDemo }}</a>
+      <a href="#security">{{ localeService.copy().navSecurity }}</a>
+      <a href="#get-started">{{ localeService.copy().navGetStarted }}</a>
+      <a [href]="premiumPageUrl('overview')">Premium</a>
       <a href="#github">GitHub</a>
     </nav>
+
+    <div class="language-selector" role="group" [attr.aria-label]="localeService.copy().language" [attr.lang]="localeService.locale()">
+      <span class="language-selector-label" aria-hidden="true">{{ localeService.copy().language }}</span>
+      <button type="button" [attr.aria-label]="localeService.copy().english" [attr.aria-pressed]="localeService.locale() === 'en'" (click)="localeService.selectLocale('en')">EN</button>
+      <button type="button" [attr.aria-label]="localeService.copy().polish" [attr.aria-pressed]="localeService.locale() === 'pl'" (click)="localeService.selectLocale('pl')">PL</button>
+    </div>
 
   </div>
 </header>
@@ -23,35 +29,35 @@
     <div class="page-container">
       <div class="hero-content">
         <div class="hero-intro">
-          <p class="eyebrow">Provider-neutral BFF authentication</p>
-          <h1 id="hero-title">One sign-in flow. Every provider your app needs.</h1>
+          <p class="eyebrow" [attr.lang]="localeService.locale()">{{ localeService.copy().heroEyebrow }}</p>
+          <h1 id="hero-title">{{ localeService.copy().heroTitle }}</h1>
           <p class="hero-copy">
             @if (authMode === 'spa') {
-              A browser-based OpenID Connect starter using Authorization Code Flow with PKCE for the local Keycloak demo.
+              {{ localeService.copy().heroSpaCopy }}
             } @else {
-              OpenID Connect and social login for Angular + ASP.NET Core, backed by a server-side session and runtime provider discovery.
+              {{ localeService.copy().heroBffCopy }}
             }
           </p>
           <div class="hero-actions">
-            <a class="primary-link" href="#demo">Explore live demo</a>
-            <a class="text-link" href="#providers">See provider support</a>
+            <a class="primary-link" href="#demo">{{ localeService.copy().heroExploreDemo }}</a>
+            <a class="text-link" href="#providers">{{ localeService.copy().heroSeeProviders }}</a>
           </div>
         </div>
         <aside class="hero-demo-card" aria-labelledby="hero-demo-title">
           <span class="hero-demo-mark" aria-hidden="true"><svg class="visual-icon"><use href="/premium/visuals.svg#shield" /></svg></span>
-          <p class="eyebrow">Try the live demo</p>
-          <h2 id="hero-demo-title">Sign in to the demo</h2>
-          <p>Explore the sample sign-in flow and inspect the resulting application session.</p>
+          <p class="eyebrow">{{ localeService.copy().heroDemoEyebrow }}</p>
+          <h2 id="hero-demo-title">{{ localeService.copy().heroDemoTitle }}</h2>
+          <p>{{ localeService.copy().heroDemoCopy }}</p>
           <p class="hero-demo-providers">OpenID Connect · Google · GitHub · Facebook</p>
-          <p class="hero-demo-note">Available sign-in options depend on the demo's configured providers.</p>
-          <a class="text-link" href="#demo">Open live demo</a>
+          <p class="hero-demo-note">{{ localeService.copy().heroDemoNote }}</p>
+          <a class="text-link" href="#demo">{{ localeService.copy().heroOpenDemo }}</a>
         </aside>
       </div>
-      <ul class="hero-benefits" aria-label="OIDC Starter benefits">
-        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#shield" /></svg><strong>Secure by default</strong><span>Server-side BFF sessions and guarded state changes.</span></li>
-        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#nodes" /></svg><strong>Multiple providers</strong><span>Discover the providers your application configures.</span></li>
-        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#package" /></svg><strong>Ready for production</strong><span>A production-oriented foundation you configure for your deployment.</span></li>
-        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#code" /></svg><strong>Open source</strong><span>MIT-licensed core packages and starter guidance.</span></li>
+      <ul class="hero-benefits" [attr.aria-label]="localeService.copy().benefitsLabel">
+        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#shield" /></svg><strong>{{ localeService.copy().benefitSecureTitle }}</strong><span>{{ localeService.copy().benefitSecureCopy }}</span></li>
+        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#nodes" /></svg><strong>{{ localeService.copy().benefitProvidersTitle }}</strong><span>{{ localeService.copy().benefitProvidersCopy }}</span></li>
+        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#package" /></svg><strong>{{ localeService.copy().benefitProductionTitle }}</strong><span>{{ localeService.copy().benefitProductionCopy }}</span></li>
+        <li><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#code" /></svg><strong>{{ localeService.copy().benefitOpenSourceTitle }}</strong><span>{{ localeService.copy().benefitOpenSourceCopy }}</span></li>
       </ul>
     </div>
   </section>
@@ -59,21 +65,21 @@
   <section id="providers" class="provider-section" aria-labelledby="providers-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">Providers</p>
-        <h2 id="providers-title">OIDC at the core. More ways to sign in.</h2>
+        <p class="eyebrow">{{ localeService.copy().navProviders }}</p>
+        <h2 id="providers-title">{{ localeService.copy().providersTitle }}</h2>
       </div>
       <div class="provider-model-panel">
         <div class="provider-model-heading">
-          <p class="eyebrow">External Login Providers</p>
-          <p>OpenID Connect remains the built-in BFF default. Add Google, GitHub, Facebook, or a custom provider registration when your application needs them.</p>
-          <p>The BFF exposes only configured providers at runtime, so the chooser reflects the sign-in options actually available to your users.</p>
+          <p class="eyebrow">{{ localeService.copy().providersExternalTitle }}</p>
+          <p>{{ localeService.copy().providersOverview }}</p>
+          <p>{{ localeService.copy().providersDiscovery }}</p>
         </div>
-        <ul class="provider-list" aria-label="Built-in and extensible login provider support">
+        <ul class="provider-list" [attr.aria-label]="localeService.copy().providersListLabel">
           <li>OpenID Connect</li>
           <li>Google</li>
           <li>GitHub</li>
           <li>Facebook</li>
-          <li>Custom provider registration</li>
+          <li>{{ localeService.copy().providersCustom }}</li>
         </ul>
       </div>
 
@@ -83,34 +89,34 @@
   <section id="how-it-works" class="how-it-works" aria-labelledby="how-it-works-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">How it works</p>
-        <h2 id="how-it-works-title">From configured provider to application session</h2>
-        <p>Your application owns the sign-in experience. OIDC Starter handles the selected provider flow and establishes the backend session.</p>
+        <p class="eyebrow">{{ localeService.copy().navHowItWorks }}</p>
+        <h2 id="how-it-works-title">{{ localeService.copy().flowTitle }}</h2>
+        <p>{{ localeService.copy().flowIntro }}</p>
       </div>
 
       <ol class="how-it-works-flow">
         <li class="flow-step">
           <span class="flow-number" aria-hidden="true">1</span>
-          <h3>Discover providers</h3>
-          <p class="flow-description">The server exposes only the login providers registered by your application.</p>
+          <h3>{{ localeService.copy().flowDiscoverTitle }}</h3>
+          <p class="flow-description">{{ localeService.copy().flowDiscoverCopy }}</p>
           <p class="flow-technical"><code>/api/auth/providers</code></p>
         </li>
         <li class="flow-step">
           <span class="flow-number" aria-hidden="true">2</span>
-          <h3>Render your chooser</h3>
-          <p class="flow-description">Your frontend renders the returned providers using its own components and design system.</p>
+          <h3>{{ localeService.copy().flowChooserTitle }}</h3>
+          <p class="flow-description">{{ localeService.copy().flowChooserCopy }}</p>
           <p class="flow-technical"><code>provider.id</code></p>
         </li>
         <li class="flow-step">
           <span class="flow-number" aria-hidden="true">3</span>
-          <h3>Authenticate</h3>
-          <p class="flow-description">OIDC Starter challenges the selected provider and handles the callback on the server.</p>
+          <h3>{{ localeService.copy().flowAuthenticateTitle }}</h3>
+          <p class="flow-description">{{ localeService.copy().flowAuthenticateCopy }}</p>
           <p class="flow-technical"><code>login(provider.id)</code></p>
         </li>
         <li class="flow-step">
           <span class="flow-number" aria-hidden="true">4</span>
-          <h3>Use the session</h3>
-          <p class="flow-description">The frontend reads normalized user information from the application session.</p>
+          <h3>{{ localeService.copy().flowSessionTitle }}</h3>
+          <p class="flow-description">{{ localeService.copy().flowSessionCopy }}</p>
           <p class="flow-technical"><code>/api/auth/me</code></p>
         </li>
       </ol>
@@ -120,9 +126,9 @@
   <section id="demo" class="demo-section" aria-labelledby="demo-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">Live sample</p>
-        <h2 id="demo-title">Try the authentication flow</h2>
-        <p>Inspect the active mode, open the sign-in dialog, and review the resulting session identity.</p>
+        <p class="eyebrow">{{ localeService.copy().demoEyebrow }}</p>
+        <h2 id="demo-title">{{ localeService.copy().demoTitle }}</h2>
+        <p>{{ localeService.copy().demoIntro }}</p>
       </div>
 
       <div class="auth-layout">
@@ -135,33 +141,33 @@
 
       <section class="runtime-status" aria-labelledby="runtime-title">
         <div>
-          <p class="eyebrow">Public endpoint</p>
-          <h2 id="runtime-title">Runtime status</h2>
+          <p class="eyebrow">{{ localeService.copy().runtimeEyebrow }}</p>
+          <h2 id="runtime-title">{{ localeService.copy().runtimeTitle }}</h2>
         </div>
 
         @if (pingResult(); as ping) {
           <dl class="runtime-details">
             <div>
-              <dt>Status</dt>
-              <dd>{{ ping.status }}</dd>
+              <dt>{{ localeService.copy().runtimeStatus }}</dt>
+              <dd>{{ ping.status === 'ok' ? localeService.copy().runtimeHealthy : ping.status }}</dd>
             </div>
             <div>
-              <dt>Application</dt>
+              <dt>{{ localeService.copy().runtimeApplication }}</dt>
               <dd>{{ ping.applicationName }}</dd>
             </div>
             <div>
-              <dt>OIDC configured</dt>
-              <dd>{{ ping.oidcConfigured ? 'Yes' : 'No' }}</dd>
+              <dt>{{ localeService.copy().runtimeOidcConfigured }}</dt>
+              <dd>{{ ping.oidcConfigured ? localeService.copy().runtimeYes : localeService.copy().runtimeNo }}</dd>
             </div>
             @if (hasProviderDiscoveryResult()) {
               <div class="runtime-provider-statuses">
-                <dt>Providers configured</dt>
+                <dt>{{ localeService.copy().runtimeProvidersConfigured }}</dt>
                 <dd>
-                  <ul aria-label="Built-in provider configuration">
+                  <ul [attr.aria-label]="localeService.copy().runtimeProvidersLabel">
                     @for (provider of builtInProviders; track provider.id) {
                       <li>
                         <span>{{ provider.displayName }}</span>
-                        <strong>{{ isBuiltInProviderConfigured(provider.id) ? 'Yes' : 'No' }}</strong>
+                        <strong>{{ isBuiltInProviderConfigured(provider.id) ? localeService.copy().runtimeYes : localeService.copy().runtimeNo }}</strong>
                       </li>
                     }
                   </ul>
@@ -169,16 +175,16 @@
               </div>
             }
             <div>
-              <dt>Last checked</dt>
+              <dt>{{ localeService.copy().runtimeLastChecked }}</dt>
               <dd>
                 <time [attr.datetime]="ping.timestampUtc">{{ formatUtcTimestamp(ping.timestampUtc) }}</time>
               </dd>
             </div>
           </dl>
-        } @else if (errorMessage()) {
-          <p class="status error">{{ errorMessage() }}</p>
+        } @else if (backendUnreachable()) {
+          <p class="status error">{{ localeService.copy().runtimeUnreachable }}</p>
         } @else {
-          <p class="status">Loading public ping endpoint...</p>
+          <p class="status">{{ localeService.copy().runtimeLoading }}</p>
         }
       </section>
     </div>
@@ -187,49 +193,49 @@
   <section id="security" class="capability-section" aria-labelledby="security-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">Security</p>
-        <h2 id="security-title">Security boundaries that stay legible</h2>
+        <p class="eyebrow">{{ localeService.copy().navSecurity }}</p>
+        <h2 id="security-title">{{ localeService.copy().securityTitle }}</h2>
       </div>
       <section class="security-model-panel" aria-labelledby="security-model-title">
         <div class="security-model-heading">
-          <p class="eyebrow">Authentication &amp; session boundaries</p>
-          <h3 id="security-model-title">Explicit session, identity, authorization, and validated sign-in context</h3>
-          <p>OIDC Starter keeps authentication and session responsibilities explicit while your application remains in control of authorization.</p>
+          <p class="eyebrow">{{ localeService.copy().securityModelEyebrow }}</p>
+          <h3 id="security-model-title">{{ localeService.copy().securityModelTitle }}</h3>
+          <p>{{ localeService.copy().securityModelIntro }}</p>
         </div>
         <div class="capability-list">
         <article class="capability">
-          <h3>Server-side session</h3>
-          <p>The browser uses the backend session instead of receiving provider tokens through the current-user response.</p>
-          <p class="capability-supporting">The package defaults to an HTTP-only, secure <code>__Host-</code> session cookie.</p>
+          <h3>{{ localeService.copy().securitySessionTitle }}</h3>
+          <p>{{ localeService.copy().securitySessionCopy }}</p>
+          <p class="capability-supporting">{{ localeService.copy().securityCookieBefore }} <code>__Host-</code> {{ localeService.copy().securityCookieAfter }}</p>
         </article>
         <article class="capability">
-          <h3>Provider-aware identity</h3>
-          <p>The current-user contract includes provider provenance and normalized profile metadata without turning external profile data into authorization.</p>
-          <p class="capability-supporting">Unauthenticated current-user requests return <code>401</code>.</p>
+          <h3>{{ localeService.copy().securityIdentityTitle }}</h3>
+          <p>{{ localeService.copy().securityIdentityCopy }}</p>
+          <p class="capability-supporting">{{ localeService.copy().securityUnauthorizedBefore }} <code>401</code>.</p>
         </article>
           <article class="capability">
-          <h3>Application-owned authorization</h3>
-          <p>OIDC Starter provides authenticated-session policies, claim and scope helpers, and role-mapping foundations.</p>
-          <p class="capability-supporting">Your application still owns roles, tenant access, resource ownership, and business authorization decisions.</p>
+          <h3>{{ localeService.copy().securityAuthorizationTitle }}</h3>
+          <p>{{ localeService.copy().securityAuthorizationCopy }}</p>
+          <p class="capability-supporting">{{ localeService.copy().securityAuthorizationResponsibility }}</p>
         </article>
         <article class="capability">
-          <h3>Validated OIDC sign-in metadata</h3>
-          <p>Downstream integrations and extensions can access authoritative issuer, subject, provider, and session metadata captured from the validated sign-in context.</p>
-          <p class="capability-supporting">This avoids reconstructing identity and session information from transformed claims.</p>
+          <h3>{{ localeService.copy().securityMetadataTitle }}</h3>
+          <p>{{ localeService.copy().securityMetadataCopy }}</p>
+          <p class="capability-supporting">{{ localeService.copy().securityMetadataBenefit }}</p>
           </article>
         </div>
       </section>
 
       <section class="endpoint-protection-panel" aria-labelledby="endpoint-protection-title">
         <div class="endpoint-protection-heading">
-          <p class="eyebrow">Auth endpoint boundaries</p>
-          <h3 id="endpoint-protection-title">Public entry points, protected session data, and guarded state changes</h3>
-          <p>The BFF exposes only the entry points needed to start authentication, read the application session, and safely end it.</p>
+          <p class="eyebrow">{{ localeService.copy().endpointsEyebrow }}</p>
+          <h3 id="endpoint-protection-title">{{ localeService.copy().endpointsTitle }}</h3>
+          <p>{{ localeService.copy().endpointsIntro }}</p>
         </div>
 
         <dl class="endpoint-boundary-list">
           <div class="endpoint-boundary-group">
-            <dt>Public entry points</dt>
+            <dt>{{ localeService.copy().endpointsPublicTitle }}</dt>
             <dd>
               <ul class="endpoint-list">
                 <li><code>GET /api/auth/providers</code></li>
@@ -237,34 +243,34 @@
                 <li><code>GET /api/auth/login/&#123;provider&#125;</code></li>
                 <li><code>GET /api/auth/csrf</code></li>
               </ul>
-              <p>These endpoints intentionally start discovery, login, or antiforgery initialization. Provider-specific login accepts only providers registered by the server application; unknown provider IDs are rejected.</p>
+              <p>{{ localeService.copy().endpointsPublicCopy }}</p>
             </dd>
           </div>
           <div class="endpoint-boundary-group">
-            <dt>Authenticated session identity</dt>
+            <dt>{{ localeService.copy().endpointsIdentityTitle }}</dt>
             <dd>
               <ul class="endpoint-list">
                 <li><code>GET /api/auth/me</code></li>
               </ul>
-              <p>The endpoint returns the normalized current-user contract for an authenticated backend session and otherwise responds with <code>401 Unauthorized</code>.</p>
+              <p>{{ localeService.copy().endpointsIdentityBefore }} <code>401 Unauthorized</code>.</p>
             </dd>
           </div>
           <div class="endpoint-boundary-group">
-            <dt>Guarded state change</dt>
+            <dt>{{ localeService.copy().endpointsGuardedTitle }}</dt>
             <dd>
               <ul class="endpoint-list">
                 <li><code>POST /api/auth/logout</code></li>
               </ul>
-              <p>The package validates the ASP.NET Core antiforgery token and also checks <code>Origin</code> or <code>Referer</code> against trusted origins before completing logout.</p>
-              <p>The origin check is defense in depth; antiforgery validation is the primary CSRF protection.</p>
+              <p>{{ localeService.copy().endpointsGuardedBefore }} <code>Origin</code> {{ localeService.copy().endpointsGuardedOr }} <code>Referer</code> {{ localeService.copy().endpointsGuardedAfter }}</p>
+              <p>{{ localeService.copy().endpointsDefense }}</p>
             </dd>
           </div>
         </dl>
 
         <aside class="production-responsibility" aria-labelledby="production-responsibility-title">
-          <h4 id="production-responsibility-title">Production responsibility</h4>
-          <p>Production deployments still configure HTTPS, trusted frontend origins and reverse proxies, secret storage, cookie policy, and application-specific authorization.</p>
-          <p>Custom cookie-authenticated POST, PUT, PATCH, and DELETE endpoints should follow the same antiforgery contract.</p>
+          <h4 id="production-responsibility-title">{{ localeService.copy().productionTitle }}</h4>
+          <p>{{ localeService.copy().productionCopy }}</p>
+          <p>{{ localeService.copy().productionCustom }}</p>
         </aside>
       </section>
     </div>
@@ -273,49 +279,49 @@
   <section id="premium-family" class="premium-family-section" aria-labelledby="premium-family-title">
     <div class="page-container section-content">
       <div class="section-heading">
-        <p class="eyebrow">Open Source + Premium</p>
-        <h2 id="premium-family-title">A foundation that can grow with your application.</h2>
-        <p>OIDC Starter OSS provides the safe BFF authentication foundation. Premium adds reusable operational capabilities built on it.</p>
+        <p class="eyebrow">{{ localeService.copy().premiumEyebrow }}</p>
+        <h2 id="premium-family-title">{{ localeService.copy().premiumTitle }}</h2>
+        <p>{{ localeService.copy().premiumIntro }}</p>
       </div>
       <div class="premium-family-grid">
         <article class="premium-family-card">
           <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#session" /></svg>
-          <p class="eyebrow">Available now</p>
+          <p class="eyebrow">{{ localeService.copy().premiumAvailable }}</p>
           <h3>Premium Sessions</h3>
-          <p>Authoritative session visibility and control for supported OIDC integrations.</p>
-          <a class="text-link" href="/premium/sessions">Explore the module</a>
+          <p>{{ localeService.copy().premiumSessionsCopy }}</p>
+          <a class="text-link" [href]="premiumPageUrl('sessions')">{{ localeService.copy().premiumExploreModule }}</a>
         </article>
         <article class="premium-family-card">
           <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#discovery" /></svg>
-          <p class="eyebrow">Under discovery</p>
-          <h3>Next Premium module</h3>
-          <p>Additional operational needs are evaluated with design partners. No capability or release date is announced.</p>
+          <p class="eyebrow">{{ localeService.copy().premiumDiscovery }}</p>
+          <h3>{{ localeService.copy().premiumNextModule }}</h3>
+          <p>{{ localeService.copy().premiumNextCopy }}</p>
         </article>
       </div>
-      <a class="primary-link" href="/premium">Explore OIDC Starter Premium</a>
+      <a class="primary-link" [href]="premiumPageUrl('overview')">{{ localeService.copy().premiumExplore }}</a>
     </div>
   </section>
 
   <section id="get-started" class="get-started-section" aria-labelledby="get-started-title">
     <div class="page-container section-content get-started-content">
       <div class="section-heading">
-        <p class="eyebrow">Get started</p>
-        <h2 id="get-started-title">Add OIDC Starter to your Angular + ASP.NET Core app</h2>
-        <p>Start with the core ASP.NET Core BFF package. For Angular applications, optionally add the headless auth client to reduce integration code without imposing a user interface.</p>
-        <p>OIDC Starter provides one BFF integration surface for OpenID Connect and registered social login providers.</p>
+        <p class="eyebrow">{{ localeService.copy().navGetStarted }}</p>
+        <h2 id="get-started-title">{{ localeService.copy().startedTitle }}</h2>
+        <p>{{ localeService.copy().startedIntro }}</p>
+        <p>{{ localeService.copy().startedBff }}</p>
       </div>
 
       <div class="package-grid">
         <article class="package-card package-card-backend">
-          <p class="package-label">Core server package</p>
+          <p class="package-label">{{ localeService.copy().backendPackageLabel }}</p>
           <h3>ASP.NET Core BFF</h3>
-          <p>The core OIDC Starter package provides the backend session, authentication endpoints, antiforgery integration, provider discovery, and authorization foundations.</p>
-          <p>Register only the login providers your application needs. Providers that are not registered are not offered by the runtime discovery endpoint.</p>
+          <p>{{ localeService.copy().backendPackageCopy }}</p>
+          <p>{{ localeService.copy().backendProvidersCopy }}</p>
           <p class="package-name">OidcStarter.AspNetCore.Bff</p>
-          <p class="package-version">Version 1.3.0</p>
-          <p class="package-sample-label">Installation</p>
+          <p class="package-version">{{ localeService.copy().version }} 1.3.0</p>
+          <p class="package-sample-label">{{ localeService.copy().installation }}</p>
           <pre><code>dotnet add package OidcStarter.AspNetCore.Bff</code></pre>
-          <p class="package-sample-label">Provider registration</p>
+          <p class="package-sample-label">{{ localeService.copy().providerRegistration }}</p>
           <pre class="backend-provider-sample"><code>builder.Services.AddOidcStarterBff(builder.Configuration);
 
 var facebookSection = builder.Configuration.GetSection("ExternalLogin:Facebook");
@@ -335,34 +341,34 @@ if (googleSection.GetValue&lt;bool&gt;("Enabled"))
 &#123;
   builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
 &#125;</code></pre>
-          <p class="package-sample-label">Pipeline</p>
+          <p class="package-sample-label">{{ localeService.copy().pipeline }}</p>
           <pre><code>app.UseOidcStarterBff();
 app.MapControllers();</code></pre>
-          <p class="package-note">Enable only the providers your application uses. Credentials belong in deployment configuration or local User Secrets, not in this source snippet. The configured provider list is exposed through <code>/api/auth/providers</code>.</p>
+          <p class="package-note">{{ localeService.copy().backendNoteBefore }} <code>/api/auth/providers</code>.</p>
           <a
             class="package-link package-link-nuget"
             href="https://www.nuget.org/packages/OidcStarter.AspNetCore.Bff"
             target="_blank"
             rel="noopener noreferrer"
           >
-            View on NuGet
+            {{ localeService.copy().viewNuget }}
           </a>
         </article>
 
         <article class="package-card package-card-frontend">
-          <p class="package-label">Optional headless Angular client</p>
-          <h3>Angular BFF integration</h3>
-          <p>Optional Angular services and typed contracts for applications using the OIDC Starter BFF. The package handles current-user loading, provider discovery, login redirects, logout, and antiforgery initialization without rendering a user interface.</p>
-          <p class="package-clarification">Your application owns the buttons, modal, icons, layout, and styling.</p>
+          <p class="package-label">{{ localeService.copy().frontendPackageLabel }}</p>
+          <h3>{{ localeService.copy().frontendPackageTitle }}</h3>
+          <p>{{ localeService.copy().frontendPackageCopy }}</p>
+          <p class="package-clarification">{{ localeService.copy().frontendOwnsUi }}</p>
           <p class="package-name">@mordalabs/oidc-starter-auth</p>
-          <p class="package-version">Version 0.2.0</p>
-          <p class="package-sample-label">Installation</p>
+          <p class="package-version">{{ localeService.copy().version }} 0.2.0</p>
+          <p class="package-sample-label">{{ localeService.copy().installation }}</p>
           <pre><code>npm install @mordalabs/oidc-starter-auth</code></pre>
-          <p class="package-sample-label">Registration</p>
+          <p class="package-sample-label">{{ localeService.copy().registration }}</p>
           <pre><code>provideHttpClient(),
 provideBffAuth(&#123; apiOrigin: '' &#125;),</code></pre>
           <div class="frontend-provider-sample">
-            <p class="package-sample-label">Provider selection</p>
+            <p class="package-sample-label">{{ localeService.copy().providerSelection }}</p>
             <pre><code>readonly auth = inject(BffAuthService);
 readonly providers$ = this.auth.getLoginProviders();
 
@@ -375,23 +381,23 @@ login(providerId: string): void &#123;
   &lt;/button&gt;
 &#125;</code></pre>
           </div>
-          <p class="package-note">Do not need a chooser? Call <code>auth.login()</code> to use the backend's default provider.</p>
+          <p class="package-note">{{ localeService.copy().frontendDefaultBefore }} <code>auth.login()</code> {{ localeService.copy().frontendDefaultAfter }}</p>
           <a
             class="package-link package-link-npm"
             href="https://www.npmjs.com/package/@mordalabs/oidc-starter-auth"
             target="_blank"
             rel="noopener noreferrer"
           >
-            View on npm
+            {{ localeService.copy().viewNpm }}
           </a>
         </article>
       </div>
 
       <aside class="get-started-next" aria-labelledby="get-started-next-title">
         <div>
-          <h3 id="get-started-next-title">Continue with the sample</h3>
-          <p>The repository sample combines the core BFF package with the optional headless Angular client. Its provider-selection modal is a reference UI built by the sample application, not a component rendered by the npm package.</p>
-          <p class="get-started-clarification">The repository sample consumes the in-repository projects for local development. The commands above are for applications consuming the published packages.</p>
+          <h3 id="get-started-next-title">{{ localeService.copy().nextTitle }}</h3>
+          <p>{{ localeService.copy().nextCopy }}</p>
+          <p class="get-started-clarification">{{ localeService.copy().nextClarification }}</p>
         </div>
         <a
           class="get-started-guide"
@@ -399,7 +405,7 @@ login(providerId: string): void &#123;
           target="_blank"
           rel="noopener noreferrer"
         >
-          Read the setup guide
+          {{ localeService.copy().readGuide }}
         </a>
       </aside>
     </div>
@@ -410,73 +416,72 @@ login(providerId: string): void &#123;
   <div class="page-container">
     <section id="contact" class="support-section" aria-labelledby="support-title">
       <div class="support-heading">
-        <p class="eyebrow">Contact and feedback</p>
-        <h2 id="support-title">Questions, feedback, or found an issue?</h2>
-        <p>Contact Morda Labs at <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>, or connect through the public project repository and help shape the starter.</p>
+        <p class="eyebrow">{{ localeService.copy().contactEyebrow }}</p>
+        <h2 id="support-title">{{ localeService.copy().contactTitle }}</h2>
+        <p>{{ localeService.copy().contactBefore }} <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>{{ localeService.copy().contactAfter }}</p>
       </div>
 
       <div class="support-actions">
         <article class="support-action">
-          <h3>Explore the project</h3>
-          <p>Browse the source, examples, and current project activity on GitHub.</p>
+          <h3>{{ localeService.copy().contactExploreTitle }}</h3>
+          <p>{{ localeService.copy().contactExploreCopy }}</p>
           <a
             class="support-link"
             href="https://github.com/MordaLabs/oidc-starter"
             target="_blank"
             rel="noopener noreferrer"
           >
-            View on GitHub
+            {{ localeService.copy().viewGithub }}
           </a>
         </article>
         <article class="support-action">
-          <h3>Report a bug</h3>
-          <p>Open a GitHub issue with clear steps, expected behavior, and what you observed.</p>
+          <h3>{{ localeService.copy().contactBugTitle }}</h3>
+          <p>{{ localeService.copy().contactBugCopy }}</p>
           <a
             class="support-link"
             href="https://github.com/MordaLabs/oidc-starter/issues"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Open GitHub Issues
+            {{ localeService.copy().openIssues }}
           </a>
         </article>
         <article class="support-action">
-          <h3>Request a feature</h3>
-          <p>Share the problem you are solving and how a change would help your application.</p>
+          <h3>{{ localeService.copy().contactFeatureTitle }}</h3>
+          <p>{{ localeService.copy().contactFeatureCopy }}</p>
           <a
             class="support-link"
             href="https://github.com/MordaLabs/oidc-starter/issues"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Share a feature request
+            {{ localeService.copy().shareFeature }}
           </a>
         </article>
       </div>
 
       <aside class="support-security" aria-labelledby="support-security-title">
-        <h3 id="support-security-title">Security issue?</h3>
-        <p>Found a security issue? Please don't open a public issue.</p>
+        <h3 id="support-security-title">{{ localeService.copy().contactSecurityTitle }}</h3>
+        <p>{{ localeService.copy().contactSecurityCopy }}</p>
         <a
           class="support-link"
           href="https://github.com/MordaLabs/oidc-starter/security/advisories/new"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Report privately
+          {{ localeService.copy().reportPrivately }}
         </a>
       </aside>
     </section>
 
     <div class="footer-repository">
       <div class="footer-repository-copy">
-        <p class="eyebrow">Morda Labs · open-source authentication starter</p>
-        <h2 id="github-footer-title">Build the sign-in flow once. Keep the rest of your app yours.</h2>
+        <p class="eyebrow">{{ localeService.copy().footerEyebrow }}</p>
+        <h2 id="github-footer-title">{{ localeService.copy().footerTitle }}</h2>
         <p>
-          OIDC Starter is an ASP.NET Core BFF toolkit for OpenID Connect and social login, with runtime provider discovery,
-          application-owned authorization, and an optional headless Angular client.
+          {{ localeService.copy().footerIntro }}
         </p>
-        <p class="footer-supporting-copy">Explore the source, run the sample, and adapt only the pieces your product needs.</p>
+        <p class="footer-supporting-copy">{{ localeService.copy().footerSupporting }}</p>
       </div>
       <a
         class="footer-repository-cta"
@@ -484,30 +489,30 @@ login(providerId: string): void &#123;
         target="_blank"
         rel="noopener noreferrer"
       >
-        View on GitHub
+        {{ localeService.copy().viewGithub }}
       </a>
     </div>
 
     <div class="footer-content">
       <div class="footer-identity">
         <a class="brand" href="#overview">OIDC Starter</a>
-        <small>Provider-neutral BFF authentication for Angular + ASP.NET Core <i>· by Morda Labs</i></small>
+        <small>{{ localeService.copy().footerTagline }} <i>{{ localeService.copy().footerBy }}</i></small>
       </div>
       <div class="footer-navigation">
-        <nav class="footer-primary-navigation" aria-label="Footer primary navigation">
-          <a href="#overview">Overview</a>
-          <a href="#providers">Providers</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#demo">Live demo</a>
-          <a href="#security">Security</a>
-          <a href="#get-started">Get started</a>
-          <a href="/premium">Premium</a>
-          <a href="#contact">Contact</a>
+        <nav class="footer-primary-navigation" [attr.aria-label]="localeService.copy().footerPrimaryNavigation">
+          <a href="#overview">{{ localeService.copy().navOverview }}</a>
+          <a href="#providers">{{ localeService.copy().navProviders }}</a>
+          <a href="#how-it-works">{{ localeService.copy().navHowItWorks }}</a>
+          <a href="#demo">{{ localeService.copy().navDemo }}</a>
+          <a href="#security">{{ localeService.copy().navSecurity }}</a>
+          <a href="#get-started">{{ localeService.copy().navGetStarted }}</a>
+          <a [href]="premiumPageUrl('overview')">Premium</a>
+          <a href="#contact">{{ localeService.copy().navContact }}</a>
         </nav>
-        <nav class="footer-legal-navigation" aria-label="Footer legal navigation">
-          <a href="/privacy.html">Privacy</a>
-          <a href="/terms.html">Terms</a>
-          <a href="/data-deletion.html">Data deletion</a>
+        <nav class="footer-legal-navigation" [attr.aria-label]="localeService.copy().footerLegalNavigation">
+          <a href="/privacy.html">{{ localeService.copy().navPrivacy }}</a>
+          <a href="/terms.html">{{ localeService.copy().navTerms }}</a>
+          <a href="/data-deletion.html">{{ localeService.copy().navDataDeletion }}</a>
         </nav>
       </div>
     </div>

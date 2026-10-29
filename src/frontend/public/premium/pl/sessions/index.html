@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Premium Sessions | OIDC Starter Premium</title>
+    <meta name="description" content="Premium Sessions dodaje do OIDC Starter Premium wgląd w autorytatywne sesje BFF po stronie serwera, lokalne unieważnianie, koordynację Redis i Back-Channel Logout dla obsługiwanych konfiguracji OIDC." />
+    <link rel="canonical" href="https://oidc-starter.mordalabs.com/premium/pl/sessions/" />
+    <link rel="alternate" hreflang="en" href="https://oidc-starter.mordalabs.com/premium/sessions/" />
+    <link rel="alternate" hreflang="pl" href="https://oidc-starter.mordalabs.com/premium/pl/sessions/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/premium/premium.css" />
+    <script src="/premium/locale.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Przejdź do głównej treści</a>
+    <div class="premium-navigation-shell">
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label="Strona główna OIDC Starter">OIDC Starter</a>
+        <nav aria-label="Nawigacja główna">
+          <a href="/#overview">Przegląd</a>
+          <a href="/#providers">Dostawcy</a>
+          <a href="/#how-it-works">Jak to działa</a>
+          <a href="/#demo">Demo na żywo</a>
+          <a href="/#security">Bezpieczeństwo</a>
+          <a href="/#get-started">Zacznij tutaj</a>
+          <a href="/premium/pl/" aria-current="page">Premium</a>
+          <a href="/#github">GitHub</a>
+        </nav>
+      </div>
+    </header>
+    <nav class="premium-subnav" aria-label="Nawigacja Premium">
+      <div class="container">
+        <a href="/premium/pl/">Przegląd</a>
+        <a href="/premium/pl/sessions/" aria-current="page">Sesje</a>
+        <a href="/premium/pl/demo.html">Demo na żywo</a>
+        <div class="language-selector" role="group" aria-label="Język">
+          <span>Język:</span>
+          <a href="/premium/sessions/" lang="en" hreflang="en" aria-label="Zobacz tę stronę po angielsku" data-locale="en">EN</a>
+          <a href="/premium/pl/sessions/" lang="pl" hreflang="pl" aria-current="page" aria-label="Bieżący język: polski" data-locale="pl">PL</a>
+        </div>
+      </div>
+    </nav>
+    </div>
+
+    <main id="main-content">
+      <section class="hero">
+        <div class="container hero-layout">
+          <div class="hero-copy">
+            <p class="eyebrow">OIDC Starter Premium · pierwszy dostępny moduł</p>
+            <h1>Premium Sessions</h1>
+            <p class="lead">Autorytatywna kontrola operacyjna nad lokalnymi sesjami ASP.NET Core BFF, zbudowana na otwartej podstawie OIDC Starter.</p>
+            <div class="actions">
+              <a class="button" href="/premium/pl/demo.html">Wypróbuj demo na żywo</a>
+              <a class="button button-secondary" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Porozmawiaj o ewaluacji</a>
+              <a class="text-link" href="/premium/pl/">Przegląd Premium</a>
+            </div>
+          </div>
+          <svg class="hero-art sessions-art" viewBox="0 0 420 320" fill="none" aria-hidden="true">
+            <circle cx="210" cy="160" r="145" fill="#e4eee4" />
+            <path d="M72 121c0-23 62-41 138-41s138 18 138 41v112c0 23-62 41-138 41S72 256 72 233z" fill="#b9d9c1" stroke="#5c9472" stroke-width="2" />
+            <ellipse cx="210" cy="121" rx="138" ry="41" fill="#edf5eb" stroke="#5c9472" stroke-width="2" />
+            <path d="M72 175c0 23 62 41 138 41s138-18 138-41" stroke="#5c9472" stroke-width="2" />
+            <path d="M72 225c0 23 62 41 138 41s138-18 138-41" stroke="#5c9472" stroke-width="2" />
+            <rect x="178" y="138" width="128" height="84" rx="12" fill="#fff" stroke="#0e6244" stroke-width="2" />
+            <path d="M195 160h58m-58 18h42m-42 18h76" stroke="#90b69a" stroke-width="5" stroke-linecap="round" />
+            <path d="m115 138 31-14 31 14v25c0 20-13 34-31 41-18-7-31-21-31-41z" fill="#e5f0e5" stroke="#0e6244" stroke-width="2" />
+            <path d="m134 162 9 9 17-20" stroke="#0e6244" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="capabilities-title">
+        <div class="container">
+          <p class="eyebrow">Aktualny moduł</p>
+          <h2 id="capabilities-title">Kontroluj lokalną sesję po zalogowaniu.</h2>
+          <div class="card-grid three-up">
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#session" /></svg><h3>Autorytatywne sesje</h3><p>Przechowuj stan chronionego biletu uwierzytelnienia na serwerze w autorytatywnym magazynie sesji.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#visibility" /></svg><h3>Wgląd w aktywne sesje</h3><p>Pobieraj aktywne lokalne sesje dla dokładnie określonego, zaufanego zakresu tożsamości OIDC, z bezpiecznymi metadanymi i nieprzezroczystymi identyfikatorami.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#revoke-one" /></svg><h3>Unieważnij jedną sesję</h3><p>Zakończ wybraną lokalną sesję, aby jej dotychczasowy plik cookie przeglądarki nie uprawniał już do chronionych żądań.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#revoke-all" /></svg><h3>Unieważnij wszystkie sesje</h3><p>Unieważnij zestaw aktywnych lokalnych sesji w tym samym zaufanym zakresie tożsamości. Nie kończy to sesji u dostawcy ani nie uniemożliwia ponownego zalogowania.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#network" /></svg><h3>Koordynacja przez współdzielony magazyn</h3><p>Redis koordynuje autorytatywny stan między instancjami BFF; aplikacja hostująca zapewnia też współdzielone, trwałe klucze ASP.NET Core Data Protection.</p></article>
+            <article class="card"><svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#logout" /></svg><h3>Wylogowanie u dostawcy</h3><p>Zgodny ze standardem OIDC Back-Channel Logout może unieważniać pasujące lokalne sesje dla jawnie skonfigurowanych, obsługiwanych dostawców.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tint" aria-labelledby="boundary-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Granica zaufanej tożsamości</p>
+            <h2 id="boundary-title">Kontrola Core niezależna od dostawcy, oparta na zweryfikowanej tożsamości OIDC.</h2>
+            <p>Premium Sessions Core nie jest rozwiązaniem wyłącznie dla Keycloak. Korzysta z dokładnego, zaufanego powiązania <code>ProviderId</code>, <code>Issuer</code>, <code>ClientId</code> i <code>Subject</code> pochodzącego z prawidłowo zintegrowanego logowania OIDC. Przeglądarka nie określa tego zakresu uprawnień.</p>
+            <p>Bezpośrednie integracje OIDC zgodne ze standardem mogą korzystać z przekazywania zweryfikowanych metadanych przez OSS. OIDC z pośrednikiem wymaga oceny granicy tożsamości i powiązania kont po stronie pośrednika. Same integracje OAuth i własne mechanizmy inne niż OIDC nie są automatycznie objęte obsługą.</p>
+          </div>
+          <div class="note-panel">
+            <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#boundary" /></svg>
+            <h3>Jedna granica aplikacji</h3>
+            <ol class="flow">
+              <li>Przeglądarka</li>
+              <li>Uwierzytelnianie i sesja OSS BFF</li>
+              <li>Autorytatywna kontrola Premium Sessions</li>
+              <li>Współdzielony magazyn Redis</li>
+            </ol>
+            <p>Aplikacja hostująca autoryzuje podmioty wywołujące funkcje kontroli, odpowiada za konfigurację Redis i Data Protection oraz określa zasady wdrożenia.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="reuse-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Zbuduj lub wykorzystaj ponownie</p>
+            <h2 id="reuse-title">Utrzymania wymaga łączne działanie tych elementów.</h2>
+            <p>Doświadczone zespoły mogą wdrożyć te elementy. Premium łączy ich działanie w pakiet do ponownego użycia w projektach BFF, ograniczając powtarzanie projektowania i testów regresji.</p>
+          </div>
+          <ul class="lined-list">
+            <li>Izolacja według zaufanego dostawcy, wystawcy, klienta i identyfikatora użytkownika oraz bezpieczna przenośność między dostawcami.</li>
+            <li>Autorytatywny stan biletu, odrzucanie nieaktualnych plików cookie, unieważnianie pojedynczych i wielu sesji oraz poprawna obsługa wyścigu odnowienia i unieważnienia.</li>
+            <li>Koordynacja Redis i Data Protection między instancjami oraz osobno konfigurowana integracja Back-Channel Logout.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section section-tint" aria-labelledby="api-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Integracja dla programistów</p>
+            <h2 id="api-title">Interfejs .NET dla aplikacji hostującej.</h2>
+            <p>Pakiet w prywatnej wersji próbnej to <code>OidcStarter.Premium.Sessions 0.1.0-preview.1</code> dla .NET 9. Zależy od opublikowanego pakietu OSS BFF. Dostęp do niego jest uzgadniany z zatwierdzonymi osobami testującymi; nie jest publicznym wydaniem w NuGet.</p>
+            <p><code>AddPremiumSessions(...)</code> rejestruje <code>IPremiumSessionControl</code> do pobierania sesji w dokładnie określonym zakresie oraz unieważniania jednej lub wszystkich sesji. Aplikacja hostująca uwierzytelnia i autoryzuje wywołujących; Premium nie udostępnia ogólnego punktu HTTP do administracji.</p>
+          </div>
+          <div class="code-panel">
+            <h3>Przykład rejestracji</h3>
+            <pre><code>builder.Services.AddPremiumSessions(
+    CookieAuthenticationDefaults.AuthenticationScheme)
+    .UseRedis(redisConnection, options =&gt;
+    {
+        options.KeyPrefix = "myapp:premium:sessions:v3";
+        options.ActiveSessionTtl = TimeSpan.FromHours(8);
+        options.MinimumRevokedTombstoneRetention =
+            TimeSpan.FromMinutes(30);
+    });</code></pre>
+            <p><code>redisConnection</code> jest zarządzany przez aplikację hostującą. Udostępnia ona trwałe klucze Data Protection i nazwę aplikacji wszystkim instancjom. Autoryzowane usługi aplikacji uzyskują <code>IPremiumSessionControl</code> przez wstrzykiwanie zależności.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="evidence-title">
+        <div class="container">
+          <p class="eyebrow">Wyniki i ograniczenia</p>
+          <h2 id="evidence-title">Zweryfikowane działanie z uwzględnieniem granic dostawców.</h2>
+          <div class="card-grid two-up">
+            <article class="card">
+              <h3>Kontrola lokalnych sesji</h3>
+              <p>W istniejącym demo zweryfikowano pobieranie aktywnych sesji, dwie równoczesne sesje przeglądarki dla jednego konta, unieważnienie wybranej sesji bez wpływu na drugą, odrzucenie unieważnionego pliku cookie oraz unieważnienie wszystkich sesji.</p>
+            </article>
+            <article class="card">
+              <h3>Wyniki dla dostawców i wielu instancji</h3>
+              <p>Bezpośrednia integracja Google OIDC potwierdziła przenośność Core w udokumentowanej konfiguracji próbnej. Back-Channel Logout zweryfikowano osobno z Keycloak. Działanie wielu instancji ze współdzielonym Redis i Data Protection sprawdzono na poziomie integracji repozytorium.</p>
+            </article>
+          </div>
+          <p class="evidence-limit">Te wyniki nie stanowią certyfikacji dostawców, wszystkich konfiguracji Google, powszechnej zgodności z OIDC, Google Back-Channel Logout ani wdrożenia produkcyjnego. Lokalne unieważnienie nie oznacza globalnego wylogowania u dostawcy tożsamości ani wyłączenia konta.</p>
+        </div>
+      </section>
+
+      <section class="section live-demo-callout" aria-labelledby="live-demo-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Ewaluacja na żywo</p>
+            <h2 id="live-demo-title">Zobacz Premium Sessions w demo na żywo</h2>
+            <p>Wypróbuj wgląd w sesje i lokalne unieważnianie w prowadzonym scenariuszu z dwiema przeglądarkami. Dostęp do demo jest uzgadniany z zaproszonymi osobami.</p>
+          </div>
+          <div class="closing-action"><a class="button" href="/premium/pl/demo.html">Wypróbuj demo na żywo</a></div>
+        </div>
+      </section>
+
+      <section class="section closing" aria-labelledby="evaluation-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Wersja próbna dostępna prywatnie</p>
+            <h2 id="evaluation-title">Oceń Sessions w swojej aplikacji BFF.</h2>
+            <p>Porozmawiaj o partnerskiej ewaluacji integracji OIDC i potrzeb związanych z kontrolą sesji. Środowisko interaktywne jest udostępniane zaproszonym osobom po indywidualnym uzgodnieniu dostępu.</p>
+          </div>
+          <div class="closing-action">
+            <a class="button" href="mailto:premium@mordalabs.com?subject=Premium%20Sessions%20evaluation">Napisz na premium@mordalabs.com</a>
+            <a class="text-link" href="/premium/pl/">Wróć do przeglądu Premium</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>Premium Sessions · moduł OIDC Starter Premium od MordaLabs</p>
+        <nav aria-label="Nawigacja w stopce">
+          <a href="/">Strona główna OSS</a>
+          <a href="/premium/pl/">Przegląd Premium</a>
+          <a href="/privacy.html">Prywatność</a>
+          <a href="/terms.html">Warunki korzystania</a>
+          <a href="/data-deletion.html">Usuwanie danych</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
