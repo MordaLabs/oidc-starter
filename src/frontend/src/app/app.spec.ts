@@ -116,8 +116,10 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const headerLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('.site-header nav a'));
     const originalTargets = headerLinks.map((link) => link.getAttribute('href'));
-    const originalLinks = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('a'))
+    const nonLegalLinks = () => Array.from(compiled.querySelectorAll<HTMLAnchorElement>('a'))
+      .filter((link) => !link.closest('.footer-legal-navigation'))
       .map((link) => link.getAttribute('href'));
+    const originalLinks = nonLegalLinks();
     compiled.querySelector<HTMLButtonElement>('.language-selector button:last-of-type')!.click();
     fixture.detectChanges();
 
@@ -125,8 +127,7 @@ describe('App', () => {
     expect(compiled.querySelector('.site-header nav')?.getAttribute('aria-label')).toBe('Nawigacja główna');
     expect(headerLinks.map((link) => link.getAttribute('href')).filter((href) => !href?.startsWith('/premium/')))
       .toEqual(originalTargets.filter((href) => !href?.startsWith('/premium/')));
-    expect(Array.from(compiled.querySelectorAll<HTMLAnchorElement>('a'))
-      .map((link) => link.getAttribute('href')).filter((href) => !href?.startsWith('/premium/')))
+    expect(nonLegalLinks().filter((href) => !href?.startsWith('/premium/')))
       .toEqual(originalLinks.filter((href) => !href?.startsWith('/premium/')));
     expect(compiled.querySelector('.site-header nav a[href="/premium/pl/"]')).not.toBeNull();
     expect(compiled.querySelector('#premium-family a[href="/premium/pl/sessions/"]')).not.toBeNull();
@@ -144,7 +145,7 @@ describe('App', () => {
     expect(compiled.querySelector('#support-title')?.textContent).toContain('Masz pytanie');
     expect(compiled.querySelector('#github-footer-title')?.textContent).toContain('Zbuduj proces logowania');
     expect(compiled.querySelector('nav.footer-legal-navigation')?.getAttribute('aria-label')).toBe('Nawigacja prawna w stopce');
-    expect(compiled.querySelector('nav.footer-legal-navigation a[href="/privacy.html"]')?.textContent).toBe('Prywatność');
+    expect(compiled.querySelector('nav.footer-legal-navigation a[href="/pl/privacy.html"]')?.textContent).toBe('Prywatność');
     expect(compiled.querySelector('#get-started pre code')?.textContent).toContain('dotnet add package OidcStarter.AspNetCore.Bff');
     expect(compiled.querySelector('#get-started .package-name')?.textContent).toBe('OidcStarter.AspNetCore.Bff');
     expect(compiled.querySelector('a[href="https://github.com/MordaLabs/oidc-starter"]')).not.toBeNull();
@@ -191,6 +192,52 @@ describe('App', () => {
     expect(fixture.nativeElement.textContent).toContain('Interfejs API serwera jest obecnie niedostępny');
     flushBffCurrentUserIfRendered();
     flushBffLoginProvidersIfRequested();
+  });
+
+  it('updates all legal links and labels when switching between English and Polish', () => {
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+    flushBffLoginProvidersIfRequested();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const links = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('.footer-legal-navigation a'));
+    const targets = () => links.map((link) => link.getAttribute('href'));
+    const labels = () => links.map((link) => link.textContent?.trim());
+    expect(targets()).toEqual(['/privacy.html', '/terms.html', '/data-deletion.html']);
+    expect(labels()).toEqual(['Privacy', 'Terms', 'Data deletion']);
+
+    compiled.querySelector<HTMLButtonElement>('.language-selector button:last-of-type')!.click();
+    fixture.detectChanges();
+    expect(targets()).toEqual(['/pl/privacy.html', '/pl/terms.html', '/pl/data-deletion.html']);
+    expect(labels()).toEqual(['Prywatność', 'Warunki korzystania', 'Usuwanie danych']);
+    expect(compiled.querySelector('.footer-legal-navigation')?.getAttribute('aria-label'))
+      .toBe('Nawigacja prawna w stopce');
+
+    compiled.querySelector<HTMLButtonElement>('.language-selector button:first-of-type')!.click();
+    fixture.detectChanges();
+    expect(targets()).toEqual(['/privacy.html', '/terms.html', '/data-deletion.html']);
+    expect(labels()).toEqual(['Privacy', 'Terms', 'Data deletion']);
+  });
+
+  it('initializes all legal links in Polish from the saved locale', () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'pl');
+    const fixture = TestBed.createComponent(App);
+    flushPing();
+    fixture.detectChanges();
+    flushBffCurrentUserIfRendered();
+    flushBffLoginProvidersIfRequested();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const links = Array.from(compiled.querySelectorAll<HTMLAnchorElement>('.footer-legal-navigation a'));
+    expect(links.map((link) => link.getAttribute('href')))
+      .toEqual(['/pl/privacy.html', '/pl/terms.html', '/pl/data-deletion.html']);
+    expect(links.map((link) => link.textContent?.trim()))
+      .toEqual(['Prywatność', 'Warunki korzystania', 'Usuwanie danych']);
+    expect(document.documentElement.lang).toBe('pl');
   });
 
   it('renders the landing page shell, package onboarding, runtime status, and GitHub footer destination', () => {

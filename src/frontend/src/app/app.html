@@ -510,9 +510,9 @@ login(providerId: string): void &#123;
           <a href="#contact">{{ localeService.copy().navContact }}</a>
         </nav>
         <nav class="footer-legal-navigation" [attr.aria-label]="localeService.copy().footerLegalNavigation">
-          <a href="/privacy.html">{{ localeService.copy().navPrivacy }}</a>
-          <a href="/terms.html">{{ localeService.copy().navTerms }}</a>
-          <a href="/data-deletion.html">{{ localeService.copy().navDataDeletion }}</a>
+          <a [href]="localeService.locale() === 'pl' ? '/pl/privacy.html' : '/privacy.html'">{{ localeService.copy().navPrivacy }}</a>
+          <a [href]="localeService.locale() === 'pl' ? '/pl/terms.html' : '/terms.html'">{{ localeService.copy().navTerms }}</a>
+          <a [href]="localeService.locale() === 'pl' ? '/pl/data-deletion.html' : '/data-deletion.html'">{{ localeService.copy().navDataDeletion }}</a>
         </nav>
       </div>
     </div>
