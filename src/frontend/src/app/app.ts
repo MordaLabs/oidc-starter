@@ -3,6 +3,7 @@ import { Component, inject, signal, viewChild } from '@angular/core';
 import { BffAuthViewComponent } from './auth/bff-auth-view/bff-auth-view.component';
 import { SpaAuthViewComponent } from './auth/spa-auth-view/spa-auth-view.component';
 import { environment } from '../environments/environment';
+import { LocaleService } from './locale.service';
 
 type PingResponse = {
   status: string;
@@ -19,17 +20,23 @@ type PingResponse = {
 })
 export class App {
   private readonly http = inject(HttpClient);
+  protected readonly localeService = inject(LocaleService);
   private readonly bffAuthView = viewChild(BffAuthViewComponent);
 
   protected readonly authMode = environment.authMode;
   protected readonly pingResult = signal<PingResponse | null>(null);
-  protected readonly errorMessage = signal<string | null>(null);
+  protected readonly backendUnreachable = signal(false);
   protected readonly builtInProviders = [
     { id: 'oidc', displayName: 'OpenID Connect' },
     { id: 'google', displayName: 'Google' },
     { id: 'github', displayName: 'GitHub' },
     { id: 'facebook', displayName: 'Facebook' },
   ] as const;
+
+  protected premiumPageUrl(page: 'overview' | 'sessions'): string {
+    const base = this.localeService.locale() === 'pl' ? '/premium/pl/' : '/premium/';
+    return page === 'sessions' ? `${base}sessions/` : base;
+  }
 
   constructor() {
     this.loadPing();
@@ -47,7 +54,19 @@ export class App {
     const date = new Date(timestamp ?? '');
 
     if (Number.isNaN(date.getTime())) {
-      return 'Not available';
+      return this.localeService.copy().runtimeNotAvailable;
+    }
+
+    if (this.localeService.locale() === 'pl') {
+      return `${new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+        timeZone: 'UTC',
+      }).format(date)} UTC`;
     }
 
     const month = new Intl.DateTimeFormat('en-GB', {
@@ -67,7 +86,7 @@ export class App {
       .get<PingResponse>(`${apiOrigin}/api/public/ping`)
       .subscribe({
         next: (response) => this.pingResult.set(response),
-        error: () => this.errorMessage.set('Backend API not reachable yet.'),
+        error: () => this.backendUnreachable.set(true),
       });
   }
 }

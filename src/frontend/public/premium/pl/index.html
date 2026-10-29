@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OIDC Starter Premium | Kontrola operacyjna dla aplikacji .NET BFF</title>
+    <meta name="description" content="OIDC Starter Premium dodaje funkcje kontroli operacyjnej wielokrotnego użytku do otwartego OIDC Starter BFF. Premium Sessions jest dostępny do ewaluacji dla partnerów projektowych w prywatnej wersji próbnej." />
+    <link rel="canonical" href="https://oidc-starter.mordalabs.com/premium/pl/" />
+    <link rel="alternate" hreflang="en" href="https://oidc-starter.mordalabs.com/premium/" />
+    <link rel="alternate" hreflang="pl" href="https://oidc-starter.mordalabs.com/premium/pl/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/premium/premium.css" />
+    <script src="/premium/locale.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Przejdź do głównej treści</a>
+    <div class="premium-navigation-shell">
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label="Strona główna OIDC Starter">OIDC Starter</a>
+        <nav aria-label="Nawigacja główna">
+          <a href="/#overview">Przegląd</a>
+          <a href="/#providers">Dostawcy</a>
+          <a href="/#how-it-works">Jak to działa</a>
+          <a href="/#demo">Demo na żywo</a>
+          <a href="/#security">Bezpieczeństwo</a>
+          <a href="/#get-started">Zacznij tutaj</a>
+          <a href="/premium/pl/" aria-current="page">Premium</a>
+          <a href="/#github">GitHub</a>
+        </nav>
+      </div>
+    </header>
+    <nav class="premium-subnav" aria-label="Nawigacja Premium">
+      <div class="container">
+        <a href="/premium/pl/" aria-current="page">Przegląd</a>
+        <a href="/premium/pl/sessions/">Sesje</a>
+        <a href="/premium/pl/demo.html">Demo na żywo</a>
+        <div class="language-selector" role="group" aria-label="Język">
+          <span>Język:</span>
+          <a href="/premium/" lang="en" hreflang="en" aria-label="Zobacz tę stronę po angielsku" data-locale="en">EN</a>
+          <a href="/premium/pl/" lang="pl" hreflang="pl" aria-current="page" aria-label="Bieżący język: polski" data-locale="pl">PL</a>
+        </div>
+      </div>
+    </nav>
+    </div>
+
+    <main id="main-content">
+      <section class="hero">
+        <div class="container hero-layout">
+          <div class="hero-copy">
+            <p class="eyebrow">Produkt komercyjny · wersja próbna dostępna prywatnie</p>
+            <h1>OIDC Starter Premium</h1>
+            <p class="lead">Funkcje operacyjne wielokrotnego użytku dla aplikacji .NET BFF przygotowywanych do zastosowań produkcyjnych na podstawie otwartego OIDC Starter.</p>
+            <div class="actions">
+              <a class="button" href="/premium/pl/demo.html">Wypróbuj demo Premium</a>
+              <a class="button button-secondary" href="#modules">Poznaj moduły</a>
+              <a class="text-link" href="mailto:premium@mordalabs.com?subject=OIDC%20Starter%20Premium%20evaluation">Porozmawiaj o ewaluacji</a>
+            </div>
+          </div>
+          <svg class="hero-art" viewBox="0 0 420 320" fill="none" aria-hidden="true">
+            <circle cx="210" cy="160" r="145" fill="#e4eee4" />
+            <path d="m62 198 148-76 148 76-148 76z" fill="#b7d5bf" stroke="#5c9472" stroke-width="2" />
+            <path d="M62 198v30l148 76v-30z" fill="#91bba0" stroke="#5c9472" stroke-width="2" />
+            <path d="M358 198v30l-148 76v-30z" fill="#6b9d7e" stroke="#5c9472" stroke-width="2" />
+            <path d="m94 157 116-59 116 59-116 59z" fill="#e6f1e7" stroke="#5c9472" stroke-width="2" />
+            <path d="M94 157v26l116 59v-26z" fill="#c3dcc8" stroke="#5c9472" stroke-width="2" />
+            <path d="M326 157v26l-116 59v-26z" fill="#a8ccb0" stroke="#5c9472" stroke-width="2" />
+            <path d="m138 100 72-37 72 37-72 37z" fill="#f8fbf7" stroke="#5c9472" stroke-width="2" />
+            <path d="M138 100v24l72 37v-24z" fill="#d7e9d9" stroke="#5c9472" stroke-width="2" />
+            <path d="M282 100v24l-72 37v-24z" fill="#b9d9c1" stroke="#5c9472" stroke-width="2" />
+          </svg>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="boundary-title">
+        <div class="container">
+          <p class="eyebrow">Rodzina produktów</p>
+          <h2 id="boundary-title">Od otwartego kodu do Premium</h2>
+          <div class="card-grid two-up family-comparison">
+            <article class="card">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#package" /></svg>
+              <p class="card-label">OIDC Starter (OSS)</p>
+              <h3>Bezpieczna sesja BFF</h3>
+              <p>Pakiety z otwartym kodem na licencji MIT zapewniają uwierzytelnianie ASP.NET Core BFF niezależne od dostawcy, sesje na serwerze, szablony i wskazówki integracyjne. Z OSS można korzystać samodzielnie.</p>
+              <a class="text-link" href="/">Poznaj starter OSS</a>
+            </article>
+            <span class="comparison-plus" aria-hidden="true">+</span>
+            <article class="card emphasized">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#stack" /></svg>
+              <p class="card-label">OIDC Starter Premium</p>
+              <h3>Kontrola operacyjna nad tą sesją</h3>
+              <p>Premium dodaje do tej samej podstawy OSS moduły operacyjne wielokrotnego użytku dla zespołów produkcyjnych. Moduł Premium Sessions jest już dostępny.</p>
+              <a class="text-link" href="/premium/pl/sessions/">Poznaj moduł Sessions</a>
+            </article>
+          </div>
+          <p class="boundary-line">OSS zapewnia bezpieczną sesję BFF. Premium daje kontrolę operacyjną nad tą sesją.</p>
+        </div>
+      </section>
+
+      <section class="section section-tint" aria-labelledby="buyer-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Dla kogo</p>
+            <h2 id="buyer-title">Zespoły tworzące produkty .NET dostępne w przeglądarce.</h2>
+            <p>OIDC Starter Premium jest przeznaczony dla firm programistycznych, konsultantów produktowych i zespołów produktowych, które używają lub wdrażają OAuth/OIDC w aplikacjach ASP.NET Core BFF.</p>
+          </div>
+          <div class="note-panel">
+            <h3>Elementy, które zespół musiałby projektować, testować i utrzymywać w kolejnych projektach BFF</h3>
+            <p>Doświadczone zespoły mogą zbudować te elementy. Wartość Premium polega na gotowej do ponownego użycia implementacji ich łącznego działania i jej dalszym utrzymaniu, bez powtarzania projektowania i testów regresji w każdym projekcie.</p>
+            <p>Aplikacja hostująca nadal odpowiada za wdrożenie, konfigurację dostawców tożsamości i autoryzację.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="modules" class="section" aria-labelledby="available-title">
+        <div class="container">
+          <p class="eyebrow">Moduły</p>
+          <h2 id="available-title">Funkcje operacyjne dla rzeczywistych aplikacji.</h2>
+          <div class="card-grid two-up">
+            <article class="card emphasized">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#session" /></svg>
+              <p class="card-label">Już dostępne</p>
+              <h3>Premium Sessions</h3>
+              <p>Autorytatywne sesje BFF po stronie serwera, wgląd w aktywne sesje, lokalne unieważnianie, koordynacja przez współdzielony Redis i Back-Channel Logout dla obsługiwanych konfiguracji OIDC.</p>
+              <a class="text-link" href="/premium/pl/sessions/">Dowiedz się więcej</a>
+              <p class="module-note">Demo na żywo jest dostępne na stronie demo Premium.</p>
+            </article>
+            <article class="card">
+              <svg class="visual-icon" aria-hidden="true"><use href="/premium/visuals.svg#discovery" /></svg>
+              <p class="card-label">W fazie rozpoznania</p>
+              <h3>Kolejny moduł Premium</h3>
+              <p>Dodatkowe potrzeby operacyjne są analizowane z partnerami projektowymi. Nie ogłoszono jeszcze zakresu funkcji ani terminu wydania.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section closing" aria-labelledby="evaluation-title">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Wersja próbna dostępna prywatnie</p>
+            <h2 id="evaluation-title">Porozmawiaj o ewaluacji w swojej aplikacji BFF.</h2>
+            <p>Premium jest dostępny do ewaluacji dla wybranych partnerów projektowych. Zaproszonym osobom można udostępnić środowisko interaktywne; dostęp i przekazanie pakietu są uzgadniane indywidualnie.</p>
+          </div>
+          <div class="closing-action">
+            <a class="button" href="mailto:premium@mordalabs.com?subject=OIDC%20Starter%20Premium%20evaluation">Napisz na premium@mordalabs.com</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>OIDC Starter Premium · produkt MordaLabs zbudowany na OIDC Starter OSS</p>
+        <nav aria-label="Nawigacja w stopce">
+          <a href="/">Strona główna OSS</a>
+          <a href="/premium/pl/sessions/">Premium Sessions</a>
+          <a href="/privacy.html">Prywatność</a>
+          <a href="/terms.html">Warunki korzystania</a>
+          <a href="/data-deletion.html">Usuwanie danych</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Premium demo | OIDC Starter Premium</title>
     <meta name="description" content="Premium demo access and evaluation information for OIDC Starter Premium." />
+    <link rel="alternate" hreflang="en" href="https://oidc-starter.mordalabs.com/premium/demo.html" />
+    <link rel="alternate" hreflang="pl" href="https://oidc-starter.mordalabs.com/premium/pl/demo.html" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/premium/premium.css" />
+    <script src="/premium/locale.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -21,16 +24,21 @@
           <a href="/#demo">Live demo</a>
           <a href="/#security">Security</a>
           <a href="/#get-started">Get started</a>
-          <a href="/premium" aria-current="page">Premium</a>
+          <a href="/premium/" aria-current="page">Premium</a>
           <a href="/#github">GitHub</a>
         </nav>
       </div>
     </header>
     <nav class="premium-subnav" aria-label="Premium navigation">
       <div class="container">
-        <a href="/premium">Overview</a>
-        <a href="/premium/sessions">Sessions</a>
-        <a href="/premium/demo" aria-current="page">Live demo</a>
+        <a href="/premium/">Overview</a>
+        <a href="/premium/sessions/">Sessions</a>
+        <a href="/premium/demo.html" aria-current="page">Live demo</a>
+        <div class="language-selector" role="group" aria-label="Language">
+          <span>Language:</span>
+          <a href="/premium/demo.html" lang="en" hreflang="en" aria-current="page" aria-label="Current language: English" data-locale="en">EN</a>
+          <a href="/premium/pl/demo.html" lang="pl" hreflang="pl" aria-label="View this page in Polish" data-locale="pl">PL</a>
+        </div>
       </div>
     </nav>
     </div>
@@ -42,7 +50,7 @@
           <p class="lead">The public Premium demo is being prepared. Request access to discuss an evaluation of Premium Sessions in your BFF.</p>
           <div class="actions">
             <a class="button" href="mailto:premium@mordalabs.com?subject=OIDC%20Starter%20Premium%20demo%20access">Request demo access</a>
-            <a class="text-link" href="/premium/sessions">Explore Premium Sessions</a>
+            <a class="text-link" href="/premium/sessions/">Explore Premium Sessions</a>
           </div>
         </div>
       </section>
