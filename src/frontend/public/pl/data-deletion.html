@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Informacje o usuwaniu danych związanych z publiczną wersją demonstracyjną OIDC Starter." />
+    <title>Usuwanie danych | OIDC Starter</title>
+    <link rel="canonical" href="https://oidc-starter.mordalabs.com/pl/data-deletion.html" />
+    <link rel="alternate" hreflang="en" href="https://oidc-starter.mordalabs.com/data-deletion.html" />
+    <link rel="alternate" hreflang="pl" href="https://oidc-starter.mordalabs.com/pl/data-deletion.html" />
+    <style>
+      :root { color: #1c2823; background: #f7f5f0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      a { color: #155d4d; }
+      a:focus-visible { outline: 3px solid #236bff; outline-offset: 3px; }
+      .site-header { border-bottom: 1px solid #cbd5ca; background: rgba(247, 245, 240, 0.96); }
+      .page-container { width: min(60rem, calc(100% - 2rem)); margin: 0 auto; }
+      .header-content { display: flex; min-height: 4.5rem; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+      .brand { color: #1c2823; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; }
+      main { padding: 4rem 0; }
+      .eyebrow { margin: 0; color: #155d4d; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+      h1, h2 { color: #172033; }
+      h1 { margin: 0.75rem 0 0; font-size: clamp(2.25rem, 7vw, 3.5rem); letter-spacing: -0.04em; }
+      h2 { margin-top: 2.5rem; font-size: 1.35rem; }
+      p { color: #41506b; line-height: 1.7; }
+      .notice { margin-top: 2rem; padding: 1.25rem; border-left: 3px solid #155d4d; background: #ffffff; }
+      footer { border-top: 1px solid #cbd5ca; padding: 1.5rem 0 2.25rem; background: #e5ebe4; }
+      footer p { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-container header-content">
+        <a class="brand" href="/" aria-label="Strona główna OIDC Starter">OIDC Starter</a>
+        <a href="/">Wróć do wersji demonstracyjnej</a>
+        <nav aria-label="Język"><a href="/data-deletion.html" lang="en">EN</a> · <a href="/pl/data-deletion.html" lang="pl" aria-current="page">PL</a></nav>
+      </div>
+    </header>
+
+    <main>
+      <article class="page-container">
+        <p class="eyebrow">Publiczna wersja demonstracyjna projektu Morda Labs</p>
+        <h1>Usuwanie danych</h1>
+
+        <p>Ta strona dotyczy logowania przez Keycloak, Google i GitHub. Punkt końcowy dostawców w środowisku testowym wskazuje również Facebooka; w środowisku produkcyjnym Facebook nie jest włączony. Morda Labs jest nazwą projektu, a nie odrębnie zarejestrowanym podmiotem prawnym. Hostowana wersja demonstracyjna nie ma osobnej bazy danych aplikacji przeznaczonej do przechowywania ujednoliconych profili użytkowników, ale Keycloak przechowuje dane kont w PostgreSQL.</p>
+
+        <h2>Wniosek o usunięcie danych</h2>
+        <p>Aby poprosić o usunięcie informacji związanych z korzystaniem z wersji demonstracyjnej, napisz na adres <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. Wskaż dostawcę logowania i konto, których dotyczy wniosek; nie przesyłaj haseł ani tokenów. Wnioski są rozpatrywane i obsługiwane ręcznie. Indywidualne konta Keycloak można usunąć administracyjnie, ale publicznie opisane konto demonstracyjne Keycloak jest współdzielone i nie identyfikuje prywatnego konta konkretnej osoby.</p>
+        <p>Wylogowanie kończy sesję w wersji demonstracyjnej; nie usuwa automatycznie kont u dostawców, danych kont w Keycloak, dzienników technicznych, kopii zapasowych ani wszystkich pozostałych przechowywanych informacji. OVH Automated Backup wyświetla siedmiodniowy okres, w którym można przywrócić kopię, ale nie zweryfikowano dokładnego zakresu kopii ani spójności odzyskiwania bazy danych. Nie możemy więc obiecać dokładnego terminu usunięcia danych z kopii zapasowych. Więcej o dziennikach i przechowywaniu danych znajdziesz w <a href="/pl/privacy.html">Polityce prywatności</a>.</p>
+
+        <h2>Konta u dostawców</h2>
+        <p>Google, GitHub i Facebook zarządzają informacjami na kontach prowadzonych przez siebie. W sprawie danych przechowywanych przez dostawcę skontaktuj się z nim lub skorzystaj z ustawień swojego konta. Cofnięcie dostępu wersji demonstracyjnej do konta u dostawcy samo w sobie nie usuwa danych przechowywanych przez Keycloak ani zapisanych w dziennikach i kopiach zapasowych wersji demonstracyjnej.</p>
+
+        <h2>Wskazówki dotyczące Facebooka</h2>
+        <p>Jeśli wersja demonstracyjna widnieje w ustawieniach aplikacji na Twoim koncie Facebook, możesz tam cofnąć jej dostęp i skorzystać z narzędzi Facebooka do zarządzania danymi przechowywanymi przez ten serwis. Możesz również napisać do nas w sprawie informacji związanych z korzystaniem z wersji demonstracyjnej. Logowanie przez Facebook nie jest włączone w środowisku produkcyjnym.</p>
+
+        <h2>Pytania i zgłoszenia</h2>
+        <p>W sprawie wniosku o usunięcie danych napisz na adres <a href="mailto:contact@mordalabs.com">contact@mordalabs.com</a>. Problemy dotyczące bezpieczeństwa zgłaszaj na adres <a href="mailto:security@mordalabs.com">security@mordalabs.com</a>.</p>
+
+        <aside class="notice">
+          <strong>Powiązane dokumenty.</strong>
+          <p>Więcej informacji o publicznej wersji demonstracyjnej znajdziesz w <a href="/pl/privacy.html">Polityce prywatności</a> oraz <a href="/pl/terms.html">Warunkach korzystania</a>.</p>
+        </aside>
+      </article>
+    </main>
+
+    <footer>
+      <div class="page-container">
+        <p>OIDC Starter · Morda Labs · <a href="/pl/privacy.html">Polityka prywatności</a> · <a href="/pl/terms.html">Warunki korzystania</a> · <a href="https://github.com/MordaLabs/oidc-starter">Zobacz kod źródłowy</a></p>
+      </div>
+    </footer>
+  </body>
+</html>
