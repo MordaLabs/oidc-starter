@@ -568,7 +568,6 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
               "link": "https://example.test/profile",
               "email": "user@example.test",
               "verified_email": {{emailVerified.ToString().ToLowerInvariant()}},
-              "email_verified": false,
               "picture": "https://example.test/picture.jpg"
             }
             """);
@@ -588,6 +587,65 @@ public sealed class OidcStarterBffServiceCollectionExtensionsTests
         Assert.Equal(
             "https://example.test/picture.jpg",
             identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl)?.Value);
+    }
+
+    [Theory]
+    [InlineData("\"email_verified\": true,", true)]
+    [InlineData("\"email_verified\": false,", false)]
+    [InlineData("\"verified_email\": true,", true)]
+    [InlineData("\"verified_email\": false,", false)]
+    [InlineData("\"email_verified\": false, \"verified_email\": true,", false)]
+    [InlineData("\"email_verified\": true, \"verified_email\": false,", true)]
+    [InlineData("\"email_verified\": \"true\", \"verified_email\": true,", null)]
+    [InlineData("\"email_verified\": null, \"verified_email\": true,", null)]
+    [InlineData("\"email_verified\": 1, \"verified_email\": true,", null)]
+    [InlineData("\"email_verified\": null,", null)]
+    [InlineData("\"email_verified\": \"true\",", null)]
+    [InlineData("\"verified_email\": null,", null)]
+    [InlineData("\"verified_email\": \"true\",", null)]
+    [InlineData("", null)]
+    public void AddOidcStarterGoogle_maps_only_boolean_email_verification_from_v3_or_legacy_profile(
+        string verificationFields,
+        bool? expected)
+    {
+        using var provider = CreateGoogleServices(new Dictionary<string, string?>
+        {
+            ["Google:ClientId"] = "google-client-id",
+            ["Google:ClientSecret"] = "google-client-secret"
+        });
+        var googleOptions = provider
+            .GetRequiredService<IOptionsMonitor<GoogleOptions>>()
+            .Get(OidcStarterGoogleDefaults.AuthenticationScheme);
+        using var userInfo = JsonDocument.Parse($$"""
+            {
+              "sub": "google-user-123",
+              "name": "Google User",
+              "email": "user@example.test",
+              "picture": "https://example.test/picture.jpg",
+              {{verificationFields}}
+              "locale": "en"
+            }
+            """);
+        var identity = new ClaimsIdentity();
+
+        RunClaimActions(googleOptions, userInfo.RootElement, identity);
+
+        Assert.Equal("google-user-123", identity.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        Assert.Equal("Google User", identity.FindFirst(ClaimTypes.Name)?.Value);
+        Assert.Equal("user@example.test", identity.FindFirst(ClaimTypes.Email)?.Value);
+        Assert.Equal("https://example.test/picture.jpg",
+            identity.FindFirst(ExternalIdentityClaimTypes.PictureUrl)?.Value);
+        var verificationClaims = identity.FindAll(ExternalIdentityClaimTypes.EmailVerified).ToArray();
+        if (expected is bool verified)
+        {
+            var claim = Assert.Single(verificationClaims);
+            Assert.Equal(verified.ToString(), claim.Value);
+            Assert.Equal(ClaimValueTypes.Boolean, claim.ValueType);
+        }
+        else
+        {
+            Assert.Empty(verificationClaims);
+        }
     }
 
     [Fact]

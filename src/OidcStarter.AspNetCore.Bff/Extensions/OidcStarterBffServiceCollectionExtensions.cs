@@ -164,7 +164,8 @@ public static class OidcStarterBffServiceCollectionExtensions
                 options.ClaimActions.Add(new CustomJsonClaimAction(
                     ExternalIdentityClaimTypes.EmailVerified,
                     ClaimValueTypes.Boolean,
-                    static userInfo => userInfo.TryGetProperty("verified_email", out var verifiedEmail)
+                    static userInfo => (userInfo.TryGetProperty("email_verified", out var verifiedEmail)
+                            || userInfo.TryGetProperty("verified_email", out verifiedEmail))
                         && (verifiedEmail.ValueKind is JsonValueKind.True or JsonValueKind.False)
                         ? verifiedEmail.GetBoolean().ToString()
                         : null));
