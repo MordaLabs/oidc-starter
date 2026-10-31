@@ -17,6 +17,11 @@ if (googleSection.GetValue<bool>("Enabled"))
     builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
 }
 
+if (builder.Configuration.GetValue<bool>("DemoInvitations:EnforceGoogle"))
+{
+    builder.Services.AddGoogleInvitationGate(builder.Configuration["DemoInvitations:DatabasePath"]);
+}
+
 var facebookSection = builder.Configuration.GetSection("ExternalLogin:Facebook");
 if (facebookSection.GetValue<bool>("Enabled"))
 {
