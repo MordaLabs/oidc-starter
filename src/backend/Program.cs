@@ -34,6 +34,11 @@ if (githubSection.GetValue<bool>("Enabled"))
     builder.Services.AddOidcStarterGitHub(githubSection.GetSection("Options"));
 }
 
+if (builder.Configuration.GetValue<bool>("DemoInvitations:EnforceGitHub"))
+{
+    builder.Services.AddGitHubInvitationGate(builder.Configuration["DemoInvitations:DatabasePath"]);
+}
+
 var app = builder.Build();
 
 app.UseOidcStarterBff();
