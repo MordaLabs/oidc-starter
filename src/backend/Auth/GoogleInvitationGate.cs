@@ -64,9 +64,14 @@ internal sealed class GoogleInvitationGatePostConfigure(SqliteInvitationStore st
                 store, context.HttpContext.RequestAborted);
 
             context.HttpContext.Items.Remove(EvidenceKey);
-            if (!allowed)
+            if (!allowed || context.Properties is null)
             {
                 Deny(context);
+            }
+            else
+            {
+                InvitationSessionValidation.Mark(context.Properties, "google",
+                    ((GoogleEvidence)value!).Subject);
             }
         };
 
