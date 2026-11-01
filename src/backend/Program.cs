@@ -48,6 +48,7 @@ var invitationWorkflowEnabled = builder.Configuration.GetValue<bool>("DemoInvita
 if (invitationWorkflowEnabled)
 {
     builder.Services.AddInvitationRequestWorkflow(builder.Configuration["DemoInvitations:DatabasePath"]);
+    builder.Services.AddOperatorWorkflow();
 }
 
 var app = builder.Build();
@@ -57,5 +58,6 @@ if (invitationWorkflowEnabled) app.UseRateLimiter();
 
 app.MapControllers();
 if (invitationWorkflowEnabled) app.MapInvitationRequestWorkflow();
+if (invitationWorkflowEnabled) app.MapOperatorWorkflow();
 
 app.Run();

@@ -100,6 +100,174 @@ internal sealed class SqliteInvitationStore
         }
     }
 
+    public async Task<IReadOnlyList<OperatorRequestRecord>?> ListInvitationRequestsAsync(
+        string status, CancellationToken cancellationToken = default)
+    {
+        if (status is not ("pending" or "approved" or "rejected")) return null;
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken);
+            using var command = Command(connection, null, """
+                SELECT id, canonical_email, created_at, status, decided_at, invitation_id
+                FROM invitation_requests WHERE status = $status
+                ORDER BY created_at ASC, id ASC LIMIT 50;
+                """);
+            command.Parameters.AddWithValue("$status", status);
+            var records = new List<OperatorRequestRecord>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                records.Add(new OperatorRequestRecord(
+                    Guid.ParseExact(reader.GetString(0), "N"), reader.GetString(1),
+                    new DateTimeOffset(reader.GetInt64(2), TimeSpan.Zero), reader.GetString(3),
+                    reader.IsDBNull(4) ? null : new DateTimeOffset(reader.GetInt64(4), TimeSpan.Zero),
+                    reader.IsDBNull(5) ? null : Guid.ParseExact(reader.GetString(5), "N")));
+            return records;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    public async Task<OperatorMutationResult> ApproveRequestAsync(
+        Guid requestId, string decidedBy, CancellationToken cancellationToken = default)
+    {
+        if (!ValidOperatorId(decidedBy)) return OperatorMutationResult.Conflict;
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken);
+            using var transaction = connection.BeginTransaction(deferred: false);
+            string email;
+            using (var lookup = Command(connection, transaction,
+                "SELECT canonical_email, status FROM invitation_requests WHERE id = $id"))
+            {
+                lookup.Parameters.AddWithValue("$id", requestId.ToString("N"));
+                await using var reader = await lookup.ExecuteReaderAsync(cancellationToken);
+                if (!await reader.ReadAsync(cancellationToken)) return OperatorMutationResult.Missing;
+                if (reader.GetString(1) != "pending") return OperatorMutationResult.Conflict;
+                email = reader.GetString(0);
+            }
+
+            var now = timeProvider.GetUtcNow().UtcTicks;
+            using (var expire = Command(connection, transaction, """
+                UPDATE invitations SET redeemable_email = NULL
+                WHERE redeemable_email = $email AND expires_at IS NOT NULL AND expires_at <= $now;
+                """))
+            {
+                expire.Parameters.AddWithValue("$email", email);
+                expire.Parameters.AddWithValue("$now", now);
+                await expire.ExecuteNonQueryAsync(cancellationToken);
+            }
+            using (var active = Command(connection, transaction,
+                "SELECT 1 FROM invitations WHERE redeemable_email = $email LIMIT 1"))
+            {
+                active.Parameters.AddWithValue("$email", email);
+                if (await active.ExecuteScalarAsync(cancellationToken) is not null)
+                    return OperatorMutationResult.Conflict;
+            }
+
+            var invitationId = Guid.NewGuid();
+            using (var insert = Command(connection, transaction, """
+                INSERT INTO invitations (id, canonical_email, redeemable_email, created_at, approved_at)
+                VALUES ($id, $email, $email, $now, $now);
+                """))
+            {
+                insert.Parameters.AddWithValue("$id", invitationId.ToString("N"));
+                insert.Parameters.AddWithValue("$email", email);
+                insert.Parameters.AddWithValue("$now", now);
+                await insert.ExecuteNonQueryAsync(cancellationToken);
+            }
+            using (var update = Command(connection, transaction, """
+                UPDATE invitation_requests
+                SET status = 'approved', decided_at = $now, decided_by = $operator, invitation_id = $invitation
+                WHERE id = $id AND status = 'pending';
+                """))
+            {
+                update.Parameters.AddWithValue("$now", now);
+                update.Parameters.AddWithValue("$operator", decidedBy);
+                update.Parameters.AddWithValue("$invitation", invitationId.ToString("N"));
+                update.Parameters.AddWithValue("$id", requestId.ToString("N"));
+                if (await update.ExecuteNonQueryAsync(cancellationToken) != 1)
+                    return OperatorMutationResult.Conflict;
+            }
+            transaction.Commit();
+            return OperatorMutationResult.Success;
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode == 19)
+        {
+            return OperatorMutationResult.Conflict;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return OperatorMutationResult.StorageUnavailable;
+        }
+    }
+
+    public async Task<OperatorMutationResult> RejectRequestAsync(
+        Guid requestId, string decidedBy, CancellationToken cancellationToken = default)
+    {
+        if (!ValidOperatorId(decidedBy)) return OperatorMutationResult.Conflict;
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken);
+            using var transaction = connection.BeginTransaction(deferred: false);
+            using var update = Command(connection, transaction, """
+                UPDATE invitation_requests SET status = 'rejected', decided_at = $now, decided_by = $operator
+                WHERE id = $id AND status = 'pending';
+                """);
+            update.Parameters.AddWithValue("$id", requestId.ToString("N"));
+            update.Parameters.AddWithValue("$now", timeProvider.GetUtcNow().UtcTicks);
+            update.Parameters.AddWithValue("$operator", decidedBy);
+            if (await update.ExecuteNonQueryAsync(cancellationToken) == 1)
+            {
+                transaction.Commit();
+                return OperatorMutationResult.Success;
+            }
+            using var exists = Command(connection, transaction,
+                "SELECT 1 FROM invitation_requests WHERE id = $id");
+            exists.Parameters.AddWithValue("$id", requestId.ToString("N"));
+            return await exists.ExecuteScalarAsync(cancellationToken) is null
+                ? OperatorMutationResult.Missing : OperatorMutationResult.Conflict;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return OperatorMutationResult.StorageUnavailable;
+        }
+    }
+
+    public async Task<OperatorMutationResult> RevokeForOperatorAsync(
+        Guid invitationId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken);
+            using var transaction = connection.BeginTransaction(deferred: false);
+            using var update = Command(connection, transaction, """
+                UPDATE invitations SET revoked_at = $now, redeemable_email = NULL
+                WHERE id = $id AND revoked_at IS NULL;
+                """);
+            update.Parameters.AddWithValue("$id", invitationId.ToString("N"));
+            update.Parameters.AddWithValue("$now", timeProvider.GetUtcNow().UtcTicks);
+            if (await update.ExecuteNonQueryAsync(cancellationToken) == 1)
+            {
+                transaction.Commit();
+                return OperatorMutationResult.Success;
+            }
+            using var exists = Command(connection, transaction, "SELECT 1 FROM invitations WHERE id = $id");
+            exists.Parameters.AddWithValue("$id", invitationId.ToString("N"));
+            return await exists.ExecuteScalarAsync(cancellationToken) is null
+                ? OperatorMutationResult.Missing : OperatorMutationResult.Conflict;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return OperatorMutationResult.StorageUnavailable;
+        }
+    }
+
+    private static bool ValidOperatorId(string? value)
+        => !string.IsNullOrWhiteSpace(value) && value.Length <= 1040
+            && !value.Any(char.IsControl);
+
     // Operator-facing persistence only; no HTTP endpoint is registered in this slice.
     public async Task<Guid> CreateInvitationAsync(
         string email,
