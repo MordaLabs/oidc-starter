@@ -5,6 +5,7 @@ import { SpaAuthViewComponent } from './auth/spa-auth-view/spa-auth-view.compone
 import { environment } from '../environments/environment';
 import { LocaleService } from './locale.service';
 import { InvitationRequestComponent } from './invitation-request/invitation-request.component';
+import { OperatorDashboardComponent } from './operator-dashboard/operator-dashboard.component';
 
 type PingResponse = {
   status: string;
@@ -15,7 +16,7 @@ type PingResponse = {
 
 @Component({
   selector: 'app-root',
-  imports: [SpaAuthViewComponent, BffAuthViewComponent, InvitationRequestComponent],
+  imports: [SpaAuthViewComponent, BffAuthViewComponent, InvitationRequestComponent, OperatorDashboardComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -26,6 +27,7 @@ export class App {
 
   protected readonly authMode = environment.authMode;
   protected readonly invitationRequestUiEnabled = environment.invitationRequestUiEnabled;
+  protected readonly operatorDashboardUiEnabled = environment.operatorDashboardUiEnabled;
   protected readonly pingResult = signal<PingResponse | null>(null);
   protected readonly backendUnreachable = signal(false);
   protected readonly builtInProviders = [

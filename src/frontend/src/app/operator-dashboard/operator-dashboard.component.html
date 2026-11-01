@@ -1,0 +1,104 @@
+@if (authenticated() && !loggingOut()) {
+  <section class="operator-workspace" [attr.aria-label]="locale.copy().operatorEntry">
+    <button type="button" class="workspace-entry" aria-controls="operator-panel"
+      [attr.aria-expanded]="open()" (click)="open() ? close() : openDashboard()">
+      {{ open() ? locale.copy().operatorClose : locale.copy().operatorEntry }}
+    </button>
+    @if (open()) {
+      <div id="operator-panel">
+      <div class="workspace-heading">
+        <div>
+          <p class="eyebrow">{{ locale.copy().operatorEntry }}</p>
+          <h3 id="operator-workspace-title">{{ locale.copy().operatorTitle }}</h3>
+          <p>{{ locale.copy().operatorScope }}</p>
+        </div>
+      </div>
+
+      <div class="workspace-controls">
+        <div>
+          <label for="operator-status">{{ locale.copy().operatorFilterLabel }}</label>
+          <select id="operator-status" [value]="status()" [disabled]="mutating()"
+            (change)="selectStatus($event)">
+            <option value="pending">{{ locale.copy().operatorPending }}</option>
+            <option value="approved">{{ locale.copy().operatorApproved }}</option>
+            <option value="rejected">{{ locale.copy().operatorRejected }}</option>
+          </select>
+        </div>
+        <button type="button" [disabled]="loading() || mutating()" (click)="refresh()">
+          {{ locale.copy().operatorRefresh }}
+        </button>
+      </div>
+
+      <p class="limit-note">{{ locale.copy().operatorLimit }}</p>
+      <p class="workspace-status" role="status" aria-live="polite">
+        {{ feedbackText() }}
+        @if (loading()) { {{ locale.copy().operatorLoading }} }
+      </p>
+
+      @if (records(); as items) {
+        @if (items.length === 0) {
+          <p class="empty-state">{{ locale.copy().operatorEmpty }}</p>
+        } @else {
+          <ul class="request-list" [attr.aria-label]="locale.copy().operatorListLabel">
+            @for (record of items; track record.id) {
+              <li class="request-card">
+                <div class="request-details">
+                  <strong class="request-email">{{ record.email }}</strong>
+                  <dl>
+                    <div><dt>{{ locale.copy().operatorRequestedAt }}</dt>
+                      <dd><time [attr.datetime]="record.createdAt">{{ formatTimestamp(record.createdAt) }}</time></dd></div>
+                    @if (record.decidedAt) {
+                      <div><dt>{{ locale.copy().operatorDecidedAt }}</dt>
+                        <dd><time [attr.datetime]="record.decidedAt">{{ formatTimestamp(record.decidedAt) }}</time></dd></div>
+                    }
+                    @if (record.invitationId) {
+                      <div><dt>{{ locale.copy().operatorInvitationRef }}</dt>
+                        <dd class="request-reference">{{ record.invitationId }}</dd></div>
+                    }
+                  </dl>
+                </div>
+                <div class="request-actions">
+                  @if (canShowAction('approve', record)) {
+                    <button type="button" [disabled]="mutating() || confirmation() !== null"
+                      (click)="requestConfirmation('approve', record)">{{ locale.copy().operatorApprove }}</button>
+                    <button type="button" [disabled]="mutating() || confirmation() !== null"
+                      (click)="requestConfirmation('reject', record)">{{ locale.copy().operatorReject }}</button>
+                  }
+                  @if (canShowAction('revoke', record)) {
+                    <button type="button" [disabled]="mutating() || confirmation() !== null"
+                      (click)="requestConfirmation('revoke', record)">{{ locale.copy().operatorRevoke }}</button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      @if (confirmation(); as selected) {
+        <div class="confirmation" role="group" [attr.aria-label]="locale.copy().operatorConfirmationLabel">
+          <p>
+            @switch (selected.action) {
+              @case ('approve') { {{ locale.copy().operatorConfirmApprove }} }
+              @case ('reject') { {{ locale.copy().operatorConfirmReject }} }
+              @case ('revoke') { {{ locale.copy().operatorConfirmRevoke }} }
+            }
+          </p>
+          <strong>{{ selected.record.email }}</strong>
+          @if (selected.action === 'revoke') {
+            <p>{{ locale.copy().operatorRevokeImpact }}</p>
+          }
+          <div class="confirmation-actions">
+            <button type="button" [disabled]="mutating()" (click)="confirm()">
+              {{ mutating() ? locale.copy().operatorWorking : locale.copy().operatorConfirm }}
+            </button>
+            <button type="button" [disabled]="mutating()" (click)="cancelConfirmation()">
+              {{ locale.copy().operatorCancel }}
+            </button>
+          </div>
+        </div>
+      }
+      </div>
+    }
+  </section>
+}
