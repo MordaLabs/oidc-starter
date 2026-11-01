@@ -66,9 +66,14 @@ internal sealed class GitHubInvitationGatePostConfigure(SqliteInvitationStore st
                 context.HttpContext.Items.TryGetValue(EvidenceKey, out var item);
                 if (item is not Evidence evidence
                     || !await IsAllowedAsync(evidence, context.Principal, store,
-                        context.HttpContext.RequestAborted))
+                        context.HttpContext.RequestAborted)
+                    || context.Properties is null)
                 {
                     Deny(context);
+                }
+                else
+                {
+                    InvitationSessionValidation.Mark(context.Properties, "github", evidence.Subject!);
                 }
             }
             finally

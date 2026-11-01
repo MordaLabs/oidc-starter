@@ -17,7 +17,8 @@ if (googleSection.GetValue<bool>("Enabled"))
     builder.Services.AddOidcStarterGoogle(googleSection.GetSection("Options"));
 }
 
-if (builder.Configuration.GetValue<bool>("DemoInvitations:EnforceGoogle"))
+var enforceGoogle = builder.Configuration.GetValue<bool>("DemoInvitations:EnforceGoogle");
+if (enforceGoogle)
 {
     builder.Services.AddGoogleInvitationGate(builder.Configuration["DemoInvitations:DatabasePath"]);
 }
@@ -34,10 +35,14 @@ if (githubSection.GetValue<bool>("Enabled"))
     builder.Services.AddOidcStarterGitHub(githubSection.GetSection("Options"));
 }
 
-if (builder.Configuration.GetValue<bool>("DemoInvitations:EnforceGitHub"))
+var enforceGitHub = builder.Configuration.GetValue<bool>("DemoInvitations:EnforceGitHub");
+if (enforceGitHub)
 {
     builder.Services.AddGitHubInvitationGate(builder.Configuration["DemoInvitations:DatabasePath"]);
 }
+
+builder.Services.AddInvitationSessionValidation(
+    builder.Configuration["DemoInvitations:DatabasePath"], enforceGoogle, enforceGitHub);
 
 var app = builder.Build();
 
