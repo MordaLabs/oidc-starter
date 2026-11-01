@@ -3,6 +3,7 @@ export const environment = {
   appName: 'OIDC Starter UI',
   authMode: 'bff' as 'bff' | 'spa',
   apiOrigin: '',
+  invitationRequestUiEnabled: false,
   oidc: {
     authority: '',
     clientId: '',

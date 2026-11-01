@@ -4,6 +4,7 @@ import { BffAuthViewComponent } from './auth/bff-auth-view/bff-auth-view.compone
 import { SpaAuthViewComponent } from './auth/spa-auth-view/spa-auth-view.component';
 import { environment } from '../environments/environment';
 import { LocaleService } from './locale.service';
+import { InvitationRequestComponent } from './invitation-request/invitation-request.component';
 
 type PingResponse = {
   status: string;
@@ -14,7 +15,7 @@ type PingResponse = {
 
 @Component({
   selector: 'app-root',
-  imports: [SpaAuthViewComponent, BffAuthViewComponent],
+  imports: [SpaAuthViewComponent, BffAuthViewComponent, InvitationRequestComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -24,6 +25,7 @@ export class App {
   private readonly bffAuthView = viewChild(BffAuthViewComponent);
 
   protected readonly authMode = environment.authMode;
+  protected readonly invitationRequestUiEnabled = environment.invitationRequestUiEnabled;
   protected readonly pingResult = signal<PingResponse | null>(null);
   protected readonly backendUnreachable = signal(false);
   protected readonly builtInProviders = [

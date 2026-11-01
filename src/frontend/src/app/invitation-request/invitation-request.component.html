@@ -1,0 +1,19 @@
+<section class="invitation-request" aria-labelledby="invitation-request-title">
+  <div>
+    <p class="eyebrow">{{ locale.copy().invitationRequestEyebrow }}</p>
+    <h3 id="invitation-request-title">{{ locale.copy().invitationRequestTitle }}</h3>
+    <p>{{ locale.copy().invitationRequestIntro }}</p>
+  </div>
+  <form (submit)="submit($event)" novalidate>
+    <label for="invitation-email">{{ locale.copy().invitationRequestEmail }}</label>
+    <input id="invitation-email" name="email" type="email" autocomplete="email" required maxlength="254"
+      [value]="email()" [disabled]="submitting()" [attr.aria-invalid]="invalid()"
+      [attr.aria-describedby]="feedback() ? 'invitation-request-status' : null"
+      (input)="onEmailInput($event)" />
+    <button type="submit" [disabled]="submitting()">
+      {{ submitting() ? locale.copy().invitationRequestSubmitting : locale.copy().invitationRequestSubmit }}
+    </button>
+    <p id="invitation-request-status" role="status" aria-live="polite"
+      [class.error]="feedback() && !succeeded()">{{ status() }}</p>
+  </form>
+</section>

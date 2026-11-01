@@ -1,0 +1,51 @@
+:host {
+  display: block;
+  margin-top: 2rem;
+}
+
+.invitation-request {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.invitation-request h3 { margin: 0.5rem 0; }
+.invitation-request p { color: var(--muted); line-height: 1.6; }
+form { display: grid; align-content: start; gap: 0.65rem; }
+label { font-weight: 700; }
+input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  color: var(--ink);
+  font: inherit;
+}
+input[aria-invalid='true'] { border-color: #a52a2a; }
+input:focus-visible, button:focus-visible { outline: 3px solid #236bff; outline-offset: 3px; }
+button {
+  width: fit-content;
+  min-height: 2.75rem;
+  padding: 0.6rem 1.2rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: var(--button-background);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--button-background-hover); }
+button:disabled { cursor: wait; opacity: 0.7; }
+#invitation-request-status { min-height: 1.5em; margin: 0; }
+#invitation-request-status.error { color: #9b2525; }
+
+@media (max-width: 760px) {
+  .invitation-request { grid-template-columns: 1fr; }
+}

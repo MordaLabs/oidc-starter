@@ -3,6 +3,7 @@ export const environment = {
   appName: 'OIDC Starter UI',
   authMode: 'spa' as 'spa' | 'bff',
   apiOrigin: '',
+  invitationRequestUiEnabled: false,
   oidc: {
     authority: 'http://localhost:8080/realms/oidc-starter',
     clientId: 'oidc-starter-spa',

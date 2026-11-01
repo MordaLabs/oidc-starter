@@ -139,6 +139,10 @@
         }
       </div>
 
+      @if (authMode === 'bff' && invitationRequestUiEnabled) {
+        <app-invitation-request />
+      }
+
       <section class="runtime-status" aria-labelledby="runtime-title">
         <div>
           <p class="eyebrow">{{ localeService.copy().runtimeEyebrow }}</p>

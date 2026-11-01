@@ -6,6 +6,7 @@ export const environment = {
   // Empty uses the Angular dev-server proxy. Use an origin such as 'https://localhost:7233'
   // when calling the backend directly.
   apiOrigin: '',
+  invitationRequestUiEnabled: true,
   oidc: {
     authority: 'http://localhost:8080/realms/oidc-starter',
     clientId: 'oidc-starter-spa',
