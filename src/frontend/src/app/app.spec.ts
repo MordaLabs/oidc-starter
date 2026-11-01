@@ -717,3 +717,67 @@ describe('App', () => {
     );
   }
 });
+
+describe('App invitation visibility', () => {
+  const originalMode = environment.authMode;
+  const originalFlag = environment.invitationRequestUiEnabled;
+
+  afterEach(() => {
+    environment.authMode = originalMode;
+    environment.invitationRequestUiEnabled = originalFlag;
+    localStorage.removeItem(LOCALE_STORAGE_KEY);
+  });
+
+  for (const enabled of [false, true]) {
+    it(`renders the request form in BFF mode only when the flag is ${enabled}`, async () => {
+      environment.authMode = 'bff';
+      environment.invitationRequestUiEnabled = enabled;
+      localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
+      await TestBed.configureTestingModule({
+        imports: [App],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideBffAuth({ apiOrigin: '' }),
+        ],
+      }).compileComponents();
+
+      const http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(App);
+      http.expectOne('/api/public/ping').flush({
+        status: 'ok', applicationName: 'Demo', timestampUtc: '2026-04-14T00:00:00Z', oidcConfigured: true,
+      });
+      fixture.detectChanges();
+      http.expectOne('/api/auth/me').flush(null, { status: 401, statusText: 'Unauthorized' });
+      fixture.detectChanges();
+      http.match('/api/auth/providers').forEach((request) => request.flush([]));
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-bff-auth-view')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-invitation-request') !== null).toBe(enabled);
+      expect(http.match('/api/demo/invitation-requests')).toHaveSize(0);
+      expect(http.match('/api/auth/csrf')).toHaveSize(0);
+      http.verify();
+    });
+  }
+
+  it('hides the request form in SPA mode even when the flag is enabled', async () => {
+    environment.authMode = 'spa';
+    environment.invitationRequestUiEnabled = true;
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideSpaOidcAuth(environment.oidc)],
+    }).compileComponents();
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(App);
+    http.expectOne('/api/public/ping').flush({
+      status: 'ok', applicationName: 'Demo', timestampUtc: '2026-04-14T00:00:00Z', oidcConfigured: true,
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-spa-auth-view')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-invitation-request')).toBeNull();
+    expect(http.match('/api/demo/invitation-requests')).toHaveSize(0);
+    http.verify();
+  });
+});
