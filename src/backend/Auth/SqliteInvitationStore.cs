@@ -54,9 +54,50 @@ internal sealed class SqliteInvitationStore
                 bound_at INTEGER NOT NULL,
                 UNIQUE (provider_id, provider_subject)
             );
+            CREATE TABLE IF NOT EXISTS invitation_requests (
+                id TEXT PRIMARY KEY,
+                canonical_email TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+                decided_at INTEGER,
+                decided_by TEXT,
+                invitation_id TEXT REFERENCES invitations(id),
+                CHECK ((status = 'pending' AND decided_at IS NULL AND decided_by IS NULL AND invitation_id IS NULL)
+                    OR (status IN ('approved', 'rejected') AND decided_at IS NOT NULL AND decided_by IS NOT NULL))
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS one_pending_invitation_request
+                ON invitation_requests(canonical_email) WHERE status = 'pending';
             """);
         await command.ExecuteNonQueryAsync(cancellationToken);
         transaction.Commit();
+    }
+
+    public async Task<InvitationRequestResult> CreateInvitationRequestAsync(
+        string? email, CancellationToken cancellationToken = default)
+    {
+        if (!InvitationEmail.TryCanonicalize(email, out var canonical))
+            return InvitationRequestResult.InvalidEmail;
+
+        try
+        {
+            await using var connection = await OpenAsync(cancellationToken);
+            using var transaction = connection.BeginTransaction(deferred: false);
+            using var command = Command(connection, transaction, """
+                INSERT INTO invitation_requests (id, canonical_email, created_at, status)
+                VALUES ($id, $email, $created, 'pending')
+                ON CONFLICT(canonical_email) WHERE status = 'pending' DO NOTHING;
+                """);
+            command.Parameters.AddWithValue("$id", Guid.NewGuid().ToString("N"));
+            command.Parameters.AddWithValue("$email", canonical);
+            command.Parameters.AddWithValue("$created", timeProvider.GetUtcNow().UtcTicks);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            transaction.Commit();
+            return InvitationRequestResult.Accepted;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return InvitationRequestResult.StorageUnavailable;
+        }
     }
 
     // Operator-facing persistence only; no HTTP endpoint is registered in this slice.

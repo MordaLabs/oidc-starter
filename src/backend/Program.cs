@@ -44,10 +44,18 @@ if (enforceGitHub)
 builder.Services.AddInvitationSessionValidation(
     builder.Configuration["DemoInvitations:DatabasePath"], enforceGoogle, enforceGitHub);
 
+var invitationWorkflowEnabled = builder.Configuration.GetValue<bool>("DemoInvitations:Workflow:Enabled");
+if (invitationWorkflowEnabled)
+{
+    builder.Services.AddInvitationRequestWorkflow(builder.Configuration["DemoInvitations:DatabasePath"]);
+}
+
 var app = builder.Build();
 
 app.UseOidcStarterBff();
+if (invitationWorkflowEnabled) app.UseRateLimiter();
 
 app.MapControllers();
+if (invitationWorkflowEnabled) app.MapInvitationRequestWorkflow();
 
 app.Run();
