@@ -1,0 +1,51 @@
+:host { display: block; margin-top: 2rem; }
+.operator-workspace {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.workspace-heading, .workspace-controls, .request-card, .confirmation-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.workspace-heading h3 { margin: 0.4rem 0; }
+#operator-panel { margin-top: 1rem; }
+.workspace-heading p, .limit-note { color: var(--muted); line-height: 1.5; }
+.workspace-controls { align-items: end; margin-top: 1.5rem; }
+.workspace-controls > div { display: grid; gap: 0.5rem; }
+label { font-weight: 700; }
+select { min-height: 2.75rem; padding: 0.55rem; border: 1px solid var(--border); border-radius: 0.375rem; font: inherit; }
+button {
+  min-height: 2.75rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.375rem;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--accent-hover); }
+button:disabled { opacity: 0.6; cursor: wait; }
+button:focus-visible, select:focus-visible { outline: 3px solid #236bff; outline-offset: 3px; }
+.workspace-status { min-height: 1.5em; font-weight: 700; }
+.request-list { display: grid; gap: 0.75rem; margin: 1rem 0; padding: 0; list-style: none; }
+.request-card { padding: 1rem; border: 1px solid var(--border); border-radius: 0.375rem; }
+.request-details { min-width: 0; }
+.request-email, .request-reference { overflow-wrap: anywhere; }
+dl { display: grid; gap: 0.4rem; margin: 0.75rem 0 0; }
+dl div { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+dt { color: var(--muted); }
+dd { margin: 0; }
+.request-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.confirmation { margin-top: 1rem; padding: 1rem; border: 2px solid var(--accent); border-radius: 0.375rem; }
+.confirmation p { margin: 0 0 0.6rem; }
+.confirmation-actions { justify-content: flex-start; margin-top: 1rem; }
+@media (max-width: 760px) {
+  .workspace-heading, .workspace-controls, .request-card { flex-direction: column; align-items: stretch; }
+  .request-actions { margin-top: 0.75rem; }
+}

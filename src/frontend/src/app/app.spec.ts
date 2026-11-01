@@ -781,3 +781,62 @@ describe('App invitation visibility', () => {
     http.verify();
   });
 });
+
+describe('App operator dashboard visibility', () => {
+  const originalMode = environment.authMode;
+  const originalFlag = environment.operatorDashboardUiEnabled;
+
+  afterEach(() => {
+    environment.authMode = originalMode;
+    environment.operatorDashboardUiEnabled = originalFlag;
+    localStorage.removeItem(LOCALE_STORAGE_KEY);
+  });
+
+  for (const [enabled, authenticated] of [[false, true], [true, false], [true, true]] as const) {
+    it(`gates the BFF entry for flag=${enabled} and authenticated=${authenticated}`, async () => {
+      environment.authMode = 'bff';
+      environment.operatorDashboardUiEnabled = enabled;
+      localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
+      await TestBed.configureTestingModule({
+        imports: [App],
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideBffAuth({ apiOrigin: '' })],
+      }).compileComponents();
+      const http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(App);
+      http.expectOne('/api/public/ping').flush({
+        status: 'ok', applicationName: 'Demo', timestampUtc: '2026-04-14T00:00:00Z', oidcConfigured: true,
+      });
+      fixture.detectChanges();
+      http.expectOne('/api/auth/me').flush(authenticated
+        ? { isAuthenticated: true, sub: 'operator', name: 'Operator', roles: [], externalIdentity: null }
+        : null, authenticated ? undefined : { status: 401, statusText: 'Unauthorized' });
+      fixture.detectChanges();
+      http.match('/api/auth/providers').forEach((request) => request.flush([]));
+      fixture.detectChanges();
+
+      const entry = fixture.nativeElement.querySelector('.workspace-entry');
+      expect(entry !== null).toBe(enabled && authenticated);
+      expect(http.match((request) => request.url.startsWith('/api/demo/operator/'))).toHaveSize(0);
+      expect(fixture.nativeElement.querySelector('app-bff-auth-view')).not.toBeNull();
+      http.verify();
+    });
+  }
+
+  it('does not render the dashboard in SPA mode', async () => {
+    environment.authMode = 'spa';
+    environment.operatorDashboardUiEnabled = true;
+    await TestBed.configureTestingModule({
+      imports: [App],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideSpaOidcAuth(environment.oidc)],
+    }).compileComponents();
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(App);
+    http.expectOne('/api/public/ping').flush({
+      status: 'ok', applicationName: 'Demo', timestampUtc: '2026-04-14T00:00:00Z', oidcConfigured: true,
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-operator-dashboard')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-spa-auth-view')).not.toBeNull();
+    http.verify();
+  });
+});

@@ -4,6 +4,7 @@ export const environment = {
   authMode: 'bff' as 'bff' | 'spa',
   apiOrigin: '',
   invitationRequestUiEnabled: false,
+  operatorDashboardUiEnabled: false,
   oidc: {
     authority: '',
     clientId: '',

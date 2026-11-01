@@ -4,6 +4,7 @@ export const environment = {
   authMode: 'spa' as 'spa' | 'bff',
   apiOrigin: '',
   invitationRequestUiEnabled: false,
+  operatorDashboardUiEnabled: false,
   oidc: {
     authority: 'http://localhost:8080/realms/oidc-starter',
     clientId: 'oidc-starter-spa',

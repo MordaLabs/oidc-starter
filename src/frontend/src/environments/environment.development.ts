@@ -7,6 +7,7 @@ export const environment = {
   // when calling the backend directly.
   apiOrigin: '',
   invitationRequestUiEnabled: true,
+  operatorDashboardUiEnabled: true,
   oidc: {
     authority: 'http://localhost:8080/realms/oidc-starter',
     clientId: 'oidc-starter-spa',
