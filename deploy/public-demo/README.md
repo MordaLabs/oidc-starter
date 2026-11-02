@@ -14,6 +14,30 @@ Required non-secret settings are `PUBLIC_DEMO_HOST`, the loopback ports, the fix
 
 Google, Facebook, and GitHub are optional. Set a provider's `*_ENABLED` value to `true` only with its corresponding client/app credentials. Register the public callback paths for every enabled provider. The template retains the package default login provider (`oidc`); do not hardcode an environment-specific hostname or provider set into the reusable template.
 
+## Frontend build selection
+
+`PUBLIC_DEMO_FRONTEND_CONFIGURATION=public-demo` is the safe default in
+`.env.example` and when the variable is absent. It builds a BFF frontend with
+both invitation interfaces disabled. The frontend Dockerfile accepts only the
+exact build configurations `public-demo` and `public-demo-acceptance`; an empty
+or other value fails the image build. From `src/frontend`, the corresponding
+local builds are `npm run build:public-demo` and
+`npm run build:public-demo-acceptance`.
+
+Select `PUBLIC_DEMO_FRONTEND_CONFIGURATION=public-demo-acceptance` only in a
+separately isolated staging deployment for P5-A8b. It compiles both invitation
+interfaces into the BFF UI but grants no operator access. The backend workflow,
+Google enforcement, GitHub enforcement, and exact Keycloak operator allowlist
+remain independent runtime controls. Changing the Compose variable requires a
+new frontend image build; it cannot change an already running Angular bundle.
+Do not deploy an acceptance build to the public demo before P5-A8b acceptance.
+
+The Compose project name remains `oidc-starter-public-demo`. A different
+hostname alone does not isolate its Docker volumes and other resources. Use a
+separate host or an explicitly different Compose project name with separate
+volumes, configuration, ports, and bridge network for acceptance staging. Do
+not build or run the acceptance image against the existing production project.
+
 ## Build and run
 
 ```sh
@@ -70,7 +94,8 @@ unwritable volume prevents provisioning or normal invitation operations.
 7. Obtain a private operator's exact validated Keycloak issuer and raw subject
    from trusted Keycloak configuration and account records. Set both allowlist
    variables; email, display name, and role are not substitutes.
-8. Complete P5-A8-03 frontend activation and P5-A8b security acceptance.
+8. Select the acceptance frontend build only in isolated staging and complete
+   P5-A8b security acceptance.
 9. Only then review whether to activate workflow and provider enforcement
    publicly. Back up the database again before changing enforcement flags.
 

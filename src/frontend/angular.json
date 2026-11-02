@@ -63,6 +63,15 @@
               ],
               "outputHashing": "all"
             },
+            "public-demo-acceptance": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.public-demo-acceptance.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "development": {
               "fileReplacements": [
                 {

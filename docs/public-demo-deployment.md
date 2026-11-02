@@ -30,6 +30,19 @@ This build uses `authMode: 'bff'`, an empty `apiOrigin` for relative same-origin
 API calls, and no localhost SPA/Keycloak settings. Deploy the generated frontend
 assets with the BFF available at the same public origin under `/api`.
 
+For controlled P5-A8b acceptance on an independently isolated staging project,
+`npm run build:public-demo-acceptance` selects the separate
+`frontend:build:public-demo-acceptance` configuration. It keeps BFF mode and
+same-origin API calls while compiling both invitation interfaces. The normal
+`public-demo` build keeps both interfaces off. In Compose, the frontend build
+argument comes from `PUBLIC_DEMO_FRONTEND_CONFIGURATION`, defaulting to
+`public-demo`; only that value and `public-demo-acceptance` are accepted. This
+selection happens when the image is built, so changing the variable requires a
+rebuild. Backend invitation flags and operator authorization remain separate
+runtime controls. A staging hostname alone does not isolate the fixed Compose
+project's volumes; use a separate host or project identity and resources. No
+public acceptance build should be deployed before P5-A8b verification.
+
 ## Configure the backend
 
 Run the backend in a production or other non-development environment appropriate
