@@ -2,6 +2,14 @@ using Backend.Configuration;
 using Backend.Auth;
 using OidcStarter.AspNetCore.Bff.Extensions;
 
+if (InvitationDatabaseProvisioning.IsRequested(args))
+{
+    var provisioningConfiguration = WebApplication.CreateBuilder(Array.Empty<string>()).Configuration;
+    Environment.ExitCode = await InvitationDatabaseProvisioning.RunAsync(
+        args, provisioningConfiguration, Console.Out, Console.Error);
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();

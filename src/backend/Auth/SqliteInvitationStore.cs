@@ -69,7 +69,62 @@ internal sealed class SqliteInvitationStore
                 ON invitation_requests(canonical_email) WHERE status = 'pending';
             """);
         await command.ExecuteNonQueryAsync(cancellationToken);
+        await VerifySchemaAsync(connection, transaction, command.CommandText, cancellationToken);
         transaction.Commit();
+    }
+
+    private static async Task VerifySchemaAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string schemaSql,
+        CancellationToken cancellationToken)
+    {
+        // Build the reference in memory from the same DDL so constraints cannot drift
+        // between provisioning and verification. A mismatch rolls back this transaction.
+        await using var reference = new SqliteConnection("Data Source=:memory:;Pooling=False");
+        await reference.OpenAsync(cancellationToken);
+        using (var create = reference.CreateCommand())
+        {
+            create.CommandText = schemaSql;
+            await create.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        var expected = await ReadSchemaAsync(reference, null, cancellationToken);
+        var actual = await ReadSchemaAsync(connection, transaction, cancellationToken);
+        if (expected.Count != 4 || actual.Count != expected.Count
+            || expected.Any(entry => !actual.TryGetValue(entry.Key, out var sql)
+                || !string.Equals(sql, entry.Value, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException("Invitation database schema is incompatible.");
+        }
+
+        using (var integrity = Command(connection, transaction, "PRAGMA quick_check(1);"))
+        {
+            if (!string.Equals(await integrity.ExecuteScalarAsync(cancellationToken) as string,
+                    "ok", StringComparison.Ordinal))
+                throw new InvalidOperationException("Invitation database integrity check failed.");
+        }
+
+        using var foreignKeys = Command(connection, transaction, "PRAGMA foreign_key_check;");
+        await using var violations = await foreignKeys.ExecuteReaderAsync(cancellationToken);
+        if (await violations.ReadAsync(cancellationToken))
+            throw new InvalidOperationException("Invitation database foreign key check failed.");
+    }
+
+    private static async Task<Dictionary<string, string>> ReadSchemaAsync(
+        SqliteConnection connection,
+        SqliteTransaction? transaction,
+        CancellationToken cancellationToken)
+    {
+        using var command = Command(connection, transaction, """
+            SELECT type || ':' || name, sql FROM sqlite_schema
+            WHERE lower(name) NOT GLOB 'sqlite_*';
+            """);
+        var schema = new Dictionary<string, string>(StringComparer.Ordinal);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+            schema.Add(reader.GetString(0), reader.GetString(1));
+        return schema;
     }
 
     public async Task<InvitationRequestResult> CreateInvitationRequestAsync(
