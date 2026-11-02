@@ -17,6 +17,7 @@ services:
       dockerfile: deploy/public-demo/backend.Dockerfile
     volumes:
       - backend-data-protection-keys:/root/.aspnet/DataProtection-Keys
+      - backend-invitations:/var/lib/oidc-starter/invitations
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -38,6 +39,12 @@ services:
       ExternalLogin__GitHub__Enabled: ${GITHUB_ENABLED}
       ExternalLogin__GitHub__Options__ClientId: ${GITHUB_CLIENT_ID}
       ExternalLogin__GitHub__Options__ClientSecret: ${GITHUB_CLIENT_SECRET}
+      DemoInvitations__DatabasePath: /var/lib/oidc-starter/invitations/invitations.db
+      DemoInvitations__Workflow__Enabled: ${DEMO_INVITATIONS_WORKFLOW_ENABLED:-false}
+      DemoInvitations__EnforceGoogle: ${DEMO_INVITATIONS_ENFORCE_GOOGLE:-false}
+      DemoInvitations__EnforceGitHub: ${DEMO_INVITATIONS_ENFORCE_GITHUB:-false}
+      DemoInvitations__Workflow__Operators__0__Issuer: ${DEMO_INVITATIONS_OPERATOR_ISSUER:-}
+      DemoInvitations__Workflow__Operators__0__Subject: ${DEMO_INVITATIONS_OPERATOR_SUBJECT:-}
     ports:
       - "127.0.0.1:${PUBLIC_DEMO_BACKEND_PORT}:8080"
     restart: unless-stopped
@@ -53,3 +60,4 @@ networks:
 
 volumes:
   backend-data-protection-keys:
+  backend-invitations:

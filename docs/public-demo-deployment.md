@@ -77,9 +77,39 @@ failed integrity check returns a nonzero exit code. Normal backend startup does
 not provision the database. Configure the path and directory permissions for the
 same backend identity that will use the database at runtime.
 
-The current `deploy/public-demo/compose.yaml` still has no invitation database
-mount or `DemoInvitations` configuration mappings. This command alone does not
-make the Compose deployment durable or ready to enable invitation enforcement.
+The public-demo Compose template now mounts a dedicated `backend-invitations`
+named volume only into the backend. Its fixed absolute database path is
+`/var/lib/oidc-starter/invitations/invitations.db`. The following backend
+mappings are supplied by `deploy/public-demo/.env.example` and `compose.yaml`:
+
+| Backend setting | Compose source | Tracked default |
+| --- | --- | --- |
+| `DemoInvitations:DatabasePath` | Fixed path on the invitation volume | `/var/lib/oidc-starter/invitations/invitations.db` |
+| `DemoInvitations:Workflow:Enabled` | `DEMO_INVITATIONS_WORKFLOW_ENABLED` | `false` |
+| `DemoInvitations:EnforceGoogle` | `DEMO_INVITATIONS_ENFORCE_GOOGLE` | `false` |
+| `DemoInvitations:EnforceGitHub` | `DEMO_INVITATIONS_ENFORCE_GITHUB` | `false` |
+| `DemoInvitations:Workflow:Operators:0:Issuer` | `DEMO_INVITATIONS_OPERATOR_ISSUER` | empty |
+| `DemoInvitations:Workflow:Operators:0:Subject` | `DEMO_INVITATIONS_OPERATOR_SUBJECT` | empty |
+
+Empty or incomplete operator values grant no access. Use the exact validated
+Keycloak issuer and raw subject of a private operator identity, obtained from
+trusted Keycloak configuration and account records; email and roles are not
+allowlist identities. Provider enablement remains independent of invitation
+enforcement. The public-demo frontend invitation UI flags remain off.
+
+For Compose, run the one-shot provisioner from `deploy/public-demo` with the
+reviewed untracked `.env` and the existing backend image:
+
+```sh
+docker compose --env-file .env run --rm --no-deps backend --provision-demo-invitations
+```
+
+This passes the argument to the image's `dotnet Backend.dll` entrypoint and
+does not start the web host. Before any activation, verify volume permissions,
+database persistence, backup/restore, and the P5-A8b acceptance flow in staging.
+The deployment runbook in `deploy/public-demo/README.md` covers ordering,
+rollback, and staging isolation. The fixed Compose project name must not be
+shared by a second deployment on the same host.
 
 ## HTTPS and reverse proxies
 
