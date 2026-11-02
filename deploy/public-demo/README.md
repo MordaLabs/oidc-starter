@@ -24,6 +24,83 @@ sudo docker compose --env-file .env up -d
 
 The frontend binds to `127.0.0.1:8082` and the backend to `127.0.0.1:8081` with the example values. Adjust the oidc-starter loopback port values in `.env` only if those host ports conflict with other host services.
 
+## Optional invitation database (disabled by default)
+
+Compose mounts the named volume `backend-invitations` only into the backend at
+`/var/lib/oidc-starter/invitations`. The fixed database path is
+`/var/lib/oidc-starter/invitations/invitations.db`; the mount provides its parent
+directory. This volume is separate from `backend-data-protection-keys`. No
+invitation switch is enabled by the tracked `.env.example`. Google/GitHub
+provider enablement does not enable invitation enforcement.
+
+The backend image has `ENTRYPOINT ["dotnet", "Backend.dll"]`. After reviewing
+the real untracked `.env`, building the image under separate approval, and
+confirming the three invitation switches remain `false`, provision once from
+this directory with the same backend image, service configuration, named volume,
+and container identity used at runtime:
+
+```sh
+docker compose --env-file .env run --rm --no-deps backend --provision-demo-invitations
+```
+
+This passes the exact argument to the existing entrypoint. It exits without
+starting HTTP and does not run during `compose up`. Do not add `--user`, change
+the volume, or set a different database path for the one-shot command. A missing
+or inaccessible database makes enabled invitation operations fail closed.
+
+The Dockerfile does not set `USER`; determine the effective UID/GID of the
+built image in staging before relying on ownership assumptions. Verify that
+this identity can create and reopen the database and create SQLite journal or
+`-wal`/`-shm` sidecars in the mounted directory. Keep access limited to the
+backend identity; avoid broad permissions such as `chmod 777`. A read-only or
+unwritable volume prevents provisioning or normal invitation operations.
+
+### Controlled activation sequence
+
+1. Prepare and review the untracked `.env`, keeping workflow, Google enforcement,
+   and GitHub enforcement `false`. Leave the operator pair empty until verified.
+2. Validate the Compose configuration with `docker compose --env-file .env config --quiet`.
+3. Back up current deployment configuration and Data Protection keys; back up
+   any existing invitation database before the first activation.
+4. Build the backend image only after separate deployment approval.
+5. Run the one-shot provisioning command above; check its zero exit status.
+6. Verify the mounted database, effective permissions, and persistence across a
+   controlled backend container replacement in staging. Take a verified backup
+   of the newly provisioned database before changing flags.
+7. Obtain a private operator's exact validated Keycloak issuer and raw subject
+   from trusted Keycloak configuration and account records. Set both allowlist
+   variables; email, display name, and role are not substitutes.
+8. Complete P5-A8-03 frontend activation and P5-A8b security acceptance.
+9. Only then review whether to activate workflow and provider enforcement
+   publicly. Back up the database again before changing enforcement flags.
+
+### Backup, restore, and rollback
+
+Back up the invitation volume before schema-affecting upgrades and flag changes.
+Stop only this project's backend service and any one-shot writer; confirm no
+other process is writing the volume. Use a trusted SQLite-aware backup utility
+to create a consistent copy outside the volume, with restricted access. SQLite
+may have `-wal` and `-shm` sidecars: do not copy only the main file while it is
+live or changing. If the required backup tooling or volume access is unavailable,
+do not proceed with activation. Verify the backup opens and passes SQLite
+integrity and foreign-key checks; retain a tested restore procedure.
+
+Restore only while the backend and all other database users are stopped. Place
+the verified backup at the same path in the same named volume, preserve the
+runtime identity's permissions, verify its schema with the one-shot provisioner,
+and then restart the backend. A stale restore can erase approvals, bindings,
+requests, and revocations, so review that security impact before replacing newer
+data. Application rollback should preserve the current invitation volume and
+the separate Data Protection key volume. Do not use `docker compose down -v`,
+global pruning, or cleanup that touches co-hosted services.
+
+The Compose project name is fixed at `oidc-starter-public-demo`, so its named
+volumes have project-scoped identities. Use a separate host for staging, or an
+explicit and consistently applied different Compose project name (for example,
+`--project-name oidc-starter-staging`) with separate `.env`, host ports, bridge
+subnet/gateway, and public host. Never run staging against the production
+project's invitation volume or Data Protection keys.
+
 ## Host Caddy
 
 Copy the site block from `Caddyfile.example` into the host Caddy configuration, replacing `demo.example.com` if needed. Caddy routes `/api/*`, `/signin-oidc`, `/signout-callback-oidc`, `/signin-google`, `/signin-facebook`, and `/signin-github` to the backend; every other request goes to the Angular frontend.
