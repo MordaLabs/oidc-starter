@@ -6,6 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "build:public-demo": "ng build frontend --configuration public-demo",
+    "build:public-demo-acceptance": "ng build frontend --configuration public-demo-acceptance",
+    "test:public-demo-build-config": "node --test public-demo-build-config.test.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "validate": "npx ng test frontend --watch=false --browsers=ChromeHeadless && npx ng build frontend --configuration production"

@@ -5,6 +5,8 @@ services:
     build:
       context: ../..
       dockerfile: deploy/public-demo/frontend.Dockerfile
+      args:
+        FRONTEND_BUILD_CONFIGURATION: ${PUBLIC_DEMO_FRONTEND_CONFIGURATION-public-demo}
     ports:
       - "127.0.0.1:${PUBLIC_DEMO_FRONTEND_PORT}:80"
     restart: unless-stopped
