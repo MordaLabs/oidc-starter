@@ -60,6 +60,27 @@ The BFF session cookie is HTTP-only and always secure. Configure
 the default is `None`. The generic Compose template leaves
 `Starter:DefaultLoginProvider` at its package default of `oidc`; operators that expose another default must supply a registered provider id through their own backend configuration plumbing.
 
+## Provision the sample invitation database
+
+Provisioning is an explicit, one-shot backend command. Set
+`DemoInvitations__DatabasePath` to a fully qualified SQLite file path in an
+existing directory, then run:
+
+```powershell
+dotnet run --project src/backend/Backend.csproj -- --provision-demo-invitations
+```
+
+The command creates or checks the sample invitation schema and exits without
+starting HTTP. It can be repeated without clearing invitations, requests, or
+bindings. A missing, relative, or unusable path, an incompatible schema, or a
+failed integrity check returns a nonzero exit code. Normal backend startup does
+not provision the database. Configure the path and directory permissions for the
+same backend identity that will use the database at runtime.
+
+The current `deploy/public-demo/compose.yaml` still has no invitation database
+mount or `DemoInvitations` configuration mappings. This command alone does not
+make the Compose deployment durable or ready to enable invitation enforcement.
+
 ## HTTPS and reverse proxies
 
 The BFF applies forwarded headers before HTTPS redirection and supports
