@@ -110,6 +110,11 @@ trusted Keycloak configuration and account records; email and roles are not
 allowlist identities. Provider enablement remains independent of invitation
 enforcement. The public-demo frontend invitation UI flags remain off.
 
+An invitation created by operator approval of a request permits first
+redemption for seven days from approval; at the exact expiry time, first
+redemption is denied. A provider identity bound earlier remains valid until
+revoked. The policy does not rewrite older invitations with no expiration.
+
 For Compose, run the one-shot provisioner from `deploy/public-demo` with the
 reviewed untracked `.env` and the existing backend image:
 

@@ -6,6 +6,7 @@ namespace Backend.Auth;
 // Sample-only persistence. Call InitializeAsync explicitly during provisioning, not app startup.
 internal sealed class SqliteInvitationStore
 {
+    private static readonly TimeSpan OperatorInvitationRedemptionWindow = TimeSpan.FromDays(7);
     private readonly string connectionString;
     private readonly string provisioningConnectionString;
     private readonly TimeProvider timeProvider;
@@ -203,7 +204,9 @@ internal sealed class SqliteInvitationStore
                 email = reader.GetString(0);
             }
 
-            var now = timeProvider.GetUtcNow().UtcTicks;
+            var approvalTime = timeProvider.GetUtcNow();
+            var now = approvalTime.UtcTicks;
+            var expiresAt = approvalTime.Add(OperatorInvitationRedemptionWindow).UtcTicks;
             using (var expire = Command(connection, transaction, """
                 UPDATE invitations SET redeemable_email = NULL
                 WHERE redeemable_email = $email AND expires_at IS NOT NULL AND expires_at <= $now;
@@ -223,13 +226,14 @@ internal sealed class SqliteInvitationStore
 
             var invitationId = Guid.NewGuid();
             using (var insert = Command(connection, transaction, """
-                INSERT INTO invitations (id, canonical_email, redeemable_email, created_at, approved_at)
-                VALUES ($id, $email, $email, $now, $now);
+                INSERT INTO invitations (id, canonical_email, redeemable_email, created_at, approved_at, expires_at)
+                VALUES ($id, $email, $email, $now, $now, $expires);
                 """))
             {
                 insert.Parameters.AddWithValue("$id", invitationId.ToString("N"));
                 insert.Parameters.AddWithValue("$email", email);
                 insert.Parameters.AddWithValue("$now", now);
+                insert.Parameters.AddWithValue("$expires", expiresAt);
                 await insert.ExecuteNonQueryAsync(cancellationToken);
             }
             using (var update = Command(connection, transaction, """
