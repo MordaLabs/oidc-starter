@@ -19,6 +19,7 @@ public sealed class OperatorWorkflowTests
     private const string Issuer = "https://oidc.example.test/realm";
     private const string Subject = "operator-subject";
     private const string ClientId = "oidc-client";
+    private static readonly DateTimeOffset ApprovalTime = new(2030, 1, 2, 3, 4, 5, TimeSpan.Zero);
 
     [Fact]
     public async Task Approval_is_atomic_and_links_one_approved_invitation()
@@ -38,6 +39,71 @@ public sealed class OperatorWorkflowTests
             "SELECT decided_by FROM invitation_requests"));
         Assert.Equal(InvitationDecisionReason.NewBinding,
             (await fixture.Store.BindVerifiedIdentityAsync("google", "google-sub", "person@example.test")).Reason);
+    }
+
+    [Fact]
+    public async Task Operator_approval_uses_one_utc_snapshot_and_seven_day_expiration()
+    {
+        var clock = new ManualClock(ApprovalTime);
+        await using var fixture = await Fixture.StartAsync(timeProvider: clock);
+        var requestId = await fixture.RequestAsync("person@example.test");
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.ApproveRequestAsync(requestId, "operator"));
+
+        var created = await fixture.ScalarAsync<long>("SELECT created_at FROM invitations");
+        var approved = await fixture.ScalarAsync<long>("SELECT approved_at FROM invitations");
+        var expires = await fixture.ScalarAsync<long>("SELECT expires_at FROM invitations");
+        Assert.Equal(ApprovalTime.UtcTicks, created);
+        Assert.Equal(created, approved);
+        Assert.Equal(ApprovalTime.AddDays(7).UtcTicks, expires);
+        Assert.Equal(approved, await fixture.ScalarAsync<long>(
+            "SELECT decided_at FROM invitation_requests"));
+    }
+
+    [Theory]
+    [InlineData(-1L, true)]
+    [InlineData(0L, false)]
+    [InlineData(1L, false)]
+    public async Task First_redemption_respects_exact_expiration_tick(
+        long offsetTicks, bool expectedAllow)
+    {
+        var clock = new ManualClock(ApprovalTime);
+        await using var fixture = await Fixture.StartAsync(timeProvider: clock);
+        var requestId = await fixture.RequestAsync("person@example.test");
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.ApproveRequestAsync(requestId, "operator"));
+
+        clock.Set(ApprovalTime.AddDays(7).AddTicks(offsetTicks));
+        var decision = await fixture.Store.BindVerifiedIdentityAsync(
+            "google", "google-subject", "person@example.test");
+        Assert.Equal(expectedAllow ? InvitationDecisionReason.NewBinding : InvitationDecisionReason.Expired,
+            decision.Reason);
+        Assert.Equal(expectedAllow, decision.Allowed);
+    }
+
+    [Fact]
+    public async Task Bound_identity_survives_expiration_but_not_revocation()
+    {
+        var clock = new ManualClock(ApprovalTime);
+        await using var fixture = await Fixture.StartAsync(timeProvider: clock);
+        var requestId = await fixture.RequestAsync("person@example.test");
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.ApproveRequestAsync(requestId, "operator"));
+        var invitation = Assert.Single((await fixture.Store.ListInvitationRequestsAsync("approved"))!).InvitationId!.Value;
+
+        clock.Set(ApprovalTime.AddDays(7).AddTicks(-1));
+        Assert.Equal(InvitationDecisionReason.NewBinding,
+            (await fixture.Store.BindVerifiedIdentityAsync("github", "123", "person@example.test")).Reason);
+        clock.Set(ApprovalTime.AddDays(8));
+        Assert.Equal(InvitationDecisionReason.BoundIdentity,
+            (await fixture.Store.CheckBoundIdentityAsync("github", "123")).Reason);
+        Assert.Equal(InvitationDecisionReason.BoundIdentity,
+            (await fixture.Store.BindVerifiedIdentityAsync("github", "123", "changed@example.test")).Reason);
+
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.RevokeForOperatorAsync(invitation));
+        Assert.Equal(InvitationDecisionReason.Revoked,
+            (await fixture.Store.CheckBoundIdentityAsync("github", "123")).Reason);
     }
 
     [Fact]
@@ -74,19 +140,77 @@ public sealed class OperatorWorkflowTests
     }
 
     [Fact]
-    public async Task Expired_unredeemed_slot_can_be_reissued_without_revoking_history()
+    public async Task Active_operator_approval_blocks_a_second_approval_for_the_same_email()
     {
-        await using var fixture = await Fixture.StartAsync();
-        var old = await fixture.Store.CreateInvitationAsync("person@example.test",
-            DateTimeOffset.UtcNow.AddDays(1));
-        await fixture.ExecuteAsync("UPDATE invitations SET expires_at = created_at + 1 WHERE redeemable_email = 'person@example.test'");
-        var request = await fixture.RequestAsync("person@example.test");
+        var clock = new ManualClock(ApprovalTime);
+        await using var fixture = await Fixture.StartAsync(timeProvider: clock);
+        var first = await fixture.RequestAsync("person@example.test");
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.ApproveRequestAsync(first, "operator"));
+        clock.Set(ApprovalTime.AddDays(7).AddTicks(-1));
+        var second = await fixture.RequestAsync("PERSON@example.test");
+
+        Assert.Equal(OperatorMutationResult.Conflict,
+            await fixture.Store.ApproveRequestAsync(second, "operator"));
+        Assert.Equal(second, Assert.Single((await fixture.Store.ListInvitationRequestsAsync("pending"))!).Id);
+        Assert.Equal(1, await fixture.CountAsync("invitations"));
+    }
+
+    [Fact]
+    public async Task Legacy_null_expiration_is_not_rewritten_by_operator_approval_policy()
+    {
+        var clock = new ManualClock(ApprovalTime);
+        await using var fixture = await Fixture.StartAsync(timeProvider: clock);
+        var legacy = await fixture.Store.CreateInvitationAsync("legacy@example.test");
+        Assert.True(await fixture.Store.ApproveInvitationAsync(legacy));
+        var request = await fixture.RequestAsync("other@example.test");
         Assert.Equal(OperatorMutationResult.Success,
             await fixture.Store.ApproveRequestAsync(request, "operator"));
+
+        Assert.Equal(1L, await fixture.ScalarAsync<long>($"""
+            SELECT COUNT(*) FROM invitations WHERE id = '{legacy:N}' AND expires_at IS NULL;
+            """));
+        clock.Set(ApprovalTime.AddDays(8));
+        Assert.Equal(InvitationDecisionReason.NewBinding,
+            (await fixture.Store.BindVerifiedIdentityAsync("google", "legacy-subject", "legacy@example.test")).Reason);
+    }
+
+    [Fact]
+    public async Task Expired_unredeemed_slot_can_be_reissued_without_revoking_history()
+    {
+        var clock = new ManualClock(ApprovalTime);
+        await using var fixture = await Fixture.StartAsync(timeProvider: clock);
+        var oldRequest = await fixture.RequestAsync("person@example.test");
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.ApproveRequestAsync(oldRequest, "first-operator"));
+        var oldRecord = Assert.Single((await fixture.Store.ListInvitationRequestsAsync("approved"))!);
+        var oldInvitation = oldRecord.InvitationId!.Value;
+
+        clock.Set(ApprovalTime.AddDays(7));
+        Assert.Equal(InvitationDecisionReason.Expired,
+            (await fixture.Store.BindVerifiedIdentityAsync("google", "unbound", "person@example.test")).Reason);
+        var newRequest = await fixture.RequestAsync("PERSON@example.test");
+        Assert.Equal(OperatorMutationResult.Success,
+            await fixture.Store.ApproveRequestAsync(newRequest, "second-operator"));
+        var approved = (await fixture.Store.ListInvitationRequestsAsync("approved"))!;
+        var prior = Assert.Single(approved, record => record.Id == oldRequest);
+        var replacement = Assert.Single(approved, record => record.Id == newRequest);
+
         Assert.Equal(2, await fixture.CountAsync("invitations"));
-        Assert.NotEqual(old, Assert.Single((await fixture.Store.ListInvitationRequestsAsync("approved"))!).InvitationId);
-        Assert.Equal(0L, await fixture.ScalarAsync<long>(
-            $"SELECT COUNT(*) FROM invitations WHERE id = '{old:N}' AND revoked_at IS NOT NULL"));
+        Assert.Equal(oldRecord, prior);
+        Assert.Equal("first-operator", await fixture.ScalarAsync<string>($"""
+            SELECT decided_by FROM invitation_requests WHERE id = '{oldRequest:N}';
+            """));
+        Assert.NotEqual(oldInvitation, replacement.InvitationId);
+        Assert.Equal(1L, await fixture.ScalarAsync<long>($"""
+            SELECT COUNT(*) FROM invitations
+            WHERE id = '{oldInvitation:N}' AND revoked_at IS NULL AND redeemable_email IS NULL
+              AND expires_at = {ApprovalTime.AddDays(7).UtcTicks};
+            """));
+        var bound = await fixture.Store.BindVerifiedIdentityAsync(
+            "google", "new-subject", "person@example.test");
+        Assert.Equal(InvitationDecisionReason.NewBinding, bound.Reason);
+        Assert.Equal(replacement.InvitationId, bound.InvitationId);
     }
 
     [Fact]
@@ -334,23 +458,33 @@ public sealed class OperatorWorkflowTests
         Assert.False(File.Exists(fixture.Path));
     }
 
+    private sealed class ManualClock(DateTimeOffset initialTime) : TimeProvider
+    {
+        private DateTimeOffset currentTime = initialTime;
+
+        public override DateTimeOffset GetUtcNow() => currentTime;
+
+        public void Set(DateTimeOffset value) => currentTime = value;
+    }
+
     private sealed class Fixture : IAsyncDisposable
     {
         private readonly WebApplication app;
         private readonly HttpClient client;
         public string Path { get; }
         public SqliteInvitationStore Store { get; }
-        private Fixture(WebApplication app, string path)
+        private Fixture(WebApplication app, string path, TimeProvider? timeProvider)
         {
             this.app = app;
             Path = path;
-            Store = new SqliteInvitationStore(path);
+            Store = new SqliteInvitationStore(path, timeProvider);
             client = app.GetTestClient();
             client.BaseAddress = new Uri("https://localhost");
         }
 
         public static async Task<Fixture> StartAsync(bool enabled = true, bool initialize = true,
-            bool allowOperator = true, bool enforceGithub = false, bool malformedAllowlist = false)
+            bool allowOperator = true, bool enforceGithub = false, bool malformedAllowlist = false,
+            TimeProvider? timeProvider = null)
         {
             var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"operator-{Guid.NewGuid():N}.db");
             var builder = WebApplication.CreateBuilder();
@@ -408,7 +542,7 @@ public sealed class OperatorWorkflowTests
                     new ClaimsPrincipal(new ClaimsIdentity(claims, "Test")), properties);
             });
             await app.StartAsync();
-            var fixture = new Fixture(app, path);
+            var fixture = new Fixture(app, path, timeProvider);
             if (initialize) await fixture.Store.InitializeAsync();
             return fixture;
         }
